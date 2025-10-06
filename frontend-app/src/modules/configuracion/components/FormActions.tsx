@@ -1,12 +1,23 @@
 import React from 'react';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
+import '../configuracion.css';
 
-const FormActions: React.FC<{ onCancel?: () => void; isSubmitting?: boolean }> = ({ onCancel, isSubmitting }) => (
-  <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-    <Button type="submit" variant="contained" disabled={isSubmitting}>Guardar</Button>
-    {onCancel && <Button variant="outlined" onClick={onCancel}>Cancelar</Button>}
-  </Box>
+interface FormActionsProps {
+  onCancel?: () => void;
+  isSubmitting?: boolean;
+  submitLabel?: string;
+}
+
+const FormActions: React.FC<FormActionsProps> = ({ onCancel, isSubmitting, submitLabel = 'Guardar' }) => (
+  <div className="config-form-actions">
+    <button type="submit" className="config-button config-button--primary" disabled={isSubmitting}>
+      {submitLabel}
+    </button>
+    {onCancel && (
+      <button type="button" className="config-button config-button--ghost" onClick={onCancel}>
+        Cancelar
+      </button>
+    )}
+  </div>
 );
 
 export default FormActions;

@@ -1,0 +1,58 @@
+---
+title: Componentes compartidos
+description: Referencia rápida de los componentes reutilizables del módulo de configuración.
+---
+
+## FormSection
+
+```tsx
+<FormSection title="Título" description="Texto opcional">
+  {/* Contenido */}
+</FormSection>
+```
+
+La sección proporciona un contenedor accesible para formularios. Acepta `title` y un `description` opcional que se muestra como texto auxiliar.
+
+## FormActions
+
+Botonera con estilos consistentes para formularios.
+
+```tsx
+<FormActions isSubmitting={false} onCancel={reset} submitLabel="Guardar" />
+```
+
+- `isSubmitting`: deshabilita el botón primario.
+- `onCancel`: callback opcional.
+- `submitLabel`: texto del botón primario (por defecto `Guardar`).
+
+## CatalogTable
+
+Tabla responsiva con soporte para columnas personalizadas.
+
+```tsx
+<CatalogTable
+  rows={items}
+  loading={false}
+  emptyMessage="Sin registros"
+  columns=[
+    { key: 'nombre', label: 'Nombre' },
+    { key: 'estado', label: 'Estado', render: item => <EntityStatusBadge status={item.estado} /> }
+  ]
+/>
+```
+
+## CatalogFilterBar
+
+Herramienta de filtrado con campos predefinidos (`search`, `status`, `updatedBy`).
+
+```tsx
+<CatalogFilterBar value={filters} onChange={setFilters} />
+```
+
+## EntityStatusBadge
+
+```tsx
+<EntityStatusBadge status="activo" reason="Cambio aprobado por QA" />
+```
+
+Muestra el estado del catálogo con un `title` para detallar la causa del último cambio.

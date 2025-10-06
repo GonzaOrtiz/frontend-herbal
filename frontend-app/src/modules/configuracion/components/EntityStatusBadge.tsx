@@ -1,17 +1,23 @@
 import React from 'react';
-import Chip from '@mui/material/Chip';
+import { CatalogEntityStatus } from '../types';
+import '../configuracion.css';
 
-export type EntityStatus = 'activo' | 'inactivo' | 'sincronizando';
-
-const statusMap = {
-  activo: { label: 'Activo', color: 'success' },
-  inactivo: { label: 'Inactivo', color: 'default' },
-  sincronizando: { label: 'Sincronizando', color: 'warning' },
+const statusLabels: Record<CatalogEntityStatus, string> = {
+  activo: 'Activo',
+  inactivo: 'Inactivo',
+  sincronizando: 'Sincronizando',
 };
 
-const EntityStatusBadge: React.FC<{ status: EntityStatus }> = ({ status }) => {
-  const { label, color } = statusMap[status] || { label: 'Desconocido', color: 'default' };
-  return <Chip label={label} color={color as any} size="small" />;
-};
+interface EntityStatusBadgeProps {
+  status: CatalogEntityStatus;
+  reason?: string;
+}
+
+const EntityStatusBadge: React.FC<EntityStatusBadgeProps> = ({ status, reason }) => (
+  <span className={`badge badge--${status}`} title={reason ?? statusLabels[status]}>
+    {statusLabels[status]}
+    {reason && <span aria-hidden="true">•</span>}
+  </span>
+);
 
 export default EntityStatusBadge;

@@ -1,21 +1,54 @@
 import React from 'react';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import '../configuracion.css';
 
-interface CatalogTableProps {
-  rows: any[];
-  columns: GridColDef[];
-  loading?: boolean;
+interface CatalogTableColumn<TEntity> {
+  key: keyof TEntity | string;
+  label: string;
+  width?: string | number;
+  render?: (entity: TEntity) => React.ReactNode;
 }
 
-const CatalogTable: React.FC<CatalogTableProps> = ({ rows, columns, loading }) => (
-  <DataGrid
-    rows={rows}
-    columns={columns}
-    loading={loading}
-    autoHeight
-    pageSizeOptions={[10, 25, 50]}
-    disableRowSelectionOnClick
-  />
-);
+interface CatalogTableProps<TEntity> {
+  rows: TEntity[];
+  columns: CatalogTableColumn<TEntity>[];
+  loading?: boolean;
+  emptyMessage?: string;
+}
 
+const CatalogTable = <TEntity,>({ rows, columns, loading, emptyMessage }: CatalogTableProps<TEntity>) => {
+  if (loading) {
+    return <div className="table-empty">Cargando catálogo…</div>;
+  }
+
+  if (!rows.length) {
+    return <div className="table-empty">{emptyMessage ?? 'No hay registros disponibles.'}</div>;
+  }
+
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table className="config-table">
+        <thead>
+          <tr>
+            {columns.map((column) => (
+              <th key={String(column.key)} style={{ width: column.width }}>{column.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, index) => (
+            <tr key={String((row as any).id ?? index)}>
+              {columns.map((column) => (
+                <td key={String(column.key)}>
+                  {column.render ? column.render(row) : (row as Record<string, unknown>)[column.key as string]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export type { CatalogTableColumn };
 export default CatalogTable;
