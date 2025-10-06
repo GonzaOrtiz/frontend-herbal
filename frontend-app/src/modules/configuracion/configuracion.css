@@ -1,0 +1,224 @@
+.config-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid var(--color-border, #d0d5dd);
+  border-radius: 12px;
+  background-color: var(--color-surface, #ffffff);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.config-section__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--color-heading, #1f2937);
+}
+
+.config-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.config-button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.config-button--primary {
+  background-color: var(--color-primary, #2563eb);
+  color: #fff;
+}
+
+.config-button--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.config-button--ghost {
+  background-color: transparent;
+  border-color: var(--color-border, #d0d5dd);
+  color: var(--color-heading, #1f2937);
+}
+
+.config-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.config-nav__item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background-color: transparent;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.config-nav__item--active {
+  background-color: var(--color-primary-light, rgba(37, 99, 235, 0.1));
+  color: var(--color-primary, #2563eb);
+  border-color: var(--color-primary, #2563eb);
+}
+
+.config-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+  color: var(--color-muted, #4b5563);
+}
+
+.config-breadcrumbs__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.config-breadcrumbs__separator {
+  color: var(--color-border-strong, #9ca3af);
+}
+
+.config-filter-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.config-input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border, #d0d5dd);
+  min-width: 220px;
+}
+
+textarea.config-input {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.config-select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border, #d0d5dd);
+}
+
+.config-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.config-table thead {
+  background-color: var(--color-table-header, #f9fafb);
+}
+
+.config-table th,
+.config-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border, #d0d5dd);
+  text-align: left;
+}
+
+.config-table tbody tr:hover {
+  background-color: var(--color-surface-hover, #f3f4f6);
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge--activo {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.badge--inactivo {
+  background-color: rgba(248, 113, 113, 0.12);
+  color: #b91c1c;
+}
+
+.badge--sincronizando {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+}
+
+.sync-banner {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  background-color: rgba(59, 130, 246, 0.08);
+  color: #1d4ed8;
+  margin-bottom: 16px;
+}
+
+.audit-meta {
+  font-size: 0.8rem;
+  color: var(--color-muted, #4b5563);
+}
+
+.table-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-muted, #4b5563);
+}
+
+.config-alert {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  background-color: rgba(254, 226, 226, 0.8);
+  color: #991b1b;
+  margin-bottom: 16px;
+}
+
+.configuracion-module {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toast-viewport {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.toast {
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
+}
+
+.toast--success {
+  background-color: #16a34a;
+}
+
+.toast--error {
+  background-color: #dc2626;
+}
+
+.toast--info {
+  background-color: #2563eb;
+}

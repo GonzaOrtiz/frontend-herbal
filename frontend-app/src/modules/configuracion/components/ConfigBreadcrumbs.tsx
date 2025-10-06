@@ -1,25 +1,27 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
-import Typography from '@mui/material/Typography';
+import { useConfigContext } from '../context/ConfigContext';
+import '../configuracion.css';
 
 const ConfigBreadcrumbs: React.FC = () => {
-  const location = useLocation();
-  const pathnames = location.pathname.split('/').filter(x => x);
+  const { activeRoute } = useConfigContext();
+
+  if (!activeRoute) {
+    return null;
+  }
 
   return (
-    <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-      <Link to="/configuracion">Configuración</Link>
-      {pathnames.map((value, idx) => {
-        const to = `/configuracion/${pathnames.slice(0, idx + 1).join('/')}`;
-        const isLast = idx === pathnames.length - 1;
-        return isLast ? (
-          <Typography color="text.primary" key={to}>{value.charAt(0).toUpperCase() + value.slice(1)}</Typography>
-        ) : (
-          <Link to={to} key={to}>{value.charAt(0).toUpperCase() + value.slice(1)}</Link>
-        );
-      })}
-    </Breadcrumbs>
+    <nav aria-label="Breadcrumb" className="config-breadcrumbs">
+      {activeRoute.meta.breadcrumb.map((crumb, index) => (
+        <span key={crumb} className="config-breadcrumbs__item">
+          {crumb}
+          {index < activeRoute.meta.breadcrumb.length - 1 && (
+            <span aria-hidden="true" className="config-breadcrumbs__separator">
+              /
+            </span>
+          )}
+        </span>
+      ))}
+    </nav>
   );
 };
 

@@ -1,17 +1,24 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { hasPermission } from '../stores/permissions';
+import '../configuracion.css';
 
 interface ProtectedRouteProps {
   permissions: string[];
-  userPermissions: string[];
+  fallback?: React.ReactNode;
   children: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ permissions, userPermissions, children }) => {
-  const hasAccess = permissions.every(p => userPermissions.includes(p));
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ permissions, fallback, children }) => {
+  const hasAccess = permissions.every((permission) => hasPermission(permission));
+
   if (!hasAccess) {
-    return <Navigate to="/" replace />;
+    return (
+      <div className="config-alert" role="alert">
+        {fallback ?? 'Tu usuario no cuenta con permisos para editar este catálogo. Contacta a tu administrador.'}
+      </div>
+    );
   }
+
   return <>{children}</>;
 };
 

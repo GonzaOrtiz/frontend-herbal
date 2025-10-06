@@ -1,39 +1,67 @@
-import { lazy } from 'react';
-import type { RouteObject } from 'react-router-dom';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ProtectedRoute from './components/ProtectedRoute';
+import React from 'react';
+import ActividadesPage from './pages/ActividadesPage';
+import CentrosPage from './pages/CentrosPage';
+import EmpleadosPage from './pages/EmpleadosPage';
+import ParametrosGeneralesPage from './pages/ParametrosGeneralesPage';
+import type { ConfigRoute } from './types';
 
-const ActividadesPage = lazy(() => import('./pages/ActividadesPage'));
-const EmpleadosPage = lazy(() => import('./pages/EmpleadosPage'));
-const CentrosPage = lazy(() => import('./pages/CentrosPage'));
-
-// Simulación de permisos del usuario (en la práctica, obtén esto de contexto o props)
-const userPermissions = ['catalogos.read'];
-
-export const configRoutes: RouteObject[] = [
-  {
-    path: 'actividades',
-    element: (
-      <ProtectedRoute permissions={['catalogos.read', 'catalogos.write']} userPermissions={userPermissions}>
-        <ActividadesPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: 'empleados',
-    element: (
-      <ProtectedRoute permissions={['catalogos.read', 'catalogos.write']} userPermissions={userPermissions}>
-        <EmpleadosPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: 'centros',
-    element: (
-      <ProtectedRoute permissions={['catalogos.read', 'catalogos.write']} userPermissions={userPermissions}>
-        <CentrosPage />
-      </ProtectedRoute>
-    ),
-  },
-  // Agregar más rutas según catálogos prioritarios
-];
+export function buildConfigRoutes(): ConfigRoute[] {
+  return [
+    {
+      id: 'actividades',
+      path: 'actividades',
+      meta: {
+        title: 'Actividades',
+        description: 'Gestiona las actividades operativas que se sincronizan con los módulos de consumo y producción.',
+        breadcrumb: ['Configuración', 'Catálogos', 'Actividades'],
+        permissions: { read: 'catalogos.read', write: 'catalogos.write' },
+        featureFlag: 'catalogoActividades',
+        dependencies: ['consumos', 'producción'],
+        secondaryNavLabel: 'Actividades',
+      },
+      element: <ActividadesPage />,
+    },
+    {
+      id: 'empleados',
+      path: 'empleados',
+      meta: {
+        title: 'Empleados',
+        description: 'Administra credenciales y asignaciones de personal incluyendo turnos y roles aprobadores.',
+        breadcrumb: ['Configuración', 'Catálogos', 'Empleados'],
+        permissions: { read: 'catalogos.read', write: 'catalogos.write' },
+        featureFlag: 'catalogoEmpleados',
+        dependencies: ['centros', 'asignaciones'],
+        secondaryNavLabel: 'Empleados',
+      },
+      element: <EmpleadosPage />,
+    },
+    {
+      id: 'centros',
+      path: 'centros',
+      meta: {
+        title: 'Centros de costo',
+        description: 'Catálogo maestro de centros de producción y apoyo con sus responsables y jerarquías.',
+        breadcrumb: ['Configuración', 'Catálogos', 'Centros'],
+        permissions: { read: 'catalogos.read', write: 'catalogos.write' },
+        featureFlag: 'catalogoCentros',
+        dependencies: ['producción'],
+        secondaryNavLabel: 'Centros',
+      },
+      element: <CentrosPage />,
+    },
+    {
+      id: 'parametros-generales',
+      path: 'parametros-generales',
+      meta: {
+        title: 'Parámetros generales',
+        description: 'Define parámetros transversales como fecha de cálculo y reglas contables predeterminadas.',
+        breadcrumb: ['Configuración', 'Parámetros', 'Generales'],
+        permissions: { read: 'catalogos.read', write: 'catalogos.write' },
+        featureFlag: 'parametrosGenerales',
+        dependencies: ['planificación', 'reportes'],
+        secondaryNavLabel: 'Parámetros',
+      },
+      element: <ParametrosGeneralesPage />,
+    },
+  ];
+}
