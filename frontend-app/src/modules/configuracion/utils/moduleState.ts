@@ -1,4 +1,5 @@
 import { hasPermission } from '../stores/permissions.js';
+import type { ConfigRoute } from '../types';
 
 export interface RouteMeta {
   title: string;
@@ -14,9 +15,9 @@ export interface RouteDefinition {
 }
 
 export function filterRoutesByFeatureFlags(
-  routes: RouteDefinition[],
+  routes: ConfigRoute[],
   featureFlags: Record<string, boolean>
-): RouteDefinition[] {
+): ConfigRoute[] {
   return routes.filter((route) => {
     const permissionOk = hasPermission(route.meta.permissions.read);
     const featureFlagOk = route.meta.featureFlag ? featureFlags[route.meta.featureFlag] : true;

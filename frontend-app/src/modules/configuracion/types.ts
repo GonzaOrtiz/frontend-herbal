@@ -1,4 +1,4 @@
-type ReactNode = unknown;
+import type { ReactNode } from 'react';
 
 export type CatalogEntityStatus = 'activo' | 'inactivo' | 'sincronizando';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CatalogEntityStatus } from '../types';
+import type { CatalogEntityStatus } from '../types';
 import '../configuracion.css';
 
 const statusLabels: Record<CatalogEntityStatus, string> = {

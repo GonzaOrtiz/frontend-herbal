@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import ConfigBreadcrumbs from './components/ConfigBreadcrumbs';
 import ConfigNavBar from './components/ConfigNavBar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -13,7 +13,19 @@ import './configuracion.css';
 const ConfiguracionModule: React.FC = () => {
   const featureFlags = useFeatureFlags();
 
-  const routes = useMemo(() => filterRoutesByFeatureFlags(buildConfigRoutes(), featureFlags), [featureFlags]);
+  const routes = useMemo(() => {
+    const filteredRoutes = filterRoutesByFeatureFlags(buildConfigRoutes(), featureFlags);
+    console.log('Feature Flags:', featureFlags);
+    console.log('Rutas generadas:', buildConfigRoutes());
+    console.log('Rutas filtradas:', filteredRoutes);
+    return filteredRoutes;
+  }, [featureFlags]);
+
+  useEffect(() => {
+    if (routes.length === 0) {
+      console.warn('No se encontraron rutas habilitadas. Verifica los feature flags y permisos.');
+    }
+  }, [routes]);
 
   return (
     <ToastProvider>
@@ -41,7 +53,7 @@ const RouteContainer: React.FC = () => {
     <div>
       <SyncBanner status={syncStatus} catalogName={activeRoute.meta.title} />
       <ProtectedRoute permissions={[activeRoute.meta.permissions.read]}>
-        {activeRoute.element}
+        {activeRoute.element as React.ReactNode}
       </ProtectedRoute>
     </div>
   );

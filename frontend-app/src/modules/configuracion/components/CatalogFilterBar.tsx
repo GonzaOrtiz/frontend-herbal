@@ -1,5 +1,5 @@
 import React from 'react';
-import { CatalogFilterState } from '../types';
+import type { CatalogFilterState } from '../types';
 import '../configuracion.css';
 
 interface CatalogFilterBarProps {
