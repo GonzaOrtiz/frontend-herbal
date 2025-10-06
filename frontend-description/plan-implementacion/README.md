@@ -1,6 +1,14 @@
 # Plan paso a paso para la implementación del frontend
 
-Este plan desglosa la construcción del frontend en iteraciones cortas. Cada paso indica objetivos, entregables y dependencias para asegurar que el equipo avance de forma ordenada aprovechando la documentación existente en `frontend-description/`.
+Este plan desglosa la construcción del frontend en iteraciones cortas, explícitas y accionables. Cada paso describe **qué preparar**, **qué construir** y **con qué documentación respaldarse** para que el equipo pueda arrancar el desarrollo inmediatamente sin ambigüedades. Los pasos están pensados para ejecutarse en orden, pero incluyen dependencias cruzadas para facilitar ajustes si el roadmap cambia.
+
+## Cómo usar este plan
+
+1. **Antes de comenzar un paso**, revisa el apartado "Artefactos de referencia" para reunir la información necesaria.
+2. **Durante la ejecución**, utiliza el checklist operativo de cada paso como guía de tareas. Cada ítem indica el documento origen donde se explica el detalle funcional o técnico a implementar.
+3. **Al finalizar**, valida los criterios de aceptación y genera los entregables listados. Esto asegura que el siguiente paso pueda iniciar sin bloqueos.
+
+Mantén este documento sincronizado con la planificación del equipo. Cualquier desviación (por ejemplo, priorizar un módulo diferente) debe ir acompañada de la actualización correspondiente del paso impactado.
 
 ## Mapa de pasos
 
@@ -13,4 +21,4 @@ Este plan desglosa la construcción del frontend en iteraciones cortas. Cada pas
 7. [Reportes y analítica](./paso-07-reportes-analitica.md)
 8. [Calidad, despliegue y mejoras continuas](./paso-08-calidad-despliegue.md)
 
-Cada archivo detalla los componentes a construir, los documentos de referencia y los criterios de aceptación que garantizan el éxito del paso.
+Cada archivo detalla los componentes a construir, el orden recomendado, los artefactos de referencia y los criterios de aceptación que garantizan el éxito del paso.
