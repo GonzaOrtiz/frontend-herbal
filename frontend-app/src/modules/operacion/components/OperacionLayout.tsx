@@ -34,6 +34,9 @@ const OperacionLayout: React.FC = () => {
   const [selected, setSelected] = useState<string[]>([]);
   const [resultado, setResultado] = useState<AccionMasivaResultado | undefined>();
   const [accionEnProgreso, setAccionEnProgreso] = useState(false);
+  const [showMassActions, setShowMassActions] = useState(false);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
 
   useEffect(() => {
     if (!query.data || query.data.length === 0) return;
@@ -70,6 +73,9 @@ const OperacionLayout: React.FC = () => {
   };
 
   const totalRegistros = useMemo(() => query.data?.length ?? 0, [query.data]);
+  const massPanelId = 'operacion-mass-actions-panel';
+  const bulkPanelId = 'operacion-bulk-upload-panel';
+  const progressPanelId = 'operacion-progress-panel';
 
   return (
     <div className="operacion-module">
@@ -82,23 +88,72 @@ const OperacionLayout: React.FC = () => {
       <ResumenContextualSection resumen={resumen} totalRegistros={totalRegistros} lastEvent={lastEvent} />
       <OperacionFilterBar config={config} />
       <OperacionDataGrid config={config} registros={query.data ?? []} onSelect={setSelected} />
-      <MassActionsDrawer
-        selected={selected}
-        onRun={handleAccion}
-        ultimoResultado={resultado}
-        isProcessing={accionEnProgreso}
-      />
+      {showMassActions && (
+        <div id={massPanelId}>
+          <MassActionsDrawer
+            selected={selected}
+            onRun={handleAccion}
+            ultimoResultado={resultado}
+            isProcessing={accionEnProgreso}
+            onClose={() => setShowMassActions(false)}
+          />
+        </div>
+      )}
       <div className="operacion-toolbar">
         <div>
           <strong>Resumen</strong>
           <p>{resumenTabla.totalRegistros} registros · Estado: {query.status}</p>
         </div>
+        <div className="operacion-actions">
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => setShowMassActions((value) => !value)}
+            aria-expanded={showMassActions}
+            aria-controls={massPanelId}
+          >
+            Acciones masivas
+          </button>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => setShowBulkUpload((value) => !value)}
+            aria-expanded={showBulkUpload}
+            aria-controls={bulkPanelId}
+          >
+            Carga masiva
+          </button>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => setShowProgress((value) => !value)}
+            aria-expanded={showProgress}
+            aria-controls={progressPanelId}
+          >
+            Importación masiva
+          </button>
+        </div>
         <button type="button" onClick={reset}>
           Reiniciar importación
         </button>
       </div>
-      <BulkUploadDialog modulo={modulo} schema={schema} status={status} bitacora={bitacora} onImport={importar} />
-      <ProgressPanel status={status} bitacora={bitacora} />
+      {showBulkUpload && (
+        <div id={bulkPanelId}>
+          <BulkUploadDialog
+            modulo={modulo}
+            schema={schema}
+            status={status}
+            bitacora={bitacora}
+            onImport={importar}
+            onClose={() => setShowBulkUpload(false)}
+          />
+        </div>
+      )}
+      {showProgress && (
+        <div id={progressPanelId}>
+          <ProgressPanel status={status} bitacora={bitacora} onClose={() => setShowProgress(false)} />
+        </div>
+      )}
       <ImportErrorLog bitacora={bitacora} />
     </div>
   );

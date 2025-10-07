@@ -16,9 +16,10 @@ interface Props {
     | { success: true; registros: OperacionRegistro[] }
     | { success: false; errores: unknown }
   >;
+  onClose?: () => void;
 }
 
-const BulkUploadDialog: React.FC<Props> = ({ modulo, schema, status, bitacora, onImport }) => {
+const BulkUploadDialog: React.FC<Props> = ({ modulo, schema, status, bitacora, onImport, onClose }) => {
   const [rawInput, setRawInput] = useState('');
   const [usuario, setUsuario] = useState('analista.01');
   const [mensaje, setMensaje] = useState<string | null>(null);
@@ -56,9 +57,21 @@ const BulkUploadDialog: React.FC<Props> = ({ modulo, schema, status, bitacora, o
 
   return (
     <section aria-label="Carga masiva" className="progress-panel">
-      <header>
-        <strong>Carga masiva para {modulo}</strong>
-        <p>Los esquemas validan campos clave descritos en la documentación de importaciones.</p>
+      <header className="operacion-panel-header">
+        <div>
+          <strong>Carga masiva para {modulo}</strong>
+          <p>Los esquemas validan campos clave descritos en la documentación de importaciones.</p>
+        </div>
+        {onClose && (
+          <button
+            type="button"
+            className="operacion-panel-close"
+            onClick={onClose}
+            aria-label="Cerrar carga masiva"
+          >
+            ×
+          </button>
+        )}
       </header>
       <label>
         Usuario responsable
