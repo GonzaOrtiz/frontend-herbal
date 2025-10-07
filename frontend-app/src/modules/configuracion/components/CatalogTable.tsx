@@ -14,6 +14,7 @@ interface CatalogTableProps<TEntity> {
   loading?: boolean;
   emptyMessage?: string;
   pageSize?: number;
+  pageSizeOptions?: number[];
 }
 
 const CatalogTable = <TEntity,>({
@@ -21,9 +22,15 @@ const CatalogTable = <TEntity,>({
   columns,
   loading,
   emptyMessage,
-  pageSize = 10,
+  pageSize: initialPageSize = 10,
+  pageSizeOptions = [10, 25, 50],
 }: CatalogTableProps<TEntity>) => {
   const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(initialPageSize);
+
+  React.useEffect(() => {
+    setPageSize(initialPageSize);
+  }, [initialPageSize]);
 
   React.useEffect(() => {
     setPage(1);
@@ -47,6 +54,11 @@ const CatalogTable = <TEntity,>({
 
   const from = rows.length === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, rows.length);
+
+  const normalizedPageSizeOptions = React.useMemo(() => {
+    const uniqueOptions = new Set([...pageSizeOptions, pageSize]);
+    return Array.from(uniqueOptions).sort((a, b) => a - b);
+  }, [pageSizeOptions, pageSize]);
 
   if (loading) {
     return <div className="table-empty">Cargando catálogo…</div>;
@@ -88,6 +100,17 @@ const CatalogTable = <TEntity,>({
           Mostrando {from.toLocaleString()}-{to.toLocaleString()} de {rows.length.toLocaleString()}
         </span>
         <div className="config-table__pagination-actions">
+          <label className="config-table__page-size">
+            Mostrar
+            <select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>
+              {normalizedPageSizeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            registros
+          </label>
           <button
             type="button"
             className="config-pagination-button"
