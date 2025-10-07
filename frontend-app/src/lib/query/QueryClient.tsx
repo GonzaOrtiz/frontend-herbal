@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
   QueryClient,
   createQueryClient,
@@ -7,10 +7,6 @@ import {
   type QueryStatus,
   type QueryResult,
 } from './queryClientCore';
-
-interface QueryObserver<TData> {
-  setState: React.Dispatch<React.SetStateAction<QueryResult<TData>>>;
-}
 
 interface QueryOptions<TData> {
   queryKey: QueryKey;
@@ -54,12 +50,23 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
 
   const enabled = options.enabled ?? true;
   const staleTime = options.staleTime ?? client.getConfig().staleTime ?? 0;
-  const serializedKey = useMemo(() => options.queryKey, [options.queryKey]);
+  const serializedKey = useMemo(() => JSON.stringify(options.queryKey), [options.queryKey]);
+  const stableQueryFn = useCallback(options.queryFn, []);
 
   useEffect(() => {
     if (!enabled) return;
 
-    const unsubscribe = client.subscribe(serializedKey, { setState });
+    const unsubscribe = client.subscribe(serializedKey, {
+      setState: (state) => {
+        setState((prev) => ({
+          ...prev,
+          ...state,
+          data: state.data as TData | undefined,
+          refetch: () => client.fetchQuery(serializedKey, stableQueryFn),
+        }));
+      },
+    });
+
     const record = client.getQuery<TData>(serializedKey);
 
     if (record && record.status === 'success' && Date.now() - record.updatedAt < staleTime) {
@@ -68,7 +75,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
         data: record.data as TData,
         error: undefined,
         updatedAt: record.updatedAt,
-        refetch: () => client.fetchQuery(serializedKey, options.queryFn),
+        refetch: () => client.fetchQuery(serializedKey, stableQueryFn),
       });
       return unsubscribe;
     }
@@ -76,7 +83,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
     let isMounted = true;
 
     client
-      .fetchQuery(serializedKey, options.queryFn)
+      .fetchQuery(serializedKey, stableQueryFn)
       .then((data) => {
         if (!isMounted) return;
         setState({
@@ -84,7 +91,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
           data,
           error: undefined,
           updatedAt: Date.now(),
-          refetch: () => client.fetchQuery(serializedKey, options.queryFn),
+          refetch: () => client.fetchQuery(serializedKey, stableQueryFn),
         });
       })
       .catch((error) => {
@@ -94,7 +101,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
           data: undefined,
           error,
           updatedAt: Date.now(),
-          refetch: () => client.fetchQuery(serializedKey, options.queryFn),
+          refetch: () => client.fetchQuery(serializedKey, stableQueryFn),
         });
       });
 
@@ -102,7 +109,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
       isMounted = false;
       unsubscribe();
     };
-  }, [client, serializedKey, enabled, staleTime, options.queryFn]);
+  }, [client, serializedKey, enabled, staleTime, stableQueryFn]);
 
   const refetchRef = useRef(state.refetch);
   refetchRef.current = () => client.fetchQuery(serializedKey, options.queryFn);
