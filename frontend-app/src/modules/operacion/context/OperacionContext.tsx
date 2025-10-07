@@ -81,6 +81,12 @@ export const OperacionProvider: React.FC<OperacionProviderProps> = ({ initialMod
   const [vistas, setVistas] = useState<VistaGuardada[]>(() => getLocalStorageItem(VIEWS_KEY, []));
 
   useEffect(() => {
+    if (initialModulo && initialModulo !== modulo) {
+      setModulo(initialModulo);
+    }
+  }, [initialModulo, modulo, setModulo]);
+
+  useEffect(() => {
     setFiltros(getLocalStorageItem(`operacion:${modulo}:filters`, getDefaultFilters(modulo)));
   }, [modulo]);
 

@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import ConfiguracionModule from './modules/configuracion';
+import OperacionModule from './modules/operacion';
+import { buildOperacionRoutes } from './modules/operacion/routes';
+import type { OperacionModulo } from './modules/operacion/types';
 import './App.css';
 
 type NavItem = {
@@ -8,8 +11,49 @@ type NavItem = {
   description: string;
   icon: JSX.Element;
 };
+type DomainKey = 'configuracion' | 'operacion';
 
-const buildNavigation = (): NavItem[] => [
+type DomainAction = {
+  label: string;
+  variant?: 'primary' | 'default';
+};
+
+type SidebarStat = {
+  value: string;
+  label: string;
+};
+
+type DomainConfig = {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  logo: string;
+  actions: DomainAction[];
+  overview: {
+    description: string;
+    stats: SidebarStat[];
+  };
+  shortcuts: string[];
+};
+
+type SidebarIconName =
+  | 'dashboard'
+  | 'sliders'
+  | 'factory'
+  | 'users'
+  | 'workflow'
+  | 'consumos'
+  | 'producciones'
+  | 'litros'
+  | 'perdidas'
+  | 'sobrantes';
+
+type EnhancedNavItem = NavItem & {
+  onSelect?: () => void;
+  isActive?: boolean;
+};
+
+const buildConfiguracionNavigation = (): EnhancedNavItem[] => [
   {
     id: 'overview',
     label: 'Panel general',
@@ -42,7 +86,56 @@ const buildNavigation = (): NavItem[] => [
   },
 ];
 
-function SidebarIcon({ name }: { name: 'dashboard' | 'sliders' | 'factory' | 'users' | 'workflow' }) {
+const domainConfigs: Record<DomainKey, DomainConfig> = {
+  configuracion: {
+    eyebrow: 'Suite Herbal ERP',
+    title: 'Configuración y catálogos',
+    subtitle: 'Administra los catálogos maestros y parámetros generales utilizados por los módulos operativos.',
+    logo: '🌿',
+    actions: [
+      { label: 'Agregar catálogo', variant: 'primary' },
+      { label: 'Centro de ayuda' },
+    ],
+    overview: {
+      description:
+        'Consulta el estado general de los catálogos y mantén visibles las dependencias clave antes de publicar cambios.',
+      stats: [
+        { value: '4', label: 'Catálogos activos' },
+        { value: '3', label: 'Dependencias críticas' },
+        { value: 'En línea', label: 'Estado de sincronización' },
+      ],
+    },
+    shortcuts: ['Revisar dependencias', 'Programar sincronización', 'Descargar respaldo'],
+  },
+  operacion: {
+    eyebrow: 'Suite Herbal ERP · Operación',
+    title: 'Operación diaria',
+    subtitle:
+      'Captura y monitorea consumos, producciones, litros, pérdidas y sobrantes con trazabilidad y cierres controlados.',
+    logo: '🛠️',
+    actions: [
+      { label: 'Nueva importación', variant: 'primary' },
+      { label: 'Ver bitácoras' },
+    ],
+    overview: {
+      description:
+        'Supervisa la captura diaria, valida cierres pendientes y sincroniza los módulos dependientes en tiempo real.',
+      stats: [
+        { value: '5', label: 'Turnos abiertos' },
+        { value: '2', label: 'Bloqueos activos' },
+        { value: '92%', label: 'Sincronización completada' },
+      ],
+    },
+    shortcuts: ['Revisar consumos pendientes', 'Descargar bitácoras', 'Configurar alertas'],
+  },
+};
+
+const domainEntries: { id: DomainKey; label: string }[] = [
+  { id: 'configuracion', label: 'Configuración' },
+  { id: 'operacion', label: 'Operación diaria' },
+];
+
+function SidebarIcon({ name }: { name: SidebarIconName }) {
   switch (name) {
     case 'dashboard':
       return (
@@ -86,6 +179,51 @@ function SidebarIcon({ name }: { name: 'dashboard' | 'sliders' | 'factory' | 'us
           />
         </svg>
       );
+    case 'consumos':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M12 2c-1.657 0-3 1.79-3 4v1H7a3 3 0 0 0-3 3v2h16V10a3 3 0 0 0-3-3h-2V6c0-2.21-1.343-4-3-4zm-8 12v4a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-4H4z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'producciones':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M4 4h4l2 3h4l2-3h4v6h-4l-2 3h-4l-2-3H4zM4 18h16v2H4z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'litros':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M12 2 7 9c0 3.314 2.239 6 5 6s5-2.686 5-6l-5-7zm0 20a5 5 0 0 1-5-5h2a3 3 0 0 0 6 0h2a5 5 0 0 1-5 5z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'perdidas':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M12 2 3 22h18L12 2zm0 4 6.16 14H5.84L12 6zm-1 5v5h2v-5h-2zm0 6v2h2v-2h-2z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'sobrantes':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M4 4h16v10H5.414L4 15.414V4zm6 14h10v2H10v-2z"
+            fill="currentColor"
+          />
+        </svg>
+      );
     default:
       return null;
   }
@@ -96,6 +234,30 @@ function App() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [openSections, setOpenSections] = useState({ overview: true, shortcuts: false });
+  const [activeDomain, setActiveDomain] = useState<DomainKey>('configuracion');
+  const [operacionModulo, setOperacionModulo] = useState<OperacionModulo>('consumos');
+
+  const operacionRoutes = useMemo(() => buildOperacionRoutes(), []);
+  const navigationItems = useMemo<EnhancedNavItem[]>(() => {
+    if (activeDomain === 'operacion') {
+      return operacionRoutes.map((route) => ({
+        id: route.id,
+        label: route.title,
+        description: route.description,
+        icon: <SidebarIcon name={route.id} />,
+        onSelect: () => {
+          setOperacionModulo(route.id);
+          if (isCompactViewport) {
+            setIsSidebarVisible(false);
+          }
+        },
+        isActive: route.id === operacionModulo,
+      }));
+    }
+    return buildConfiguracionNavigation();
+  }, [activeDomain, operacionRoutes, operacionModulo, isCompactViewport, setIsSidebarVisible]);
+
+  const domainConfig = domainConfigs[activeDomain];
 
   useEffect(() => {
     const handleResize = () => {
@@ -109,8 +271,6 @@ function App() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const navigationItems = useMemo(() => buildNavigation(), []);
 
   const toggleSidebar = () => {
     if (isCompactViewport) {
@@ -172,22 +332,43 @@ function App() {
 
             <div className="app-navbar__brand">
               <div className="app-navbar__logo" aria-hidden="true">
-                🌿
+                {domainConfig.logo}
               </div>
               <div className="app-navbar__headline">
-                <p className="app-navbar__eyebrow">Suite Herbal ERP</p>
-                <h1 className="app-navbar__title">Configuración y catálogos</h1>
-                <p className="app-navbar__subtitle">
-                  Administra los catálogos maestros y parámetros generales utilizados por los módulos operativos.
-                </p>
+                <p className="app-navbar__eyebrow">{domainConfig.eyebrow}</p>
+                <h1 className="app-navbar__title">{domainConfig.title}</h1>
+                <p className="app-navbar__subtitle">{domainConfig.subtitle}</p>
+                <div className="app-navbar__domains" role="tablist" aria-label="Dominios principales">
+                  {domainEntries.map((entry) => {
+                    const isActive = entry.id === activeDomain;
+                    return (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        role="tab"
+                        className="app-navbar__domain-button"
+                        aria-selected={isActive}
+                        data-active={isActive}
+                        onClick={() => setActiveDomain(entry.id)}
+                      >
+                        {entry.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
           <div className="app-navbar__actions" aria-label="Acciones rápidas">
-            <button type="button" className="app-navbar__action app-navbar__action--primary">
-              Agregar catálogo
-            </button>
-            <button type="button" className="app-navbar__action">Centro de ayuda</button>
+            {domainConfig.actions.map((action) => (
+              <button
+                key={action.label}
+                type="button"
+                className={`app-navbar__action${action.variant === 'primary' ? ' app-navbar__action--primary' : ''}`}
+              >
+                {action.label}
+              </button>
+            ))}
           </div>
         </div>
       </header>
@@ -235,6 +416,10 @@ function App() {
                         className="app-sidebar__nav-item"
                         aria-label={item.label}
                         tabIndex={0}
+                        onClick={item.onSelect}
+                        data-active={item.isActive ?? false}
+                        aria-pressed={item.isActive ?? undefined}
+                        aria-current={item.isActive ? 'page' : undefined}
                       >
                         <span className="app-sidebar__nav-icon" aria-hidden="true">
                           {item.icon}
@@ -260,23 +445,14 @@ function App() {
                   <span aria-hidden="true">{openSections.overview ? '−' : '+'}</span>
                 </button>
                 <div className="app-sidebar__section-body" hidden={!openSections.overview}>
-                  <p className="app-sidebar__description">
-                    Consulta el estado general de los catálogos y mantén visibles las dependencias clave antes de
-                    publicar cambios.
-                  </p>
+                  <p className="app-sidebar__description">{domainConfig.overview.description}</p>
                   <ul className="app-sidebar__stats">
-                    <li className="app-sidebar__stat">
-                      <span className="app-sidebar__stat-value">4</span>
-                      <span className="app-sidebar__stat-label">Catálogos activos</span>
-                    </li>
-                    <li className="app-sidebar__stat">
-                      <span className="app-sidebar__stat-value">3</span>
-                      <span className="app-sidebar__stat-label">Dependencias críticas</span>
-                    </li>
-                    <li className="app-sidebar__stat">
-                      <span className="app-sidebar__stat-value">En línea</span>
-                      <span className="app-sidebar__stat-label">Estado de sincronización</span>
-                    </li>
+                    {domainConfig.overview.stats.map((stat) => (
+                      <li key={stat.label} className="app-sidebar__stat">
+                        <span className="app-sidebar__stat-value">{stat.value}</span>
+                        <span className="app-sidebar__stat-label">{stat.label}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </section>
@@ -293,21 +469,13 @@ function App() {
                 </button>
                 <div className="app-sidebar__section-body" hidden={!openSections.shortcuts}>
                   <ul className="app-sidebar__links">
-                    <li>
-                      <button type="button" className="app-sidebar__link">
-                        Revisar dependencias
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" className="app-sidebar__link">
-                        Programar sincronización
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" className="app-sidebar__link">
-                        Descargar respaldo
-                      </button>
-                    </li>
+                    {domainConfig.shortcuts.map((shortcut) => (
+                      <li key={shortcut}>
+                        <button type="button" className="app-sidebar__link">
+                          {shortcut}
+                        </button>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </section>
@@ -315,7 +483,11 @@ function App() {
           </aside>
 
           <main className="app-main">
-            <ConfiguracionModule />
+            {activeDomain === 'configuracion' ? (
+              <ConfiguracionModule />
+            ) : (
+              <OperacionModule initialModulo={operacionModulo} />
+            )}
           </main>
         </div>
       </div>
