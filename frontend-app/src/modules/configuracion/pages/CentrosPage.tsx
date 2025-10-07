@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import CatalogFilterBar from '../components/CatalogFilterBar';
 import CatalogTable from '../components/CatalogTable';
 import type { CatalogTableColumn } from '../components/CatalogTable';
@@ -19,6 +19,7 @@ const CentrosPage: React.FC = () => {
   const { showToast } = useToast();
   const [filters, setFilters] = useState<CatalogFilterState>({ search: '', status: 'todos' });
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingCentro, setEditingCentro] = useState<Centro | null>(null);
   const form = useForm<CentroFormValues>({ defaultValues: defaultCentroValues, validator: centroValidator });
 
   const centros = useMemo<Centro[]>(() => {
@@ -34,37 +35,112 @@ const CentrosPage: React.FC = () => {
     );
   }, [catalog.items, filters.search]);
 
-  const columns: CatalogTableColumn<Centro>[] = [
-    {
-      key: 'nroCentro',
-      label: 'N° de centro',
-      width: '160px',
-      render: (centro) => centro.nroCentro.toString().padStart(3, '0'),
-    },
-    { key: 'nombre', label: 'Nombre' },
-  ];
-
   const handleFiltersChange = (next: CatalogFilterState) =>
     setFilters({ search: next.search, status: 'todos', updatedBy: undefined });
 
   const handleSubmit = form.handleSubmit(async (values: CentroFormValues) => {
     try {
-      await catalog.create({
-        nombre: values.nombre.trim(),
-        nroCentro: Number(values.nroCentro),
-      });
-      showToast('Centro creado correctamente.', 'success');
+      if (editingCentro) {
+        await catalog.update(editingCentro.id, {
+          nombre: values.nombre.trim(),
+          nroCentro: Number(values.nroCentro),
+        });
+        showToast('Centro actualizado correctamente.', 'success');
+      } else {
+        await catalog.create({
+          nombre: values.nombre.trim(),
+          nroCentro: Number(values.nroCentro),
+        });
+        showToast('Centro creado correctamente.', 'success');
+      }
       form.reset();
+      setEditingCentro(null);
       setIsFormOpen(false);
       await catalog.refetch();
     } catch (error) {
-      showToast('No se pudo crear el centro.', 'error');
+      showToast('No se pudo guardar el centro.', 'error');
     }
   });
+
+  const openCreateForm = useCallback(() => {
+    setEditingCentro(null);
+    form.reset();
+    setIsFormOpen(true);
+  }, [form]);
+
+  const handleEdit = useCallback(
+    (centro: Centro) => {
+      setEditingCentro(centro);
+      form.reset({
+        nombre: centro.nombre,
+        nroCentro: centro.nroCentro.toString(),
+      });
+      setIsFormOpen(true);
+    },
+    [form],
+  );
+
+  const handleDelete = useCallback(
+    async (centro: Centro) => {
+      const confirmed = window.confirm(`¿Deseas eliminar el centro "${centro.nombre}"?`);
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await catalog.remove(centro.id);
+        showToast('Centro eliminado.', 'success');
+        await catalog.refetch();
+      } catch (error) {
+        showToast('No se pudo eliminar el centro.', 'error');
+      }
+    },
+    [catalog, showToast],
+  );
+
+  const closeForm = useCallback(() => {
+    form.reset();
+    setEditingCentro(null);
+    setIsFormOpen(false);
+  }, [form]);
 
   const toggleButtonClassName = `config-button ${
     isFormOpen ? 'config-button--ghost' : 'config-button--primary'
   }`;
+
+  const toggleButtonLabel = isFormOpen
+    ? editingCentro
+      ? 'Cancelar edición'
+      : 'Cerrar formulario'
+    : 'Nuevo centro';
+
+  const columns: CatalogTableColumn<Centro>[] = useMemo(
+    () => [
+      {
+        key: 'nroCentro',
+        label: 'N° de centro',
+        width: '160px',
+        render: (centro) => centro.nroCentro.toString().padStart(3, '0'),
+      },
+      { key: 'nombre', label: 'Nombre' },
+      {
+        key: 'acciones',
+        label: 'Acciones',
+        width: '180px',
+        render: (centro) => (
+          <div className="catalog-row-actions">
+            <button type="button" onClick={() => handleEdit(centro)}>
+              Editar
+            </button>
+            <button type="button" onClick={() => handleDelete(centro)}>
+              Eliminar
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [handleDelete, handleEdit],
+  );
 
   return (
     <div className="catalog-view">
@@ -81,17 +157,23 @@ const CentrosPage: React.FC = () => {
             <button
               type="button"
               className={toggleButtonClassName}
-              onClick={() => setIsFormOpen((open) => !open)}
+              onClick={() => {
+                if (isFormOpen) {
+                  closeForm();
+                } else {
+                  openCreateForm();
+                }
+              }}
               aria-expanded={isFormOpen}
               aria-controls="centro-form"
             >
-              {isFormOpen ? 'Cerrar formulario' : 'Nuevo centro'}
+              {toggleButtonLabel}
             </button>
           </div>
         </header>
 
         {!isFormOpen && (
-          <>
+          <div className="catalog-card">
             <CatalogFilterBar
               value={filters}
               onChange={handleFiltersChange}
@@ -116,15 +198,19 @@ const CentrosPage: React.FC = () => {
               loading={catalog.isLoading}
               emptyMessage="No hay centros registrados."
             />
-          </>
+          </div>
         )}
       </section>
 
       {isFormOpen && (
         <ProtectedRoute permissions={[activeRoute?.meta.permissions.write ?? 'catalogos.write']}>
           <FormSection
-            title="Registrar centro de producción"
-            description="El número de centro debe ser único y mayor a cero."
+            title={editingCentro ? 'Editar centro de producción' : 'Registrar centro de producción'}
+            description={
+              editingCentro
+                ? 'Modifica los datos necesarios y guarda para actualizar el catálogo.'
+                : 'El número de centro debe ser único y mayor a cero.'
+            }
           >
             <form id="centro-form" onSubmit={handleSubmit} noValidate className="config-form">
               <div className="config-form-field">
@@ -159,10 +245,8 @@ const CentrosPage: React.FC = () => {
 
               <FormActions
                 isSubmitting={form.formState.isSubmitting}
-                onCancel={() => {
-                  form.reset();
-                  setIsFormOpen(false);
-                }}
+                onCancel={closeForm}
+                submitLabel={editingCentro ? 'Guardar cambios' : undefined}
               />
             </form>
           </FormSection>

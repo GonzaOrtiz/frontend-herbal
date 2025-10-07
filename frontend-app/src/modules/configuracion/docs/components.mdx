@@ -34,12 +34,26 @@ Tabla responsiva con soporte para columnas personalizadas.
   rows={items}
   loading={false}
   emptyMessage="Sin registros"
+  pageSizeOptions={[10, 25, 50]}
   columns=[
     { key: 'nombre', label: 'Nombre' },
-    { key: 'estado', label: 'Estado', render: item => <EntityStatusBadge status={item.estado} /> }
+    { key: 'estado', label: 'Estado', render: item => <EntityStatusBadge status={item.estado} /> },
+    {
+      key: 'acciones',
+      label: 'Acciones',
+      render: (item) => (
+        <div className="catalog-row-actions">
+          <button type="button" onClick={() => onEdit(item)}>Editar</button>
+          <button type="button" onClick={() => onDelete(item)}>Eliminar</button>
+        </div>
+      ),
+    }
   ]
 />
 ```
+
+- `pageSizeOptions`: define los tamaños de página disponibles desde el selector integrado.
+- Las acciones pueden representarse con el contenedor utilitario `.catalog-row-actions` para mantener la alineación y el espaciado.
 
 ## CatalogFilterBar
 

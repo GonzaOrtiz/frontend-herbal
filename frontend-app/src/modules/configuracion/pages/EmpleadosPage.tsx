@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import CatalogFilterBar from '../components/CatalogFilterBar';
 import CatalogTable from '../components/CatalogTable';
 import type { CatalogTableColumn } from '../components/CatalogTable';
@@ -19,6 +19,7 @@ const EmpleadosPage: React.FC = () => {
   const { showToast } = useToast();
   const [filters, setFilters] = useState<CatalogFilterState>({ search: '', status: 'todos' });
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingEmpleado, setEditingEmpleado] = useState<Empleado | null>(null);
   const form = useForm<EmpleadoFormValues>({ defaultValues: defaultEmpleadoValues, validator: empleadoValidator });
 
   const empleados = useMemo<Empleado[]>(() => {
@@ -34,34 +35,103 @@ const EmpleadosPage: React.FC = () => {
     );
   }, [catalog.items, filters.search]);
 
-  const columns: CatalogTableColumn<Empleado>[] = [
-    {
-      key: 'nroEmpleado',
-      label: 'N° de empleado',
-      width: '160px',
-      render: (empleado) => empleado.nroEmpleado.toString().padStart(3, '0'),
-    },
-    { key: 'nombre', label: 'Nombre' },
-  ];
-
   const handleFiltersChange = (next: CatalogFilterState) =>
     setFilters({ search: next.search, status: 'todos', updatedBy: undefined });
 
   const handleSubmit = form.handleSubmit(async (values: EmpleadoFormValues) => {
     try {
-      await catalog.create({ nombre: values.nombre.trim() });
-      showToast('Empleado registrado correctamente.', 'success');
+      if (editingEmpleado) {
+        await catalog.update(editingEmpleado.id, { nombre: values.nombre.trim() });
+        showToast('Empleado actualizado correctamente.', 'success');
+      } else {
+        await catalog.create({ nombre: values.nombre.trim() });
+        showToast('Empleado registrado correctamente.', 'success');
+      }
       form.reset();
+      setEditingEmpleado(null);
       setIsFormOpen(false);
       await catalog.refetch();
     } catch (error) {
-      showToast('No se pudo registrar el empleado.', 'error');
+      showToast('No se pudo guardar el empleado.', 'error');
     }
   });
+
+  const openCreateForm = useCallback(() => {
+    setEditingEmpleado(null);
+    form.reset();
+    setIsFormOpen(true);
+  }, [form]);
+
+  const handleEdit = useCallback(
+    (empleado: Empleado) => {
+      setEditingEmpleado(empleado);
+      form.reset({ nombre: empleado.nombre });
+      setIsFormOpen(true);
+    },
+    [form],
+  );
+
+  const handleDelete = useCallback(
+    async (empleado: Empleado) => {
+      const confirmed = window.confirm(`¿Deseas eliminar al empleado "${empleado.nombre}"?`);
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await catalog.remove(empleado.id);
+        showToast('Empleado eliminado.', 'success');
+        await catalog.refetch();
+      } catch (error) {
+        showToast('No se pudo eliminar al empleado.', 'error');
+      }
+    },
+    [catalog, showToast],
+  );
+
+  const closeForm = useCallback(() => {
+    form.reset();
+    setEditingEmpleado(null);
+    setIsFormOpen(false);
+  }, [form]);
 
   const toggleButtonClassName = `config-button ${
     isFormOpen ? 'config-button--ghost' : 'config-button--primary'
   }`;
+
+  const toggleButtonLabel = isFormOpen
+    ? editingEmpleado
+      ? 'Cancelar edición'
+      : 'Cerrar formulario'
+    : 'Nuevo empleado';
+
+  const columns: CatalogTableColumn<Empleado>[] = useMemo(
+    () => [
+      {
+        key: 'nroEmpleado',
+        label: 'N° de empleado',
+        width: '160px',
+        render: (empleado) => empleado.nroEmpleado.toString().padStart(3, '0'),
+      },
+      { key: 'nombre', label: 'Nombre' },
+      {
+        key: 'acciones',
+        label: 'Acciones',
+        width: '180px',
+        render: (empleado) => (
+          <div className="catalog-row-actions">
+            <button type="button" onClick={() => handleEdit(empleado)}>
+              Editar
+            </button>
+            <button type="button" onClick={() => handleDelete(empleado)}>
+              Eliminar
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [handleDelete, handleEdit],
+  );
 
   return (
     <div className="catalog-view">
@@ -78,17 +148,23 @@ const EmpleadosPage: React.FC = () => {
             <button
               type="button"
               className={toggleButtonClassName}
-              onClick={() => setIsFormOpen((open) => !open)}
+              onClick={() => {
+                if (isFormOpen) {
+                  closeForm();
+                } else {
+                  openCreateForm();
+                }
+              }}
               aria-expanded={isFormOpen}
               aria-controls="empleado-form"
             >
-              {isFormOpen ? 'Cerrar formulario' : 'Nuevo empleado'}
+              {toggleButtonLabel}
             </button>
           </div>
         </header>
 
         {!isFormOpen && (
-          <>
+          <div className="catalog-card">
             <CatalogFilterBar
               value={filters}
               onChange={handleFiltersChange}
@@ -113,15 +189,19 @@ const EmpleadosPage: React.FC = () => {
               loading={catalog.isLoading}
               emptyMessage="No hay empleados registrados."
             />
-          </>
+          </div>
         )}
       </section>
 
       {isFormOpen && (
         <ProtectedRoute permissions={[activeRoute?.meta.permissions.write ?? 'catalogos.write']}>
           <FormSection
-            title="Registrar empleado"
-            description="El número de empleado se asigna automáticamente por el sistema."
+            title={editingEmpleado ? 'Editar empleado' : 'Registrar empleado'}
+            description={
+              editingEmpleado
+                ? 'Actualiza el nombre del colaborador y guarda para registrar los cambios.'
+                : 'El número de empleado se asigna automáticamente por el sistema.'
+            }
           >
             <form id="empleado-form" onSubmit={handleSubmit} noValidate className="config-form">
               <div className="config-form-field">
@@ -141,10 +221,8 @@ const EmpleadosPage: React.FC = () => {
 
               <FormActions
                 isSubmitting={form.formState.isSubmitting}
-                onCancel={() => {
-                  form.reset();
-                  setIsFormOpen(false);
-                }}
+                onCancel={closeForm}
+                submitLabel={editingEmpleado ? 'Guardar cambios' : undefined}
               />
             </form>
           </FormSection>

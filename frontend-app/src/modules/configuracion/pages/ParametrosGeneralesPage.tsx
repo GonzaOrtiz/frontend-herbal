@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import CatalogFilterBar from '../components/CatalogFilterBar';
 import CatalogTable from '../components/CatalogTable';
 import type { CatalogTableColumn } from '../components/CatalogTable';
@@ -8,7 +8,7 @@ import FormSection from '../components/FormSection';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useConfigContext } from '../context/ConfigContext';
 import { useToast } from '../context/ToastContext';
-import { useParametrosGenerales } from '../hooks/useParametrosGenerales';
+import { useParametrosGenerales, type ParametroGeneral } from '../hooks/useParametrosGenerales';
 import { useForm } from '../hooks/useForm';
 import type { CatalogFilterState } from '../types';
 import {
@@ -26,8 +26,9 @@ const ParametrosGeneralesPage: React.FC = () => {
     validator: parametrosGeneralesValidator,
   });
   const { showToast } = useToast();
+  const [selectedParametro, setSelectedParametro] = useState<ParametroGeneral | null>(null);
 
-  const filteredItems = useMemo(() => {
+  const filteredItems = useMemo<ParametroGeneral[]>(() => {
     return catalog.items.filter((parametro) => {
       const matchesSearch = `${parametro.nombre ?? ''} ${parametro.politicaCosteo ?? ''}`
         .toLowerCase()
@@ -38,54 +39,120 @@ const ParametrosGeneralesPage: React.FC = () => {
     });
   }, [catalog.items, filters]);
 
-  const columns: CatalogTableColumn<(typeof filteredItems)[number]>[] = [
-    { key: 'fechaCalculo', label: 'Fecha de cálculo' },
-    { key: 'politicaCosteo', label: 'Política de costeo' },
-    {
-      key: 'estado',
-      label: 'Estado',
-      render: (parametro) => <EntityStatusBadge status={parametro.estado} reason={parametro.audit.changeReason} />,
+  const handleEdit = useCallback(
+    (parametro: ParametroGeneral) => {
+      setSelectedParametro(parametro);
+      form.reset({
+        fechaCalculo: parametro.fechaCalculo?.slice(0, 10) ?? '',
+        politicaCosteo: parametro.politicaCosteo,
+        aprobador: parametro.audit.updatedBy ?? parametro.audit.createdBy,
+      });
+      showToast('Parámetro seleccionado para edición.', 'info');
     },
-    {
-      key: 'audit',
-      label: 'Última modificación',
-      render: (parametro) => (
-        <span className="audit-meta">
-          {parametro.audit.updatedAt} — {parametro.audit.updatedBy ?? parametro.audit.createdBy}
-        </span>
-      ),
+    [form, showToast],
+  );
+
+  const handleDelete = useCallback(
+    async (parametro: ParametroGeneral) => {
+      const confirmed = window.confirm('¿Deseas eliminar el registro de parámetros generales seleccionado?');
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await catalog.remove(parametro.id);
+        showToast('Parámetro eliminado.', 'success');
+        if (selectedParametro?.id === parametro.id) {
+          setSelectedParametro(null);
+          form.reset();
+        }
+        await catalog.refetch();
+      } catch (error) {
+        showToast('No se pudo eliminar el parámetro.', 'error');
+      }
     },
-  ];
+    [catalog, form, selectedParametro, showToast],
+  );
+
+  const columns: CatalogTableColumn<ParametroGeneral>[] = useMemo(
+    () => [
+      { key: 'fechaCalculo', label: 'Fecha de cálculo' },
+      { key: 'politicaCosteo', label: 'Política de costeo' },
+      {
+        key: 'estado',
+        label: 'Estado',
+        render: (parametro) => <EntityStatusBadge status={parametro.estado} reason={parametro.audit.changeReason} />,
+      },
+      {
+        key: 'audit',
+        label: 'Última modificación',
+        render: (parametro) => (
+          <span className="audit-meta">
+            {parametro.audit.updatedAt} — {parametro.audit.updatedBy ?? parametro.audit.createdBy}
+          </span>
+        ),
+      },
+      {
+        key: 'acciones',
+        label: 'Acciones',
+        width: '200px',
+        render: (parametro) => (
+          <div className="catalog-row-actions">
+            <button type="button" onClick={() => handleEdit(parametro)}>
+              Editar
+            </button>
+            <button type="button" onClick={() => handleDelete(parametro)}>
+              Eliminar
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [handleDelete, handleEdit],
+  );
 
   const handleSubmit = form.handleSubmit(async (values: ParametrosGeneralesFormValues) => {
     try {
-      await catalog.create({
-        id: '',
+      const payload = {
+        id: selectedParametro?.id ?? '',
         nombre: 'Parámetros globales',
         fechaCalculo: values.fechaCalculo,
         politicaCosteo: values.politicaCosteo,
-        estado: 'activo',
+        estado: 'activo' as const,
         audit: {
-          createdAt: new Date().toISOString(),
-          createdBy: values.aprobador,
+          createdAt: selectedParametro?.audit.createdAt ?? new Date().toISOString(),
+          createdBy: selectedParametro?.audit.createdBy ?? values.aprobador,
           updatedAt: new Date().toISOString(),
           updatedBy: values.aprobador,
           changeReason: 'Actualización manual de parámetros',
         },
-      });
+      };
+
+      if (selectedParametro) {
+        await catalog.update(selectedParametro.id, payload);
+        showToast('Parámetros actualizados.', 'success');
+      } else {
+        await catalog.create(payload);
+        showToast('Parámetros registrados.', 'success');
+      }
       form.reset();
-      showToast('Parámetros actualizados.', 'success');
+      setSelectedParametro(null);
+      await catalog.refetch();
     } catch (error) {
       showToast('No se pudieron actualizar los parámetros.', 'error');
     }
   });
 
   return (
-    <div>
+    <div className="catalog-view">
       <ProtectedRoute permissions={[activeRoute?.meta.permissions.write ?? 'catalogos.write']}>
         <FormSection
-          title="Actualizar parámetros generales"
-          description="Modifica la fecha de cálculo y la política de costeo utilizada como base para los reportes."
+          title={selectedParametro ? 'Editar parámetros generales' : 'Actualizar parámetros generales'}
+          description={
+            selectedParametro
+              ? 'Estás editando un registro existente. Cambia los valores y guarda para actualizarlo.'
+              : 'Modifica la fecha de cálculo y la política de costeo utilizada como base para los reportes.'
+          }
         >
           <form onSubmit={handleSubmit} noValidate className="config-form">
             <div className="config-form-field">
@@ -128,21 +195,36 @@ const ParametrosGeneralesPage: React.FC = () => {
 
             <FormActions
               isSubmitting={form.formState.isSubmitting}
-              onCancel={() => form.reset()}
-              submitLabel="Guardar"
+              onCancel={() => {
+                form.reset();
+                setSelectedParametro(null);
+              }}
+              submitLabel={selectedParametro ? 'Guardar cambios' : 'Guardar'}
             />
           </form>
         </FormSection>
       </ProtectedRoute>
 
-      <CatalogFilterBar value={filters} onChange={setFilters} disabled={catalog.isLoading} />
+      <div className="catalog-card">
+        <CatalogFilterBar value={filters} onChange={setFilters} disabled={catalog.isLoading} />
 
-      <CatalogTable
-        rows={filteredItems}
-        columns={columns}
-        loading={catalog.isLoading}
-        emptyMessage="No hay parámetros registrados."
-      />
+        {catalog.error && (
+          <div className="config-alert" role="alert">
+            <span>No pudimos cargar los parámetros. Intenta nuevamente.</span>
+            <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
+              Reintentar
+            </button>
+          </div>
+        )}
+
+        <CatalogTable
+          rows={filteredItems}
+          columns={columns}
+          loading={catalog.isLoading}
+          emptyMessage="No hay parámetros registrados."
+          pageSizeOptions={[5, 10, 20]}
+        />
+      </div>
     </div>
   );
 };
