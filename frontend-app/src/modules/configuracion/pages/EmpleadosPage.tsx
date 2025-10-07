@@ -2,13 +2,12 @@ import React, { useMemo, useState } from 'react';
 import CatalogFilterBar from '../components/CatalogFilterBar';
 import CatalogTable from '../components/CatalogTable';
 import type { CatalogTableColumn } from '../components/CatalogTable';
-import EntityStatusBadge from '../components/EntityStatusBadge';
 import FormActions from '../components/FormActions';
 import FormSection from '../components/FormSection';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useConfigContext } from '../context/ConfigContext';
 import { useToast } from '../context/ToastContext';
-import { useEmpleados } from '../hooks/useEmpleados';
+import { useEmpleados, type Empleado } from '../hooks/useEmpleados';
 import { useForm } from '../hooks/useForm';
 import type { CatalogFilterState } from '../types';
 import { defaultEmpleadoValues, empleadoValidator } from '../schemas/empleadoSchema';
@@ -19,134 +18,133 @@ const EmpleadosPage: React.FC = () => {
   const catalog = useEmpleados();
   const { showToast } = useToast();
   const [filters, setFilters] = useState<CatalogFilterState>({ search: '', status: 'todos' });
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const form = useForm<EmpleadoFormValues>({ defaultValues: defaultEmpleadoValues, validator: empleadoValidator });
 
-  const filteredItems = useMemo(() => {
-    return catalog.items.filter((empleado) => {
-      const matchesSearch = `${empleado.nombre} ${empleado.correo}`
-        .toLowerCase()
-        .includes(filters.search.toLowerCase());
-      const matchesStatus = filters.status === 'todos' || empleado.estado === filters.status;
-      const matchesUser = !filters.updatedBy || empleado.audit.updatedBy?.includes(filters.updatedBy);
-      return matchesSearch && matchesStatus && matchesUser;
-    });
-  }, [catalog.items, filters]);
+  const empleados = useMemo<Empleado[]>(() => {
+    const searchTerm = filters.search.trim().toLowerCase();
+    const ordered = [...catalog.items].sort((a, b) => a.nroEmpleado - b.nroEmpleado);
 
-  const columns: CatalogTableColumn<(typeof filteredItems)[number]>[] = [
+    if (!searchTerm) {
+      return ordered;
+    }
+
+    return ordered.filter((empleado) =>
+      `${empleado.nroEmpleado} ${empleado.nombre}`.toLowerCase().includes(searchTerm),
+    );
+  }, [catalog.items, filters.search]);
+
+  const columns: CatalogTableColumn<Empleado>[] = [
+    {
+      key: 'nroEmpleado',
+      label: 'N° de empleado',
+      width: '160px',
+      render: (empleado) => empleado.nroEmpleado.toString().padStart(3, '0'),
+    },
     { key: 'nombre', label: 'Nombre' },
-    { key: 'correo', label: 'Correo electrónico' },
-    { key: 'centroAsignado', label: 'Centro asignado' },
-    {
-      key: 'estado',
-      label: 'Estado',
-      render: (empleado) => <EntityStatusBadge status={empleado.estado} reason={empleado.audit.changeReason} />,
-    },
-    {
-      key: 'audit',
-      label: 'Última modificación',
-      render: (empleado) => (
-        <span className="audit-meta">
-          {empleado.audit.updatedAt} — {empleado.audit.updatedBy ?? empleado.audit.createdBy}
-        </span>
-      ),
-    },
   ];
+
+  const handleFiltersChange = (next: CatalogFilterState) =>
+    setFilters({ search: next.search, status: 'todos', updatedBy: undefined });
 
   const handleSubmit = form.handleSubmit(async (values: EmpleadoFormValues) => {
     try {
-      await catalog.create({
-        id: '',
-        nombre: values.nombre,
-        correo: values.correo,
-        centroAsignado: values.centroAsignado,
-        estado: values.activo ? 'activo' : 'inactivo',
-        audit: {
-          createdAt: new Date().toISOString(),
-          createdBy: 'usuario.actual',
-          updatedAt: new Date().toISOString(),
-          updatedBy: 'usuario.actual',
-          changeReason: values.activo ? 'Alta de empleado' : 'Ingreso inactivo',
-        },
-      });
-      form.reset();
+      await catalog.create({ nombre: values.nombre.trim() });
       showToast('Empleado registrado correctamente.', 'success');
+      form.reset();
+      setIsFormOpen(false);
     } catch (error) {
       showToast('No se pudo registrar el empleado.', 'error');
     }
   });
 
+  const toggleButtonClassName = `config-button ${
+    isFormOpen ? 'config-button--ghost' : 'config-button--primary'
+  }`;
+
   return (
-    <div>
-      <ProtectedRoute permissions={[activeRoute?.meta.permissions.write ?? 'catalogos.write']}>
-        <FormSection
-          title="Agregar empleado"
-          description="Este formulario sincroniza empleados y sus centros asignados con los módulos de planeación."
-        >
-          <form onSubmit={handleSubmit} noValidate className="config-form">
-            <div className="config-form-field">
-              <label htmlFor="empleado-identificador" className="config-field-label">
-                Identificador interno
-              </label>
-              <input id="empleado-identificador" className="config-input" {...form.register('identificador')} />
-              {form.formState.errors.identificador && (
-                <p className="config-field-error">{form.formState.errors.identificador}</p>
-              )}
-            </div>
+    <div className="catalog-view">
+      <section className="catalog-view__panel">
+        <header className="catalog-view__header">
+          <div className="catalog-view__header-text">
+            <h2 className="catalog-view__title">Colaboradores registrados</h2>
+            <p className="catalog-view__subtitle">
+              Mantén actualizado el catálogo de empleados que se utilizan en asignaciones y sueldos.
+            </p>
+          </div>
+          <div className="catalog-view__actions">
+            <span className="catalog-view__meta">{catalog.items.length} en total</span>
+            <button
+              type="button"
+              className={toggleButtonClassName}
+              onClick={() => setIsFormOpen((open) => !open)}
+              aria-expanded={isFormOpen}
+              aria-controls="empleado-form"
+            >
+              {isFormOpen ? 'Cerrar formulario' : 'Nuevo empleado'}
+            </button>
+          </div>
+        </header>
 
-            <div className="config-form-field">
-              <label htmlFor="empleado-nombre" className="config-field-label">
-                Nombre completo
-              </label>
-              <input id="empleado-nombre" className="config-input" {...form.register('nombre')} />
-              {form.formState.errors.nombre && <p className="config-field-error">{form.formState.errors.nombre}</p>}
-            </div>
+        <CatalogFilterBar
+          value={filters}
+          onChange={handleFiltersChange}
+          disabled={catalog.isLoading}
+          hideStatus
+          hideUpdatedBy
+          searchPlaceholder="Buscar por número o nombre"
+        />
 
-            <div className="config-form-field">
-              <label htmlFor="empleado-correo" className="config-field-label">
-                Correo electrónico
-              </label>
-              <input id="empleado-correo" className="config-input" type="email" {...form.register('correo')} />
-              {form.formState.errors.correo && <p className="config-field-error">{form.formState.errors.correo}</p>}
-            </div>
+        {catalog.error && (
+          <div className="config-alert" role="alert">
+            <span>No pudimos cargar los empleados. Intenta nuevamente.</span>
+            <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
+              Reintentar
+            </button>
+          </div>
+        )}
 
-            <div className="config-form-field">
-              <label htmlFor="empleado-centro" className="config-field-label">
-                Centro asignado
-              </label>
-              <input id="empleado-centro" className="config-input" {...form.register('centroAsignado')} />
-              {form.formState.errors.centroAsignado && (
-                <p className="config-field-error">{form.formState.errors.centroAsignado}</p>
-              )}
-            </div>
+        <CatalogTable
+          rows={empleados}
+          columns={columns}
+          loading={catalog.isLoading}
+          emptyMessage="No hay empleados registrados."
+        />
+      </section>
 
-            <div className="config-form-field config-form-field--inline">
-              <span className="config-field-label">Estado</span>
-              <label className="config-checkbox" htmlFor="empleado-activo">
+      {isFormOpen && (
+        <ProtectedRoute permissions={[activeRoute?.meta.permissions.write ?? 'catalogos.write']}>
+          <FormSection
+            title="Registrar empleado"
+            description="El número de empleado se asigna automáticamente por el sistema."
+          >
+            <form id="empleado-form" onSubmit={handleSubmit} noValidate className="config-form">
+              <div className="config-form-field">
+                <label htmlFor="empleado-nombre" className="config-field-label">
+                  Nombre completo
+                </label>
                 <input
-                  id="empleado-activo"
-                  type="checkbox"
-                  checked={form.formState.values.activo}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    form.setValue('activo', event.target.checked)
-                  }
+                  id="empleado-nombre"
+                  className="config-input"
+                  maxLength={120}
+                  {...form.register('nombre')}
                 />
-                <span>Activo</span>
-              </label>
-            </div>
+                {form.formState.errors.nombre && (
+                  <p className="config-field-error">{form.formState.errors.nombre}</p>
+                )}
+              </div>
 
-            <FormActions isSubmitting={form.formState.isSubmitting} onCancel={() => form.reset()} />
-          </form>
-        </FormSection>
-      </ProtectedRoute>
-
-      <CatalogFilterBar value={filters} onChange={setFilters} disabled={catalog.isLoading} />
-
-      <CatalogTable
-        rows={filteredItems}
-        columns={columns}
-        loading={catalog.isLoading}
-        emptyMessage="No hay empleados registrados."
-      />
+              <FormActions
+                isSubmitting={form.formState.isSubmitting}
+                onCancel={() => {
+                  form.reset();
+                  setIsFormOpen(false);
+                }}
+              />
+            </form>
+          </FormSection>
+        </ProtectedRoute>
+      )}
     </div>
   );
 };

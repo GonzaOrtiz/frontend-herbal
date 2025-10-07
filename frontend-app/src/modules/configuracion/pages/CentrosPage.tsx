@@ -2,13 +2,12 @@ import React, { useMemo, useState } from 'react';
 import CatalogFilterBar from '../components/CatalogFilterBar';
 import CatalogTable from '../components/CatalogTable';
 import type { CatalogTableColumn } from '../components/CatalogTable';
-import EntityStatusBadge from '../components/EntityStatusBadge';
 import FormActions from '../components/FormActions';
 import FormSection from '../components/FormSection';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useConfigContext } from '../context/ConfigContext';
 import { useToast } from '../context/ToastContext';
-import { useCentros } from '../hooks/useCentros';
+import { useCentros, type Centro } from '../hooks/useCentros';
 import { useForm } from '../hooks/useForm';
 import type { CatalogFilterState } from '../types';
 import { centroValidator, defaultCentroValues } from '../schemas/centroSchema';
@@ -19,126 +18,151 @@ const CentrosPage: React.FC = () => {
   const catalog = useCentros();
   const { showToast } = useToast();
   const [filters, setFilters] = useState<CatalogFilterState>({ search: '', status: 'todos' });
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const form = useForm<CentroFormValues>({ defaultValues: defaultCentroValues, validator: centroValidator });
 
-  const filteredItems = useMemo(() => {
-    return catalog.items.filter((centro) => {
-      const matchesSearch = `${centro.codigo} ${centro.nombre}`
-        .toLowerCase()
-        .includes(filters.search.toLowerCase());
-      const matchesStatus = filters.status === 'todos' || centro.estado === filters.status;
-      const matchesUser = !filters.updatedBy || centro.audit.updatedBy?.includes(filters.updatedBy);
-      return matchesSearch && matchesStatus && matchesUser;
-    });
-  }, [catalog.items, filters]);
+  const centros = useMemo<Centro[]>(() => {
+    const searchTerm = filters.search.trim().toLowerCase();
+    const ordered = [...catalog.items].sort((a, b) => a.nroCentro - b.nroCentro);
 
-  const columns: CatalogTableColumn<(typeof filteredItems)[number]>[] = [
-    { key: 'codigo', label: 'Código' },
+    if (!searchTerm) {
+      return ordered;
+    }
+
+    return ordered.filter((centro) =>
+      `${centro.nroCentro} ${centro.nombre}`.toLowerCase().includes(searchTerm),
+    );
+  }, [catalog.items, filters.search]);
+
+  const columns: CatalogTableColumn<Centro>[] = [
+    {
+      key: 'nroCentro',
+      label: 'N° de centro',
+      width: '160px',
+      render: (centro) => centro.nroCentro.toString().padStart(3, '0'),
+    },
     { key: 'nombre', label: 'Nombre' },
-    { key: 'tipo', label: 'Tipo' },
-    {
-      key: 'estado',
-      label: 'Estado',
-      render: (centro) => <EntityStatusBadge status={centro.estado} reason={centro.audit.changeReason} />,
-    },
-    {
-      key: 'audit',
-      label: 'Última modificación',
-      render: (centro) => (
-        <span className="audit-meta">
-          {centro.audit.updatedAt} — {centro.audit.updatedBy ?? centro.audit.createdBy}
-        </span>
-      ),
-    },
   ];
+
+  const handleFiltersChange = (next: CatalogFilterState) =>
+    setFilters({ search: next.search, status: 'todos', updatedBy: undefined });
 
   const handleSubmit = form.handleSubmit(async (values: CentroFormValues) => {
     try {
       await catalog.create({
-        id: '',
-        codigo: values.codigo,
-        nombre: values.nombre,
-        tipo: values.tipo,
-        estado: 'activo',
-        audit: {
-          createdAt: new Date().toISOString(),
-          createdBy: 'usuario.actual',
-          updatedAt: new Date().toISOString(),
-          updatedBy: 'usuario.actual',
-          changeReason: 'Nuevo centro registrado',
-        },
+        nombre: values.nombre.trim(),
+        nroCentro: Number(values.nroCentro),
       });
-      form.reset();
       showToast('Centro creado correctamente.', 'success');
+      form.reset();
+      setIsFormOpen(false);
     } catch (error) {
       showToast('No se pudo crear el centro.', 'error');
     }
   });
 
+  const toggleButtonClassName = `config-button ${
+    isFormOpen ? 'config-button--ghost' : 'config-button--primary'
+  }`;
+
   return (
-    <div>
-      <ProtectedRoute permissions={[activeRoute?.meta.permissions.write ?? 'catalogos.write']}>
-        <FormSection
-          title="Crear centro"
-          description="Los centros impactan directamente en el costeo y producción. Valida con finanzas antes de crear uno nuevo."
-        >
-          <form onSubmit={handleSubmit} noValidate className="config-form">
-            <div className="config-form-field">
-              <label htmlFor="centro-codigo" className="config-field-label">
-                Código
-              </label>
-              <input id="centro-codigo" className="config-input" {...form.register('codigo')} />
-              {form.formState.errors.codigo && <p className="config-field-error">{form.formState.errors.codigo}</p>}
-            </div>
+    <div className="catalog-view">
+      <section className="catalog-view__panel">
+        <header className="catalog-view__header">
+          <div className="catalog-view__header-text">
+            <h2 className="catalog-view__title">Centros de producción</h2>
+            <p className="catalog-view__subtitle">
+              Gestiona los centros que intervienen en los prorrateos y cálculos de costos.
+            </p>
+          </div>
+          <div className="catalog-view__actions">
+            <span className="catalog-view__meta">{catalog.items.length} en total</span>
+            <button
+              type="button"
+              className={toggleButtonClassName}
+              onClick={() => setIsFormOpen((open) => !open)}
+              aria-expanded={isFormOpen}
+              aria-controls="centro-form"
+            >
+              {isFormOpen ? 'Cerrar formulario' : 'Nuevo centro'}
+            </button>
+          </div>
+        </header>
 
-            <div className="config-form-field">
-              <label htmlFor="centro-nombre" className="config-field-label">
-                Nombre
-              </label>
-              <input id="centro-nombre" className="config-input" {...form.register('nombre')} />
-              {form.formState.errors.nombre && <p className="config-field-error">{form.formState.errors.nombre}</p>}
-            </div>
+        <CatalogFilterBar
+          value={filters}
+          onChange={handleFiltersChange}
+          disabled={catalog.isLoading}
+          hideStatus
+          hideUpdatedBy
+          searchPlaceholder="Buscar por número o nombre"
+        />
 
-            <div className="config-form-field">
-              <label htmlFor="centro-tipo" className="config-field-label">
-                Tipo de centro
-              </label>
-              <select
-                id="centro-tipo"
-                className="config-select"
-                value={form.formState.values.tipo}
-                onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                  form.setValue('tipo', event.target.value as CentroFormValues['tipo'])
-                }
-              >
-                <option value="produccion">Producción</option>
-                <option value="apoyo">Apoyo</option>
-              </select>
-            </div>
+        {catalog.error && (
+          <div className="config-alert" role="alert">
+            <span>No pudimos cargar los centros. Intenta nuevamente.</span>
+            <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
+              Reintentar
+            </button>
+          </div>
+        )}
 
-            <div className="config-form-field">
-              <label htmlFor="centro-responsable" className="config-field-label">
-                Responsable
-              </label>
-              <input id="centro-responsable" className="config-input" {...form.register('responsable')} />
-              {form.formState.errors.responsable && (
-                <p className="config-field-error">{form.formState.errors.responsable}</p>
-              )}
-            </div>
+        <CatalogTable
+          rows={centros}
+          columns={columns}
+          loading={catalog.isLoading}
+          emptyMessage="No hay centros registrados."
+        />
+      </section>
 
-            <FormActions isSubmitting={form.formState.isSubmitting} onCancel={() => form.reset()} />
-          </form>
-        </FormSection>
-      </ProtectedRoute>
+      {isFormOpen && (
+        <ProtectedRoute permissions={[activeRoute?.meta.permissions.write ?? 'catalogos.write']}>
+          <FormSection
+            title="Registrar centro de producción"
+            description="El número de centro debe ser único y mayor a cero."
+          >
+            <form id="centro-form" onSubmit={handleSubmit} noValidate className="config-form">
+              <div className="config-form-field">
+                <label htmlFor="centro-numero" className="config-field-label">
+                  Número de centro
+                </label>
+                <input
+                  id="centro-numero"
+                  className="config-input"
+                  inputMode="numeric"
+                  {...form.register('nroCentro')}
+                />
+                {form.formState.errors.nroCentro && (
+                  <p className="config-field-error">{form.formState.errors.nroCentro}</p>
+                )}
+              </div>
 
-      <CatalogFilterBar value={filters} onChange={setFilters} disabled={catalog.isLoading} />
+              <div className="config-form-field">
+                <label htmlFor="centro-nombre" className="config-field-label">
+                  Nombre del centro
+                </label>
+                <input
+                  id="centro-nombre"
+                  className="config-input"
+                  maxLength={120}
+                  {...form.register('nombre')}
+                />
+                {form.formState.errors.nombre && (
+                  <p className="config-field-error">{form.formState.errors.nombre}</p>
+                )}
+              </div>
 
-      <CatalogTable
-        rows={filteredItems}
-        columns={columns}
-        loading={catalog.isLoading}
-        emptyMessage="No hay centros registrados."
-      />
+              <FormActions
+                isSubmitting={form.formState.isSubmitting}
+                onCancel={() => {
+                  form.reset();
+                  setIsFormOpen(false);
+                }}
+              />
+            </form>
+          </FormSection>
+        </ProtectedRoute>
+      )}
     </div>
   );
 };

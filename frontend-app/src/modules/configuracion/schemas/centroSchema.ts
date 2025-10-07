@@ -1,42 +1,38 @@
 import type { ValidationIssue, ValidationResult, Validator } from './types';
 
 export interface CentroFormValues {
-  codigo: string;
   nombre: string;
-  tipo: 'produccion' | 'apoyo';
-  responsable: string;
+  nroCentro: string;
 }
 
 export const defaultCentroValues: CentroFormValues = {
-  codigo: '',
   nombre: '',
-  tipo: 'produccion',
-  responsable: '',
+  nroCentro: '',
 };
 
 export const centroValidator: Validator<CentroFormValues> = (input) => {
   const values = { ...defaultCentroValues, ...(input as Partial<CentroFormValues>) };
   const issues: ValidationIssue[] = [];
 
-  if (!values.codigo || values.codigo.trim().length < 2) {
-    issues.push({ path: 'codigo', message: 'El código debe tener al menos 2 caracteres.' });
+  const nroCentro = values.nroCentro.trim();
+  const nombre = values.nombre.trim();
+  const parsedNumber = Number(nroCentro);
+
+  if (!nroCentro) {
+    issues.push({ path: 'nroCentro', message: 'Ingresa el número de centro.' });
+  } else if (!Number.isInteger(parsedNumber) || parsedNumber <= 0) {
+    issues.push({ path: 'nroCentro', message: 'El número debe ser un entero positivo.' });
   }
 
-  if (!values.nombre || values.nombre.trim().length < 4) {
-    issues.push({ path: 'nombre', message: 'El nombre debe tener al menos 4 caracteres.' });
-  }
-
-  if (!['produccion', 'apoyo'].includes(values.tipo)) {
-    issues.push({ path: 'tipo', message: 'Selecciona un tipo válido.' });
-  }
-
-  if (!values.responsable) {
-    issues.push({ path: 'responsable', message: 'Debes asignar un responsable.' });
+  if (!nombre) {
+    issues.push({ path: 'nombre', message: 'El nombre es obligatorio.' });
+  } else if (nombre.length < 3) {
+    issues.push({ path: 'nombre', message: 'Ingresa al menos 3 caracteres.' });
   }
 
   if (issues.length) {
     return { success: false, issues } satisfies ValidationResult<CentroFormValues>;
   }
 
-  return { success: true, data: values };
+  return { success: true, data: { nombre, nroCentro } };
 };
