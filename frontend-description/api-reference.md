@@ -147,6 +147,17 @@ Ambos módulos almacenan movimientos en kilogramos relacionados con pérdidas de
 | PUT | `/api/asignacion-actividad-empleado/:id` | Campos parciales. | Registro actualizado. | —【F:src/modules/asignacion-actividad-empleado/routes/asignacion-actividad-empleado.routes.ts†L12-L16】 |
 | DELETE | `/api/asignacion-actividad-empleado/:id` | — | `{ message }`. | —【F:src/modules/asignacion-actividad-empleado/routes/asignacion-actividad-empleado.routes.ts†L12-L16】 |
 
+### Asignaciones base
+
+| Método | Ruta | Request | Respuesta | Notas |
+| --- | --- | --- | --- | --- |
+| GET | `/api/asignaciones` | — | Lista `{ _id, desde, hacia, porcentaje, fecha }`. | Ordenar por centro origen/destino para evidenciar acumulados.【F:src/modules/asignacion/routes/asignacion.routes.ts†L15-L21】 |
+| GET | `/api/asignaciones/:id` | Parámetro `id`. | Detalle de asignación. | 404 si no existe.【F:src/modules/asignacion/controllers/asignacion.controller.ts†L20-L26】 |
+| POST | `/api/asignaciones` | `{ "desde": ObjectId, "hacia": ObjectId, "porcentaje": number, "fecha": 'YYYY-MM-DD' }` | Asignación creada (201) y auditada. | Middleware verifica centros válidos, porcentajes y fecha no futura.【F:src/modules/asignacion/routes/asignacion.routes.ts†L19-L21】【F:src/modules/asignacion/middlewares/validar-asignacion.ts†L15-L79】 |
+| PUT | `/api/asignaciones/:id` | Campos parciales. | Asignación actualizada. | Recalcula porcentaje acumulado excluyendo el registro actual.【F:src/modules/asignacion/controllers/asignacion.controller.ts†L40-L53】【F:src/modules/asignacion/services/prorrateo.service.ts†L9-L36】 |
+| DELETE | `/api/asignaciones/:id` | — | `{ message: 'Asignación eliminada correctamente' }`. | Registrar en auditoría frontend/UX.【F:src/modules/asignacion/controllers/asignacion.controller.ts†L55-L62】 |
+| GET | `/api/asignaciones/costo-final/:centroId` | Parámetro `centroId`. | `{ centro, costoFinal }`. | Consumir tras revisar historial para mostrar resumen económico.【F:src/modules/asignacion/routes/asignacion.routes.ts†L17-L18】【F:src/modules/asignacion/controllers/asignacion.controller.ts†L64-L72】 |
+
 ### Asignación de centros
 
 | Método | Ruta | Request | Respuesta | Notas |
