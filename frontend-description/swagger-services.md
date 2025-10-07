@@ -7,6 +7,103 @@ Esta guía detalla cada endpoint publicado en `docs/swagger.json` y amplía la i
 - Cuando el backend valida acciones sensibles registra al usuario mediante la cabecera `x-user`; utilícela en operaciones de costos, importaciones y borrados relevantes.
 - Salvo que se indique lo contrario, las respuestas de error adoptan el formato `{ "message": string }` y utilizan los códigos descriptos en Swagger.
 
+## Índice de endpoints (Swagger)
+
+La siguiente tabla resume los recursos expuestos por el backend según el `docs/swagger.json`. Cada fila enlaza con las secciones detalladas más abajo.
+
+| Módulo (tag Swagger) | Método | Ruta | Resumen |
+| --- | --- | --- | --- |
+| Actividades | `GET` | `/api/actividades` | Obtener todas las actividades |
+| Actividades | `POST` | `/api/actividades` | Crear nueva actividad |
+| Actividades | `DELETE` | `/api/actividades/{id}` | Eliminar una actividad |
+| Actividades | `GET` | `/api/actividades/{id}` | Obtener actividad por ID |
+| Actividades | `PUT` | `/api/actividades/{id}` | Actualizar una actividad |
+| AsignacionActividadEmpleado | `GET` | `/api/asignacion-actividad-empleado` | Obtener todas las asignaciones de actividad a empleado |
+| AsignacionActividadEmpleado | `POST` | `/api/asignacion-actividad-empleado` | Crear nueva asignación de actividad a empleado |
+| AsignacionActividadEmpleado | `DELETE` | `/api/asignaciones-actividad-empleado/{id}` | Eliminar una asignación de actividad a empleado |
+| AsignacionActividadEmpleado | `PUT` | `/api/asignaciones-actividad-empleado/{id}` | Actualizar una asignación de actividad a empleado |
+| AsignacionCentro | `GET` | `/api/asignacion-centro` | Obtener todas las asignaciones de centro |
+| AsignacionCentro | `POST` | `/api/asignacion-centro` | Crear nueva asignación de centro |
+| AsignacionCentro | `DELETE` | `/api/asignacion-centro/{id}` | Eliminar una asignación de centro |
+| AsignacionCentro | `GET` | `/api/asignacion-centro/{id}` | Obtener asignación de centro por ID |
+| AsignacionCentro | `PUT` | `/api/asignacion-centro/{id}` | Actualizar una asignación de centro |
+| AsignacionHistorial | `GET` | `/api/asignaciones/historial/{centro}` | Obtener historial de asignaciones para un centro |
+| Catalogos | `GET` | `/api/catalogos/insumos` | Obtener catálogo de insumos |
+| Catalogos | `POST` | `/api/catalogos/insumos` | Crear insumo |
+| Catalogos | `POST` | `/api/catalogos/insumos/sync` | Sincronizar insumos |
+| Catalogos | `DELETE` | `/api/catalogos/insumos/{id}` | Eliminar insumo |
+| Catalogos | `GET` | `/api/catalogos/insumos/{id}` | Obtener insumo por ID |
+| Catalogos | `PUT` | `/api/catalogos/insumos/{id}` | Actualizar insumo |
+| Catalogos | `GET` | `/api/catalogos/lista-precio` | Obtener catálogo de listas de precios |
+| Catalogos | `POST` | `/api/catalogos/lista-precio` | Crear lista de precios |
+| Catalogos | `POST` | `/api/catalogos/lista-precio/sync` | Sincronizar listas de precios |
+| Catalogos | `DELETE` | `/api/catalogos/lista-precio/{id}` | Eliminar lista de precios |
+| Catalogos | `GET` | `/api/catalogos/lista-precio/{id}` | Obtener lista de precios por ID |
+| Catalogos | `PUT` | `/api/catalogos/lista-precio/{id}` | Actualizar lista de precios |
+| Catalogos | `GET` | `/api/catalogos/maquinarias` | Obtener catálogo de maquinarias |
+| Catalogos | `POST` | `/api/catalogos/maquinarias` | Crear maquinaria |
+| Catalogos | `POST` | `/api/catalogos/maquinarias/sync` | Sincronizar maquinarias |
+| Catalogos | `DELETE` | `/api/catalogos/maquinarias/{id}` | Eliminar maquinaria |
+| Catalogos | `GET` | `/api/catalogos/maquinarias/{id}` | Obtener maquinaria por ID |
+| Catalogos | `PUT` | `/api/catalogos/maquinarias/{id}` | Actualizar maquinaria |
+| CentroApoyo | `GET` | `/api/centros-apoyo` | Obtener el centro de apoyo |
+| CentroApoyo | `GET` | `/api/centros-apoyo/gastos` | Obtener gastos del centro de apoyo |
+| CentroApoyo | `GET` | `/api/centros-apoyo/{id}` | Obtener centro de apoyo por ID |
+| CentroApoyo | `PUT` | `/api/centros-apoyo/{id}` | Actualizar un centro de apoyo |
+| CentroProduccion | `GET` | `/api/centros-produccion` | Obtener todos los centros de producción |
+| CentroProduccion | `POST` | `/api/centros-produccion` | Crear nuevo centro de producción |
+| CentroProduccion | `DELETE` | `/api/centros-produccion/{id}` | Eliminar un centro de producción |
+| CentroProduccion | `GET` | `/api/centros-produccion/{id}` | Obtener centro de producción por ID |
+| CentroProduccion | `PUT` | `/api/centros-produccion/{id}` | Actualizar un centro de producción |
+| CIF | `POST` | `/api/cif/total` | Registrar CIF total |
+| CIF | `POST` | `/api/cif/unitario` | Calcular CIF unitario |
+| Consumos | `GET` | `/api/consumos` | Listar consumos |
+| Consumos | `POST` | `/api/consumos` | Registrar un consumo |
+| Costos | `GET` | `/api/costos/depreciacion` | Consultar depreciaciones por centro |
+| Costos | `POST` | `/api/costos/depreciacion` | Registrar depreciación (soporta carga masiva) |
+| Costos | `GET` | `/api/costos/gasto-centro` | Consultar gastos por centro |
+| Costos | `POST` | `/api/costos/gasto-centro` | Registrar gasto por centro (soporta carga masiva) |
+| Costos | `GET` | `/api/costos/sueldo` | Consultar sueldos por centro |
+| Costos | `POST` | `/api/costos/sueldo` | Registrar sueldos por centro (soporta carga masiva) |
+| Empleados | `GET` | `/api/empleados` | Obtener todos los empleados |
+| Empleados | `POST` | `/api/empleados` | Crear nuevo empleado |
+| Empleados | `DELETE` | `/api/empleados/{id}` | Eliminar un empleado |
+| Empleados | `GET` | `/api/empleados/{id}` | Obtener empleado por ID |
+| Empleados | `PUT` | `/api/empleados/{id}` | Actualizar un empleado |
+| Existencias | `GET` | `/api/existencias` | Obtiene las existencias consolidadas. |
+| Existencias | `POST` | `/api/existencias/consolidar` | Consolida movimientos y genera asiento de control. |
+| FechaCalculo | `GET` | `/api/fecha-calculo` | Obtener la fecha de cálculo vigente |
+| FechaCalculo | `POST` | `/api/fecha-calculo` | Establecer la fecha de cálculo |
+| Importación MDB | `POST` | `/import` | Importa un archivo .mdb y guarda los datos en MongoDB |
+| Importación MDB | `GET` | `/import/logs` | Lista las bitácoras de importación |
+| Importación MDB | `GET` | `/import/logs/{id}` | Obtiene una bitácora de importación por ID |
+| LitrosCrema | `GET` | `/api/litros-crema` | Obtener litros de crema |
+| LitrosCrema | `POST` | `/api/litros-crema` | Registrar litros de crema de una fecha |
+| LitrosCrema | `DELETE` | `/api/litros-crema/{id}` | Eliminar litros de crema |
+| LitrosCrema | `PUT` | `/api/litros-crema/{id}` | Actualizar litros de crema |
+| Perdidas | `GET` | `/api/perdidas` | Obtener todas las pérdidas |
+| Perdidas | `POST` | `/api/perdidas` | Crear nueva pérdida |
+| Perdidas | `DELETE` | `/api/perdidas/{id}` | Eliminar una pérdida |
+| Perdidas | `GET` | `/api/perdidas/{id}` | Obtener pérdida por ID |
+| Perdidas | `PUT` | `/api/perdidas/{id}` | Actualizar una pérdida |
+| ProduccionCrema | `GET` | `/api/prodcrema` | Obtener producción de crema |
+| ProduccionCrema | `POST` | `/api/prodcrema` | Registrar producción de crema |
+| ProduccionCrema | `DELETE` | `/api/prodcrema/{id}` | Eliminar producción de crema |
+| ProduccionCrema | `PUT` | `/api/prodcrema/{id}` | Actualizar producción de crema |
+| Producciones | `GET` | `/api/producciones` | Listar producciones |
+| Producciones | `POST` | `/api/producciones` | Registrar una producción |
+| Reportes | `GET` | `/api/reportes/asignaciones` | Reporte de asignaciones. |
+| Reportes | `GET` | `/api/reportes/cif` | Reporte de CIF. |
+| Reportes | `GET` | `/api/reportes/comparativo` | Comparativo entre egresos e insumos. |
+| Reportes | `GET` | `/api/reportes/consumos` | Reporte de consumos. |
+| Reportes | `GET` | `/api/reportes/costos` | Consolidado de costos, consumos y CIF. |
+| Reportes | `GET` | `/api/reportes/cuadros` | Cuadros de costos por producto. |
+| Reportes | `GET` | `/api/reportes/mano-obra` | Resumen de mano de obra por actividad. |
+| Sobrante | `GET` | `/api/sobrantes` | Listar productos sobrantes |
+| Sobrante | `POST` | `/api/sobrantes` | Registrar producto sobrante |
+| Sobrante | `DELETE` | `/api/sobrantes/{id}` | Eliminar un sobrante |
+| Sobrante | `PUT` | `/api/sobrantes/{id}` | Actualizar un sobrante |
+
 ## Actividades
 
 ### GET `/api/actividades`
@@ -243,7 +340,10 @@ Esta guía detalla cada endpoint publicado en `docs/swagger.json` y amplía la i
 - **Contexto en frontend**: acción "Guardar" tras editar el nombre desde el catálogo.
 
 ### GET `/api/centros-apoyo/gastos`
-- **Request**: query opcionales `fechaCalculo` (`YYYY-MM-DD`) y `esGastoDelPeriodo` (`true|false`).
+- **Request**:
+  - **Query params opcionales**:
+    - `fechaCalculo` (`YYYY-MM-DD`) — filtra los gastos registrados para una fecha específica.
+    - `esGastoDelPeriodo` (`true|false`) — limita la respuesta a gastos del período actual o diferidos.
 - **Response**: `200 OK` con gastos `{ _id, centro, concepto, monto, fechaCalculo, esGastoDelPeriodo, tablaOrigen }`.
 - **Funcionalidad**: consulta gastos indirectos asociados al centro de apoyo general.
 - **Contexto en frontend**: panel analítico de costos indirectos y validación posterior a importaciones MDB.
@@ -298,13 +398,18 @@ Esta guía detalla cada endpoint publicado en `docs/swagger.json` y amplía la i
 ## Consumos de insumos
 
 ### GET `/api/consumos`
-- **Request**: queries opcionales `producto`, `desde`, `hasta` (fechas `YYYY-MM-DD`).
+- **Request**:
+  - **Query params opcionales**:
+    - `producto` (string) — filtra por código o nombre del producto.
+    - `desde` y `hasta` (string, formato `YYYY-MM-DD`) — acotan el rango de fechas a consultar.
 - **Response**: `200 OK` con `[{ _id, producto, insumo, cantidad, unidad, tipoProd?, fecha, calculationDate? }]`.
 - **Funcionalidad**: lista los consumos de insumos registrados en el período solicitado.
 - **Contexto en frontend**: tabla principal del módulo "Consumos" y filtros analíticos para reportes.
 
 ### POST `/api/consumos`
-- **Request**: cuerpo JSON `{ producto, insumo, cantidad, unidad, tipoProd?, fecha, calculationDate?, accessId? }` validado con reglas Zod.
+- **Request**:
+  - **Headers**: `Authorization` y `x-user` (identificador del operador que registra el consumo).
+  - **Body JSON**: `{ producto, insumo, cantidad, unidad, tipoProd?, fecha, calculationDate?, accessId? }`. Los campos numéricos deben ser mayores a cero y la fecha válida.
 - **Response**: `201 Created` con el consumo almacenado; `400` cuando los datos son inválidos.
 - **Funcionalidad**: registra un nuevo consumo de insumos asociándolo a producto y fecha.
 - **Contexto en frontend**: formulario de captura manual y confirmación de importaciones parciales.
@@ -312,37 +417,48 @@ Esta guía detalla cada endpoint publicado en `docs/swagger.json` y amplía la i
 ## Costos operativos
 
 ### GET `/api/costos/gasto-centro`
-- **Request**: queries opcionales `centro` (número), `fechaCalculo` (`YYYY-MM-DD`), `esGastoDelPeriodo` (`true|false`).
+- **Request**:
+  - **Query params opcionales**:
+    - `centro` (number) — filtra por número de centro de producción/apoyo.
+    - `fechaCalculo` (`YYYY-MM-DD`) — acota los gastos al ciclo operativo activo.
+    - `esGastoDelPeriodo` (`true|false`) — muestra únicamente gastos del período o gastos diferidos.
 - **Response**: `200 OK` con gastos `{ _id, centro, fecha, concepto, monto, tipo?, fechaCalculo, esGastoDelPeriodo, tablaOrigen?, detalle? }`.
 - **Funcionalidad**: consulta los gastos operativos por centro de producción o apoyo.
 - **Contexto en frontend**: módulo "Costos" pestaña "Gastos" y validaciones luego de importar Access.
 
 ### POST `/api/costos/gasto-centro`
-- **Request**: cuerpo JSON (objeto o arreglo) con los campos `{ centro, fecha, concepto?, monto, tipo?, fechaCalculo, esGastoDelPeriodo?, tablaOrigen?, accessId?, detalle? }`.
+- **Request**:
+  - **Headers**: `Authorization`, `x-user` (responsable de la carga) y `Content-Type: application/json`.
+  - **Body JSON**: objeto o arreglo con `{ centro, fecha, concepto?, monto, tipo?, fechaCalculo, esGastoDelPeriodo?, tablaOrigen?, accessId?, detalle? }`. Permite cargas masivas y recalcula balances.
 - **Response**: `201 Created` con `{ created: number, skipped?: number, balance: { importado, distribuido, diferencia }, warning? }`.
 - **Funcionalidad**: registra gastos individuales o masivos y devuelve el balance global contra los montos distribuidos.
 - **Contexto en frontend**: carga manual y resultado del import wizard; mostrar alertas cuando `warning` esté presente.
 
 ### GET `/api/costos/depreciacion`
-- **Request**: queries `centro?`, `fechaCalculo?`, `esGastoDelPeriodo?`.
+- **Request**:
+  - **Query params opcionales** `centro`, `fechaCalculo`, `esGastoDelPeriodo` con el mismo significado que en `gasto-centro`.
 - **Response**: `200 OK` con registros `{ _id, centro, maquina, depreMensual, vidaUtil?, valorUso?, fechaCalculo, esGastoDelPeriodo?, periodo? }`.
 - **Funcionalidad**: lista las depreciaciones cargadas para maquinarias.
 - **Contexto en frontend**: pestaña "Depreciaciones" del módulo de costos.
 
 ### POST `/api/costos/depreciacion`
-- **Request**: objeto o arreglo con `{ centro, maquina, depreMensual, vidaUtil?, valorUso?, fechaCalculo, periodo?, esGastoDelPeriodo?, accessId? }`.
+- **Request**:
+  - **Headers**: `Authorization`, `x-user`, `Content-Type: application/json`.
+  - **Body JSON**: objeto o arreglo con `{ centro, maquina, depreMensual, vidaUtil?, valorUso?, fechaCalculo, periodo?, esGastoDelPeriodo?, accessId? }`.
 - **Response**: `201 Created` con resumen `{ created, skipped?, balance, warning? }`.
 - **Funcionalidad**: registra depreciaciones y recalcula el balance de costos.
 - **Contexto en frontend**: cargas manuales y procesos de importación; mostrar el balance devuelto en la UI.
 
 ### GET `/api/costos/sueldo`
-- **Request**: queries `centro?`, `fechaCalculo?`, `nroEmpleado?`, `esGastoDelPeriodo?`.
+- **Request**: queries `centro?`, `fechaCalculo?`, `nroEmpleado?`, `esGastoDelPeriodo?` con las mismas reglas de filtrado mencionadas.
 - **Response**: `200 OK` con `{ _id, centro, nroEmpleado, fechaSueldo, sueldoTotal, fechaCalculo, esGastoDelPeriodo? }`.
 - **Funcionalidad**: recupera los sueldos registrados por centro.
 - **Contexto en frontend**: pestaña "Sueldos" y reportes de mano de obra.
 
 ### POST `/api/costos/sueldo`
-- **Request**: objeto o arreglo `{ centro, nroEmpleado, fechaSueldo, sueldoTotal, fechaCalculo, esGastoDelPeriodo?, accessId? }`.
+- **Request**:
+  - **Headers**: `Authorization`, `x-user`, `Content-Type: application/json`.
+  - **Body JSON**: objeto o arreglo `{ centro, nroEmpleado, fechaSueldo, sueldoTotal, fechaCalculo, esGastoDelPeriodo?, accessId? }`.
 - **Response**: `201 Created` con `{ created, skipped?, balance, warning? }`.
 - **Funcionalidad**: carga sueldos y devuelve el estado del balance global.
 - **Contexto en frontend**: botón "Registrar sueldos" y cierre del asistente de importación.
@@ -412,7 +528,11 @@ Esta guía detalla cada endpoint publicado en `docs/swagger.json` y amplía la i
 ## Importación MDB
 
 ### POST `/import`
-- **Request**: formulario `multipart/form-data` con archivo `mdbFile` y campo `fechaImportacion` (`YYYY-MM-DD`).
+- **Request**:
+  - **Headers**: `Authorization`, `x-user`.
+  - **Multipart form-data**:
+    - `mdbFile` (file, obligatorio) — base Access a importar.
+    - `fechaImportacion` (`YYYY-MM-DD`, obligatorio) — fecha de cálculo asociada.
 - **Response**: `200 OK` con `{ totalRecords, results: [{ table, collection, inserted, error? }], durationMs }`; `400` si faltan parámetros, `409` cuando ya existe una importación para la fecha y `500` ante fallas de procesamiento.
 - **Funcionalidad**: procesa archivos Access y los distribuye en las colecciones correspondientes.
 - **Contexto en frontend**: paso principal del asistente de importación; mostrar progreso y detalle de tablas procesadas.
@@ -531,43 +651,51 @@ Esta guía detalla cada endpoint publicado en `docs/swagger.json` y amplía la i
 ## Reportes
 
 ### GET `/api/reportes/cif`
-- **Request**: queries `producto?`, `periodo?`, `format?` (`json|csv|xlsx`).
+- **Request**:
+  - **Query params opcionales**:
+    - `producto` (string) — limita el reporte a un producto.
+    - `periodo` (`YYYY-MM`) — define el ciclo a consultar.
+    - `format` (`json|csv|xlsx`) — selecciona la representación de salida y ajusta los encabezados de respuesta.
 - **Response**: `200 OK` con arreglo de CIF agregado por período o archivo descargable.
 - **Funcionalidad**: expone reportes de CIF para análisis financiero.
 - **Contexto en frontend**: módulo de reportes, pestaña "CIF" con opción de exportación.
 
 ### GET `/api/reportes/consumos`
-- **Request**: queries `producto?`, `desde?`, `hasta?`, `format?`.
+- **Request**:
+  - **Query params opcionales**: `producto`, `desde`, `hasta`, `format` con la misma semántica que en el reporte de CIF.
 - **Response**: `200 OK` con resumen de consumos filtrado o archivo exportable.
 - **Funcionalidad**: provee consumos agregados por producto y período.
 - **Contexto en frontend**: dashboards de consumo y exportaciones operativas.
 
 ### GET `/api/reportes/asignaciones`
-- **Request**: queries `centro?`, `desde?`, `hasta?`, `format?`.
+- **Request**:
+  - **Query params opcionales**: `centro` (número), `desde`, `hasta` (`YYYY-MM-DD`) y `format` (`json|csv|xlsx`).
 - **Response**: `200 OK` con matriz de asignaciones entre centros.
 - **Funcionalidad**: consolida la distribución de costos por centro.
 - **Contexto en frontend**: reportes de prorrateo y descarga para auditoría.
 
 ### GET `/api/reportes/cuadros`
-- **Request**: query opcional `periodo` (`YYYY-MM`).
+- **Request**:
+  - **Query param opcional** `periodo` (`YYYY-MM`) — define el mes a consolidar.
 - **Response**: `200 OK` con cuadros de costos directos e indirectos por producto.
 - **Funcionalidad**: resume costos para presentación ejecutiva.
 - **Contexto en frontend**: sección "Cuadros comparativos" y exportación mensual.
 
 ### GET `/api/reportes/mano-obra`
-- **Request**: queries `periodo?`, `centro?`.
+- **Request**:
+  - **Query params opcionales** `periodo` (`YYYY-MM`) y `centro` (número) para delimitar la búsqueda.
 - **Response**: `200 OK` con horas y montos agrupados por actividad/centro.
 - **Funcionalidad**: analiza la mano de obra declarada.
 - **Contexto en frontend**: pestaña de reportes enfocada en recursos humanos.
 
 ### GET `/api/reportes/costos`
-- **Request**: queries `periodo?`, `producto?`, `centro?`.
+- **Request**: queries `periodo?`, `producto?`, `centro?` para definir el alcance del reporte integral.
 - **Response**: `200 OK` con `{ costos, consumos, cif, control: { consistente: boolean, diferencia } }`.
 - **Funcionalidad**: integra costos, consumos y CIF para validaciones de consistencia.
 - **Contexto en frontend**: tablero ejecutivo que alerta diferencias entre importado vs distribuido.
 
 ### GET `/api/reportes/comparativo`
-- **Request**: queries `periodo?`, `producto?`, `centro?`.
+- **Request**: queries `periodo?`, `producto?`, `centro?` replicando los filtros del reporte de costos.
 - **Response**: `200 OK` con `{ totalEgresos, totalInsumos, diferencia, consistente }`.
 - **Funcionalidad**: compara egresos vs insumos para detectar desbalances.
 - **Contexto en frontend**: widget comparativo en el dashboard principal.
@@ -597,3 +725,4 @@ Esta guía detalla cada endpoint publicado en `docs/swagger.json` y amplía la i
 - **Response**: `200 OK` con `{ message: 'Sobrante eliminado' }` o `404` si ya no se encuentra.
 - **Funcionalidad**: elimina un registro de sobrantes.
 - **Contexto en frontend**: acción de limpieza tras detectar registros duplicados o erróneos.
+
