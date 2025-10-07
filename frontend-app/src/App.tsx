@@ -150,23 +150,25 @@ function App() {
       <header className="app-navbar">
         <div className="app-navbar__content">
           <div className="app-navbar__start">
-            <button
-              type="button"
-              className="app-navbar__toggle"
-              onClick={toggleSidebar}
-              aria-expanded={isSidebarOpen}
-              aria-controls="app-sidebar"
-              aria-label={toggleLabel}
-              title={toggleLabel}
-              data-open={isSidebarOpen}
-            >
-              <span className="sr-only">{toggleLabel}</span>
-              <span className="app-navbar__toggle-icon" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </span>
-            </button>
+            {isCompactViewport && (
+              <button
+                type="button"
+                className="app-navbar__toggle app-toggle-button"
+                onClick={toggleSidebar}
+                aria-expanded={isSidebarOpen}
+                aria-controls="app-sidebar"
+                aria-label={toggleLabel}
+                title={toggleLabel}
+                data-open={isSidebarOpen}
+              >
+                <span className="sr-only">{toggleLabel}</span>
+                <span className="app-toggle-button__icon" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+              </button>
+            )}
 
             <div className="app-navbar__brand">
               <div className="app-navbar__logo" aria-hidden="true">
@@ -205,6 +207,25 @@ function App() {
             data-compact={isCompactViewport}
           >
             <div className="app-sidebar__content">
+              <div className="app-sidebar__controls">
+                <button
+                  type="button"
+                  className="app-sidebar__toggle app-toggle-button"
+                  onClick={toggleSidebar}
+                  aria-expanded={isSidebarOpen}
+                  aria-controls="app-sidebar"
+                  aria-label={toggleLabel}
+                  title={toggleLabel}
+                  data-open={isSidebarOpen}
+                >
+                  <span className="sr-only">{toggleLabel}</span>
+                  <span className="app-toggle-button__icon" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                </button>
+              </div>
               <nav className="app-sidebar__nav" aria-label="Secciones principales">
                 <ul>
                   {navigationItems.map((item) => (
