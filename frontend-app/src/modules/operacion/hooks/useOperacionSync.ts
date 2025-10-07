@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@/lib/query/QueryClient';
 import { logHttpError } from '@/lib/observability/logger';
 import { useOperacionContext } from '../context/OperacionContext';
-import type { OperacionModulo, OperacionRegistro } from '../types';
+import { fetchCierreOperacion } from '../api';
+import type { OperacionModulo } from '../types';
 import { emitOperacionEvent, subscribeOperacionEvent } from '../utils/eventBus';
 
 interface SyncOptions {
@@ -47,11 +48,36 @@ export function useOperacionSync(options: SyncOptions = {}) {
   useEffect(() => {
     if (!enablePolling) return;
     if (typeof window === 'undefined') return;
+
+    let cancelled = false;
+
+    const poll = async () => {
+      const estado = await fetchCierreOperacion(modulo);
+      if (cancelled || !estado) return;
+      setResumen((prev) => {
+        const base = prev ?? {
+          centro: 'CENTRO-GENERAL',
+          calculationDate: new Date().toISOString().slice(0, 10),
+        };
+        return {
+          ...base,
+          ...estado,
+          responsable: estado.responsable ?? prev?.responsable ?? 'coordinador.01',
+        };
+      });
+      setLastEvent('sync:polling');
+    };
+
+    poll();
     const interval = window.setInterval(() => {
-      emitOperacionEvent({ type: 'registro:actualizado', modulo, registro: datasetSnapshot(modulo) });
+      void poll();
     }, pollingMs);
-    return () => window.clearInterval(interval);
-  }, [enablePolling, modulo, pollingMs]);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [enablePolling, modulo, pollingMs, setResumen]);
 
   const desbloquear = useCallback(() => {
     setResumen(resumen ? { ...resumen, bloqueado: false, closeReason: undefined, expectedUnlockAt: undefined } : null);
@@ -66,18 +92,4 @@ export function useOperacionSync(options: SyncOptions = {}) {
   }, [dependencias, queryClient]);
 
   return useMemo(() => ({ lastEvent, desbloquear, forceInvalidate }), [lastEvent, desbloquear, forceInvalidate]);
-}
-
-function datasetSnapshot(modulo: OperacionModulo) {
-  const now = new Date();
-  return {
-    id: `${modulo}-polling`,
-    centro: 'CENTRO-GENERAL',
-    fecha: now.toISOString(),
-    calculationDate: now.toISOString().slice(0, 10),
-    createdBy: 'system',
-    createdAt: now.toISOString(),
-    source: 'api' as const,
-    syncStatus: 'processing' as const,
-  } as unknown as OperacionRegistro;
 }

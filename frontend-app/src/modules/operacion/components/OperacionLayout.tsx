@@ -33,6 +33,7 @@ const OperacionLayout: React.FC = () => {
   const { lastEvent, desbloquear, forceInvalidate } = useOperacionSync();
   const [selected, setSelected] = useState<string[]>([]);
   const [resultado, setResultado] = useState<AccionMasivaResultado | undefined>();
+  const [accionEnProgreso, setAccionEnProgreso] = useState(false);
 
   useEffect(() => {
     if (!query.data || query.data.length === 0) return;
@@ -45,11 +46,27 @@ const OperacionLayout: React.FC = () => {
   }, [query.data, setResumen]);
 
   const handleAccion = (accion: 'aprobar' | 'recalcular' | 'cerrar') => {
-    const resultadoAccion = runAccionMasiva(accion, selected);
-    setResultado(resultadoAccion);
-    if (accion === 'cerrar') {
-      forceInvalidate();
-    }
+    void (async () => {
+      if (selected.length === 0) return;
+      setAccionEnProgreso(true);
+      try {
+        const resultadoAccion = await runAccionMasiva(accion, selected);
+        setResultado(resultadoAccion);
+        if (accion === 'cerrar') {
+          forceInvalidate();
+        }
+      } catch (error) {
+        setResultado({
+          accion,
+          registrosProcesados: 0,
+          impactoExistencias: 0,
+          impactoCostos: 0,
+          mensaje: error instanceof Error ? error.message : 'No se pudo ejecutar la acción masiva.',
+        });
+      } finally {
+        setAccionEnProgreso(false);
+      }
+    })();
   };
 
   const totalRegistros = useMemo(() => query.data?.length ?? 0, [query.data]);
@@ -65,7 +82,12 @@ const OperacionLayout: React.FC = () => {
       <ResumenContextualSection resumen={resumen} totalRegistros={totalRegistros} lastEvent={lastEvent} />
       <OperacionFilterBar config={config} />
       <OperacionDataGrid config={config} registros={query.data ?? []} onSelect={setSelected} />
-      <MassActionsDrawer selected={selected} onRun={handleAccion} ultimoResultado={resultado} />
+      <MassActionsDrawer
+        selected={selected}
+        onRun={handleAccion}
+        ultimoResultado={resultado}
+        isProcessing={accionEnProgreso}
+      />
       <div className="operacion-toolbar">
         <div>
           <strong>Resumen</strong>
