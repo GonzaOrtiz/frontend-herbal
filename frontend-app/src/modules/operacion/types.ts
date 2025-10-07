@@ -5,21 +5,22 @@ export type ImportStatus = 'idle' | 'processing' | 'waiting' | 'completed' | 'fa
 export type SyncStatus = 'synced' | 'processing' | 'error' | 'stale';
 
 export interface TrazabilidadMetadata {
-  createdBy: string;
-  createdAt: string;
+  createdBy?: string;
+  createdAt?: string;
   updatedBy?: string;
   updatedAt?: string;
-  source: 'manual' | 'import' | 'api';
-  syncStatus: SyncStatus;
+  source?: 'manual' | 'import' | 'api';
+  syncStatus?: SyncStatus;
   lastImportedAt?: string;
   changeReason?: string;
+  accessId?: string;
 }
 
 export interface BaseOperacionRegistro extends TrazabilidadMetadata {
   id: string;
-  centro: string;
+  centro?: string;
   fecha: string;
-  calculationDate: string;
+  calculationDate?: string;
   responsable?: string;
 }
 
@@ -29,43 +30,34 @@ export interface ConsumoRegistro extends BaseOperacionRegistro {
   cantidad: number;
   unidad: string;
   tipoProd?: string;
-  lote?: string;
-  turno?: string;
 }
 
 export interface ProduccionRegistro extends BaseOperacionRegistro {
-  orden: string;
   producto: string;
-  lote: string;
-  turno: string;
-  cantidadProducida: number;
-  unidad: string;
-  desperdicioPermitido: number;
+  cantidad: number;
+  centro: string;
+  etapa: string;
 }
 
 export interface LitrosCremaRegistro extends BaseOperacionRegistro {
-  lote: string;
-  turno: string;
+  producto: string;
   litros: number;
-  temperatura: number;
-  solidosTotales: number;
 }
 
 export interface PerdidaRegistro extends BaseOperacionRegistro {
-  categoria: 'merma' | 'rechazo' | 'devolucion';
-  lote?: string;
-  turno?: string;
+  grupo?: string;
+  producto?: string;
+  horma?: number;
   cantidad: number;
-  unidad: string;
-  justificacion: string;
+  unidad?: string;
 }
 
 export interface SobranteRegistro extends BaseOperacionRegistro {
-  lote: string;
-  turno: string;
-  cantidad: number;
-  unidad: string;
-  destino: string;
+  grupo?: string;
+  producto?: string;
+  horma?: number;
+  cantidad?: number;
+  unidad?: string;
 }
 
 export type OperacionRegistro =

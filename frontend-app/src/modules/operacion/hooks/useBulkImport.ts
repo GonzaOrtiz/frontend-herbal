@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@/lib/query/QueryClient';
 import type { Schema } from '../schemas/baseSchema';
-import { bulkImportOperacion } from '../api';
+import { createOperacionRegistro } from '../api';
 import type {
   BitacoraImportacion,
   ImportacionError,
@@ -61,18 +61,49 @@ export function useBulkImport(modulo: OperacionModulo, schema: Schema<OperacionR
     }
 
     try {
-      const { registros, bitacora: bitacoraRemota } = await bulkImportOperacion(modulo, {
-        rows,
-        usuario,
-        archivo,
-      });
+      const registrosValidados = result.data ?? [];
+      const registrosCreados: OperacionRegistro[] = [];
+      const erroresRemotos: ImportacionError[] = [];
+
+      for (const [index, registro] of registrosValidados.entries()) {
+        try {
+          const creado = await createOperacionRegistro(modulo, registro, usuario);
+          registrosCreados.push(creado);
+        } catch (error) {
+          erroresRemotos.push({
+            row: index + 1,
+            field: '_base',
+            message:
+              error instanceof Error ? error.message : 'Error desconocido al crear el registro en el servidor.',
+            type: 'business',
+            usuario,
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }
+
+      const resumen = {
+        total: registrosValidados.length,
+        exitosos: registrosCreados.length,
+        fallidos: erroresRemotos.length,
+        omitidos: 0,
+      };
+
+      const bitacoraLocal: BitacoraImportacion = {
+        modulo,
+        status: erroresRemotos.length ? 'failed' : 'completed',
+        resumen,
+        errores: erroresRemotos,
+        archivoOriginal: archivo,
+        resumeToken: `${modulo}-${Date.now()}`,
+      };
 
       queryClient.invalidateQueries(['operacion', modulo]);
 
-      setBitacora(bitacoraRemota);
-      setStatus(bitacoraRemota.status);
+      setBitacora(bitacoraLocal);
+      setStatus(bitacoraLocal.status);
 
-      registros.forEach((registro) => {
+      registrosCreados.forEach((registro) => {
         emitOperacionEvent({ type: 'registro:creado', modulo, registro });
       });
 
@@ -82,21 +113,25 @@ export function useBulkImport(modulo: OperacionModulo, schema: Schema<OperacionR
         modulo,
         resumen: {
           accion: 'aprobar',
-          registrosProcesados: registros.length,
-          impactoExistencias: registros.reduce((acc, registro) => {
-            if ('cantidad' in registro) return acc + registro.cantidad;
-            if ('cantidadProducida' in registro) return acc + registro.cantidadProducida;
+          registrosProcesados: registrosCreados.length,
+          impactoExistencias: registrosCreados.reduce((acc, registro) => {
+            if ('cantidad' in registro && typeof registro.cantidad === 'number') {
+              return acc + registro.cantidad;
+            }
+            if ('litros' in registro && typeof registro.litros === 'number') {
+              return acc + registro.litros;
+            }
             return acc;
           }, 0),
           impactoCostos: Math.round(durationMs / 10),
           mensaje:
-            bitacoraRemota.status === 'completed'
+            bitacoraLocal.status === 'completed'
               ? `Importación completada en ${durationMs.toFixed(0)}ms`
               : 'Importación con incidencias',
         },
       });
 
-      return { success: bitacoraRemota.status !== 'failed', registros } as const;
+      return { success: bitacoraLocal.status !== 'failed', registros: registrosCreados } as const;
     } catch (error) {
       const errores: ImportacionError[] = [
         {
