@@ -4,29 +4,32 @@ import './App.css';
 function App() {
   return (
     <div className="app-shell">
-      <header className="app-header">
-        <div className="app-header__brand">
-          <div className="app-header__logo" aria-hidden="true">
-            🌿
+      <header className="app-navbar">
+        <div className="app-navbar__content">
+          <div className="app-navbar__brand">
+            <div className="app-navbar__logo" aria-hidden="true">
+              🌿
+            </div>
+            <div className="app-navbar__headline">
+              <p className="app-navbar__eyebrow">Suite Herbal ERP</p>
+              <h1 className="app-navbar__title">Configuración y catálogos</h1>
+              <p className="app-navbar__subtitle">
+                Administra los catálogos maestros y parámetros generales utilizados por los módulos operativos.
+              </p>
+            </div>
           </div>
-          <div className="app-header__headline">
-            <p className="app-header__eyebrow">Suite Herbal ERP</p>
-            <h1>Configuración y catálogos</h1>
-            <p className="app-header__subtitle">
-              Administra los catálogos maestros y parámetros generales utilizados por los módulos operativos.
-            </p>
+          <div className="app-navbar__actions" aria-label="Acciones rápidas">
+            <button type="button" className="app-navbar__action app-navbar__action--primary">
+              Agregar catálogo
+            </button>
+            <button type="button" className="app-navbar__action">Centro de ayuda</button>
           </div>
-        </div>
-        <div className="app-header__actions" aria-label="Acciones rápidas">
-          <button type="button" className="app-header__action app-header__action--primary">
-            Agregar catálogo
-          </button>
-          <button type="button" className="app-header__action">Centro de ayuda</button>
         </div>
       </header>
 
-      <div className="app-layout">
-        <aside className="app-sidebar" aria-label="Panel contextual de configuración">
+      <div className="app-shell__content">
+        <div className="app-layout">
+          <aside className="app-sidebar" aria-label="Panel contextual de configuración">
           <section className="app-sidebar__section">
             <h2 className="app-sidebar__title">Resumen del panel</h2>
             <p className="app-sidebar__description">
@@ -69,11 +72,12 @@ function App() {
               </li>
             </ul>
           </section>
-        </aside>
+          </aside>
 
-        <main className="app-main">
-          <ConfiguracionModule />
-        </main>
+          <main className="app-main">
+            <ConfiguracionModule />
+          </main>
+        </div>
       </div>
     </div>
   );

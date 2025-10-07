@@ -53,6 +53,7 @@ const ActividadesPage: React.FC = () => {
       showToast('Actividad creada correctamente.', 'success');
       form.reset();
       setIsFormOpen(false);
+      await catalog.refetch();
     } catch (error) {
       showToast('No se pudo crear la actividad. Intenta nuevamente.', 'error');
     }
@@ -86,30 +87,34 @@ const ActividadesPage: React.FC = () => {
           </div>
         </header>
 
-        <CatalogFilterBar
-          value={filters}
-          onChange={handleFiltersChange}
-          disabled={catalog.isLoading}
-          hideStatus
-          hideUpdatedBy
-          searchPlaceholder="Buscar por nombre o número"
-        />
+        {!isFormOpen && (
+          <>
+            <CatalogFilterBar
+              value={filters}
+              onChange={handleFiltersChange}
+              disabled={catalog.isLoading}
+              hideStatus
+              hideUpdatedBy
+              searchPlaceholder="Buscar por nombre o número"
+            />
 
-        {catalog.error && (
-          <div className="config-alert" role="alert">
-            <span>No pudimos cargar las actividades. Intenta nuevamente.</span>
-            <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
-              Reintentar
-            </button>
-          </div>
+            {catalog.error && (
+              <div className="config-alert" role="alert">
+                <span>No pudimos cargar las actividades. Intenta nuevamente.</span>
+                <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
+                  Reintentar
+                </button>
+              </div>
+            )}
+
+            <CatalogTable
+              rows={actividades}
+              columns={columns}
+              loading={catalog.isLoading}
+              emptyMessage="No hay actividades registradas."
+            />
+          </>
         )}
-
-        <CatalogTable
-          rows={actividades}
-          columns={columns}
-          loading={catalog.isLoading}
-          emptyMessage="No hay actividades registradas."
-        />
       </section>
 
       {isFormOpen && (

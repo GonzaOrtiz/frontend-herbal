@@ -56,6 +56,7 @@ const CentrosPage: React.FC = () => {
       showToast('Centro creado correctamente.', 'success');
       form.reset();
       setIsFormOpen(false);
+      await catalog.refetch();
     } catch (error) {
       showToast('No se pudo crear el centro.', 'error');
     }
@@ -89,30 +90,34 @@ const CentrosPage: React.FC = () => {
           </div>
         </header>
 
-        <CatalogFilterBar
-          value={filters}
-          onChange={handleFiltersChange}
-          disabled={catalog.isLoading}
-          hideStatus
-          hideUpdatedBy
-          searchPlaceholder="Buscar por número o nombre"
-        />
+        {!isFormOpen && (
+          <>
+            <CatalogFilterBar
+              value={filters}
+              onChange={handleFiltersChange}
+              disabled={catalog.isLoading}
+              hideStatus
+              hideUpdatedBy
+              searchPlaceholder="Buscar por número o nombre"
+            />
 
-        {catalog.error && (
-          <div className="config-alert" role="alert">
-            <span>No pudimos cargar los centros. Intenta nuevamente.</span>
-            <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
-              Reintentar
-            </button>
-          </div>
+            {catalog.error && (
+              <div className="config-alert" role="alert">
+                <span>No pudimos cargar los centros. Intenta nuevamente.</span>
+                <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
+                  Reintentar
+                </button>
+              </div>
+            )}
+
+            <CatalogTable
+              rows={centros}
+              columns={columns}
+              loading={catalog.isLoading}
+              emptyMessage="No hay centros registrados."
+            />
+          </>
         )}
-
-        <CatalogTable
-          rows={centros}
-          columns={columns}
-          loading={catalog.isLoading}
-          emptyMessage="No hay centros registrados."
-        />
       </section>
 
       {isFormOpen && (

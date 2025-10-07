@@ -53,6 +53,7 @@ const EmpleadosPage: React.FC = () => {
       showToast('Empleado registrado correctamente.', 'success');
       form.reset();
       setIsFormOpen(false);
+      await catalog.refetch();
     } catch (error) {
       showToast('No se pudo registrar el empleado.', 'error');
     }
@@ -86,30 +87,34 @@ const EmpleadosPage: React.FC = () => {
           </div>
         </header>
 
-        <CatalogFilterBar
-          value={filters}
-          onChange={handleFiltersChange}
-          disabled={catalog.isLoading}
-          hideStatus
-          hideUpdatedBy
-          searchPlaceholder="Buscar por número o nombre"
-        />
+        {!isFormOpen && (
+          <>
+            <CatalogFilterBar
+              value={filters}
+              onChange={handleFiltersChange}
+              disabled={catalog.isLoading}
+              hideStatus
+              hideUpdatedBy
+              searchPlaceholder="Buscar por número o nombre"
+            />
 
-        {catalog.error && (
-          <div className="config-alert" role="alert">
-            <span>No pudimos cargar los empleados. Intenta nuevamente.</span>
-            <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
-              Reintentar
-            </button>
-          </div>
+            {catalog.error && (
+              <div className="config-alert" role="alert">
+                <span>No pudimos cargar los empleados. Intenta nuevamente.</span>
+                <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
+                  Reintentar
+                </button>
+              </div>
+            )}
+
+            <CatalogTable
+              rows={empleados}
+              columns={columns}
+              loading={catalog.isLoading}
+              emptyMessage="No hay empleados registrados."
+            />
+          </>
         )}
-
-        <CatalogTable
-          rows={empleados}
-          columns={columns}
-          loading={catalog.isLoading}
-          emptyMessage="No hay empleados registrados."
-        />
       </section>
 
       {isFormOpen && (
