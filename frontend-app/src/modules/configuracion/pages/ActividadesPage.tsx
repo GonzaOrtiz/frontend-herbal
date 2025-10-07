@@ -5,6 +5,7 @@ import type { CatalogTableColumn } from '../components/CatalogTable';
 import FormActions from '../components/FormActions';
 import FormSection from '../components/FormSection';
 import ProtectedRoute from '../components/ProtectedRoute';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { useConfigContext } from '../context/ConfigContext';
 import { useToast } from '../context/ToastContext';
 import { useActividades, type Actividad } from '../hooks/useActividades';
@@ -20,6 +21,7 @@ const ActividadesPage: React.FC = () => {
   const [filters, setFilters] = useState<CatalogFilterState>({ search: '', status: 'todos' });
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingActividad, setEditingActividad] = useState<Actividad | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Actividad | null>(null);
   const form = useForm<ActividadFormValues>({ defaultValues: defaultActividadValues, validator: actividadValidator });
 
   const actividades = useMemo<Actividad[]>(() => {
@@ -71,23 +73,25 @@ const ActividadesPage: React.FC = () => {
     [form],
   );
 
-  const handleDelete = useCallback(
-    async (actividad: Actividad) => {
-      const confirmed = window.confirm(`¿Deseas eliminar la actividad "${actividad.nombre}"?`);
-      if (!confirmed) {
-        return;
-      }
+  const requestDelete = useCallback((actividad: Actividad) => {
+    setPendingDelete(actividad);
+  }, []);
 
-      try {
-        await catalog.remove(actividad.id);
-        showToast('Actividad eliminada.', 'success');
-        await catalog.refetch();
-      } catch (error) {
-        showToast('No se pudo eliminar la actividad.', 'error');
-      }
-    },
-    [catalog, showToast],
-  );
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete) {
+      return;
+    }
+
+    try {
+      await catalog.remove(pendingDelete.id);
+      showToast('Actividad eliminada.', 'success');
+      await catalog.refetch();
+    } catch (error) {
+      showToast('No se pudo eliminar la actividad.', 'error');
+    } finally {
+      setPendingDelete(null);
+    }
+  }, [catalog, pendingDelete, showToast]);
 
   const closeForm = useCallback(() => {
     form.reset();
@@ -120,17 +124,23 @@ const ActividadesPage: React.FC = () => {
         width: '160px',
         render: (actividad) => (
           <div className="catalog-row-actions">
-            <button type="button" onClick={() => handleEdit(actividad)}>
-              Editar
+            <button type="button" className="catalog-row-actions__edit" onClick={() => handleEdit(actividad)}>
+              <span className="catalog-row-actions__icon" aria-hidden="true">
+                ✏️
+              </span>
+              <span>Editar</span>
             </button>
-            <button type="button" onClick={() => handleDelete(actividad)}>
-              Eliminar
+            <button type="button" className="catalog-row-actions__delete" onClick={() => requestDelete(actividad)}>
+              <span className="catalog-row-actions__icon" aria-hidden="true">
+                🗑️
+              </span>
+              <span>Eliminar</span>
             </button>
           </div>
         ),
       },
     ],
-    [handleDelete, handleEdit],
+    [handleEdit, requestDelete],
   );
 
   return (
@@ -228,6 +238,16 @@ const ActividadesPage: React.FC = () => {
           </FormSection>
         </ProtectedRoute>
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Eliminar actividad"
+        description={`¿Deseas eliminar la actividad "${pendingDelete?.nombre ?? ''}"? Se eliminarán asignaciones relacionadas.`}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

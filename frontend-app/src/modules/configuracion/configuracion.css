@@ -420,18 +420,45 @@ textarea.config-input {
   gap: 8px;
 }
 
-.catalog-row-actions button {
+.catalog-row-actions__edit,
+.catalog-row-actions__delete {
   border: none;
-  background: none;
-  color: var(--color-primary-variant);
   font-weight: 600;
   cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
 }
 
-.catalog-row-actions button:hover {
-  background: rgba(20, 94, 168, 0.1);
+.catalog-row-actions__edit {
+  background: rgba(14, 116, 144, 0.12);
+  color: #0f766e;
+  box-shadow: inset 0 0 0 1px rgba(14, 116, 144, 0.25);
+}
+
+.catalog-row-actions__edit:hover {
+  background: rgba(13, 148, 136, 0.16);
+  transform: translateY(-1px);
+}
+
+.catalog-row-actions__delete {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+  box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.25);
+}
+
+.catalog-row-actions__delete:hover {
+  background: rgba(220, 38, 38, 0.16);
+  transform: translateY(-1px);
+}
+
+.catalog-row-actions__icon {
+  display: inline-flex;
+  align-items: center;
 }
 
 .badge {
@@ -545,6 +572,103 @@ textarea.config-input {
 
 .toast--info {
   background-color: #2563eb;
+}
+
+.config-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+
+.config-modal {
+  background: var(--color-surface-alt);
+  border-radius: 18px;
+  width: min(420px, 100%);
+  border: 1px solid var(--color-outline);
+  box-shadow: var(--shadow-level-2);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.config-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.config-modal__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+  display: grid;
+  place-items: center;
+}
+
+.config-modal__icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.config-modal__title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 650;
+  color: var(--color-text-primary);
+}
+
+.config-modal__description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.config-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.config-modal__button {
+  border-radius: 10px;
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface);
+  padding: 8px 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+}
+
+.config-modal__button:hover {
+  background: rgba(20, 94, 168, 0.08);
+  border-color: var(--color-primary-variant);
+}
+
+.config-modal__button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.config-modal__button--danger {
+  background: rgba(220, 38, 38, 0.9);
+  border-color: rgba(185, 28, 28, 0.85);
+  color: #ffffff;
+}
+
+.config-modal__button--danger:hover {
+  background: var(--color-danger-hover);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 900px) {

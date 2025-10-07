@@ -5,6 +5,7 @@ import type { CatalogTableColumn } from '../components/CatalogTable';
 import FormActions from '../components/FormActions';
 import FormSection from '../components/FormSection';
 import ProtectedRoute from '../components/ProtectedRoute';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { useConfigContext } from '../context/ConfigContext';
 import { useToast } from '../context/ToastContext';
 import { useCentros, type Centro } from '../hooks/useCentros';
@@ -20,6 +21,7 @@ const CentrosPage: React.FC = () => {
   const [filters, setFilters] = useState<CatalogFilterState>({ search: '', status: 'todos' });
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCentro, setEditingCentro] = useState<Centro | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Centro | null>(null);
   const form = useForm<CentroFormValues>({ defaultValues: defaultCentroValues, validator: centroValidator });
 
   const centros = useMemo<Centro[]>(() => {
@@ -80,23 +82,25 @@ const CentrosPage: React.FC = () => {
     [form],
   );
 
-  const handleDelete = useCallback(
-    async (centro: Centro) => {
-      const confirmed = window.confirm(`¿Deseas eliminar el centro "${centro.nombre}"?`);
-      if (!confirmed) {
-        return;
-      }
+  const requestDelete = useCallback((centro: Centro) => {
+    setPendingDelete(centro);
+  }, []);
 
-      try {
-        await catalog.remove(centro.id);
-        showToast('Centro eliminado.', 'success');
-        await catalog.refetch();
-      } catch (error) {
-        showToast('No se pudo eliminar el centro.', 'error');
-      }
-    },
-    [catalog, showToast],
-  );
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete) {
+      return;
+    }
+
+    try {
+      await catalog.remove(pendingDelete.id);
+      showToast('Centro eliminado.', 'success');
+      await catalog.refetch();
+    } catch (error) {
+      showToast('No se pudo eliminar el centro.', 'error');
+    } finally {
+      setPendingDelete(null);
+    }
+  }, [catalog, pendingDelete, showToast]);
 
   const closeForm = useCallback(() => {
     form.reset();
@@ -129,17 +133,23 @@ const CentrosPage: React.FC = () => {
         width: '180px',
         render: (centro) => (
           <div className="catalog-row-actions">
-            <button type="button" onClick={() => handleEdit(centro)}>
-              Editar
+            <button type="button" className="catalog-row-actions__edit" onClick={() => handleEdit(centro)}>
+              <span className="catalog-row-actions__icon" aria-hidden="true">
+                ✏️
+              </span>
+              <span>Editar</span>
             </button>
-            <button type="button" onClick={() => handleDelete(centro)}>
-              Eliminar
+            <button type="button" className="catalog-row-actions__delete" onClick={() => requestDelete(centro)}>
+              <span className="catalog-row-actions__icon" aria-hidden="true">
+                🗑️
+              </span>
+              <span>Eliminar</span>
             </button>
           </div>
         ),
       },
     ],
-    [handleDelete, handleEdit],
+    [handleEdit, requestDelete],
   );
 
   return (
@@ -252,6 +262,16 @@ const CentrosPage: React.FC = () => {
           </FormSection>
         </ProtectedRoute>
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Eliminar centro"
+        description={`¿Deseas eliminar el centro "${pendingDelete?.nombre ?? ''}"? Esta acción eliminará sus relaciones asociadas.`}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };
