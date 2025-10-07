@@ -6,14 +6,33 @@ interface Props {
   onRun: (accion: 'aprobar' | 'recalcular' | 'cerrar') => void;
   ultimoResultado?: AccionMasivaResultado;
   isProcessing?: boolean;
+  onClose?: () => void;
 }
 
-const MassActionsDrawer: React.FC<Props> = ({ selected, onRun, ultimoResultado, isProcessing = false }) => {
+const MassActionsDrawer: React.FC<Props> = ({
+  selected,
+  onRun,
+  ultimoResultado,
+  isProcessing = false,
+  onClose,
+}) => {
   const disabled = selected.length === 0 || isProcessing;
 
   return (
     <aside className="operacion-mass-actions">
-      <h4>Acciones masivas</h4>
+      <div className="operacion-panel-header">
+        <h4>Acciones masivas</h4>
+        {onClose && (
+          <button
+            type="button"
+            className="operacion-panel-close"
+            onClick={onClose}
+            aria-label="Cerrar acciones masivas"
+          >
+            ×
+          </button>
+        )}
+      </div>
       <p>{selected.length} registros seleccionados</p>
       {isProcessing && <p>Ejecutando acción…</p>}
       <div>
