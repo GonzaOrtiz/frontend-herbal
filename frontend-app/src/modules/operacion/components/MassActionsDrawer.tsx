@@ -5,21 +5,25 @@ interface Props {
   selected: string[];
   onRun: (accion: 'aprobar' | 'recalcular' | 'cerrar') => void;
   ultimoResultado?: AccionMasivaResultado;
+  isProcessing?: boolean;
 }
 
-const MassActionsDrawer: React.FC<Props> = ({ selected, onRun, ultimoResultado }) => {
+const MassActionsDrawer: React.FC<Props> = ({ selected, onRun, ultimoResultado, isProcessing = false }) => {
+  const disabled = selected.length === 0 || isProcessing;
+
   return (
     <aside className="operacion-mass-actions">
       <h4>Acciones masivas</h4>
       <p>{selected.length} registros seleccionados</p>
+      {isProcessing && <p>Ejecutando acción…</p>}
       <div>
-        <button type="button" onClick={() => onRun('aprobar')} disabled={selected.length === 0}>
+        <button type="button" onClick={() => onRun('aprobar')} disabled={disabled}>
           Aprobar selección
         </button>
-        <button type="button" onClick={() => onRun('recalcular')} disabled={selected.length === 0}>
+        <button type="button" onClick={() => onRun('recalcular')} disabled={disabled}>
           Recalcular métricas
         </button>
-        <button type="button" onClick={() => onRun('cerrar')} disabled={selected.length === 0}>
+        <button type="button" onClick={() => onRun('cerrar')} disabled={disabled}>
           Cerrar turno
         </button>
       </div>
