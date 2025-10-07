@@ -33,6 +33,17 @@ body {
   color: var(--color-text-primary);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 .app-shell {
   min-height: 100vh;
   display: flex;
@@ -58,6 +69,77 @@ body {
   justify-content: space-between;
   gap: 24px;
   color: var(--color-navbar-text);
+}
+
+.app-navbar__start {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-navbar__toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.25);
+  background: rgba(15, 23, 42, 0.35);
+  color: var(--color-navbar-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.app-navbar__toggle:hover {
+  background: rgba(99, 102, 241, 0.22);
+  border-color: rgba(96, 165, 250, 0.6);
+  color: var(--color-navbar-accent);
+  transform: translateY(-1px);
+}
+
+.app-navbar__toggle:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.9);
+  outline-offset: 2px;
+}
+
+.app-navbar__toggle-icon {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 20px;
+  height: 16px;
+}
+
+.app-navbar__toggle-icon span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.app-navbar__toggle[data-open='true'] .app-navbar__toggle-icon span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.app-navbar__toggle[data-open='true'] .app-navbar__toggle-icon span:nth-child(2) {
+  opacity: 0;
+}
+
+.app-navbar__toggle[data-open='true'] .app-navbar__toggle-icon span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.app-navbar__toggle[data-open='true'] {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(96, 165, 250, 0.8);
+  color: #f8fafc;
 }
 
 .app-navbar__brand {
@@ -149,42 +231,21 @@ body {
 .app-shell__content {
   flex: 1;
   width: 100%;
-  padding: 24px 16px 48px;
+  padding: 24px 16px 48px 0;
 }
 
 .app-layout {
   max-width: 1200px;
-  margin: 0 auto;
+  margin-left: 0;
+  margin-right: auto;
+  width: 100%;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  grid-template-areas:
-    'toggle toggle'
-    'sidebar main';
+  grid-template-areas: 'sidebar main';
   gap: 20px 24px;
   align-items: start;
   position: relative;
-}
-
-.app-sidebar__toggle {
-  border: 1px solid var(--color-outline);
-  background: var(--color-surface-alt);
-  color: var(--color-text-primary);
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  grid-area: toggle;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-}
-
-.app-sidebar__toggle:hover {
-  background: rgba(20, 94, 168, 0.1);
-  border-color: var(--color-primary-variant);
-  color: var(--color-primary-variant);
+  padding-right: 16px;
 }
 
 .app-sidebar {
@@ -208,10 +269,10 @@ body {
 .app-sidebar[data-compact='true'] {
   position: fixed;
   top: 24px;
-  left: 16px;
+  left: 0;
   bottom: 24px;
   transform: translateX(-120%);
-  width: min(320px, calc(100% - 32px));
+  width: min(320px, 100%);
   z-index: 20;
 }
 
@@ -432,16 +493,15 @@ body {
 
 @media (min-width: 1024px) {
   .app-shell__content {
-    padding-inline: 24px;
+    padding-right: 24px;
   }
 }
 
 @media (max-width: 1023px) {
   .app-layout {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'toggle'
-      'main';
+    grid-template-areas: 'main';
+    padding-right: 0;
   }
 
   .app-sidebar {
@@ -452,14 +512,14 @@ body {
     padding: 20px;
   }
 
-  .app-sidebar__toggle {
-    justify-self: flex-start;
-  }
-
   .app-navbar__content {
     flex-direction: column;
     align-items: flex-start;
     gap: 18px;
+  }
+
+  .app-navbar__start {
+    width: 100%;
   }
 
   .app-navbar__actions {
@@ -475,7 +535,7 @@ body {
 
 @media (max-width: 640px) {
   .app-shell__content {
-    padding-inline: 12px;
+    padding: 20px 12px 48px 0;
   }
 
   .app-main {

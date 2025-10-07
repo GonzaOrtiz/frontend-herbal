@@ -136,20 +136,49 @@ function App() {
     setOpenSections((current) => ({ ...current, [section]: !current[section] }));
   };
 
+  const isSidebarOpen = isCompactViewport ? isSidebarVisible : isSidebarExpanded;
+  const toggleLabel = isCompactViewport
+    ? isSidebarVisible
+      ? 'Cerrar panel'
+      : 'Abrir panel'
+    : isSidebarExpanded
+      ? 'Contraer panel'
+      : 'Expandir panel';
+
   return (
     <div className="app-shell">
       <header className="app-navbar">
         <div className="app-navbar__content">
-          <div className="app-navbar__brand">
-            <div className="app-navbar__logo" aria-hidden="true">
-              🌿
-            </div>
-            <div className="app-navbar__headline">
-              <p className="app-navbar__eyebrow">Suite Herbal ERP</p>
-              <h1 className="app-navbar__title">Configuración y catálogos</h1>
-              <p className="app-navbar__subtitle">
-                Administra los catálogos maestros y parámetros generales utilizados por los módulos operativos.
-              </p>
+          <div className="app-navbar__start">
+            <button
+              type="button"
+              className="app-navbar__toggle"
+              onClick={toggleSidebar}
+              aria-expanded={isSidebarOpen}
+              aria-controls="app-sidebar"
+              aria-label={toggleLabel}
+              title={toggleLabel}
+              data-open={isSidebarOpen}
+            >
+              <span className="sr-only">{toggleLabel}</span>
+              <span className="app-navbar__toggle-icon" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+            </button>
+
+            <div className="app-navbar__brand">
+              <div className="app-navbar__logo" aria-hidden="true">
+                🌿
+              </div>
+              <div className="app-navbar__headline">
+                <p className="app-navbar__eyebrow">Suite Herbal ERP</p>
+                <h1 className="app-navbar__title">Configuración y catálogos</h1>
+                <p className="app-navbar__subtitle">
+                  Administra los catálogos maestros y parámetros generales utilizados por los módulos operativos.
+                </p>
+              </div>
             </div>
           </div>
           <div className="app-navbar__actions" aria-label="Acciones rápidas">
@@ -163,22 +192,6 @@ function App() {
 
       <div className="app-shell__content">
         <div className="app-layout">
-          <button
-            type="button"
-            className="app-sidebar__toggle"
-            onClick={toggleSidebar}
-            aria-expanded={isCompactViewport ? isSidebarVisible : isSidebarExpanded}
-            aria-controls="app-sidebar"
-          >
-            {isCompactViewport
-              ? isSidebarVisible
-                ? 'Cerrar panel'
-                : 'Abrir panel'
-              : isSidebarExpanded
-                ? 'Contraer panel'
-                : 'Expandir panel'}
-          </button>
-
           {isCompactViewport && isSidebarVisible && (
             <button type="button" className="app-sidebar__backdrop" aria-label="Cerrar panel" onClick={closeSidebar} />
           )}
