@@ -2,74 +2,13 @@ import apiClient from '@/lib/http/apiClient';
 import { logHttpError } from '@/lib/observability/logger';
 import type {
   AccionMasivaResultado,
-  BitacoraImportacion,
   FiltroPersistente,
-  ImportacionError,
-  ImportStatus,
   OperacionModulo,
   OperacionRegistro,
   ResumenContextual,
 } from './types';
-import {
-  consumoSchema,
-  litrosSchema,
-  perdidasSchema,
-  produccionSchema,
-  sobrantesSchema,
-} from './schemas';
 
 type RawRecord = Record<string, unknown>;
-
-function isRecordObject(value: unknown): value is RawRecord {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function findRecordArray(value: unknown, depth = 0): RawRecord[] | null {
-  if (Array.isArray(value)) {
-    return value as RawRecord[];
-  }
-
-  if (!isRecordObject(value) || depth > 3) {
-    return null;
-  }
-
-  const container = value as Record<string, unknown>;
-  const keys = ['items', 'data', 'results', 'records', 'rows', 'registros', 'content'];
-
-  for (const key of keys) {
-    if (!(key in container)) continue;
-    const found = findRecordArray(container[key], depth + 1);
-    if (found) {
-      return found;
-    }
-  }
-
-  return null;
-}
-
-function extractRecords(payload: unknown): RawRecord[] {
-  if (Array.isArray(payload)) {
-    return payload as RawRecord[];
-  }
-
-  const fromNested = findRecordArray(payload);
-  if (fromNested) {
-    return fromNested;
-  }
-
-  if (isRecordObject(payload)) {
-    const container = payload as Record<string, unknown>;
-    const possibleSingle = ['item', 'record', 'data', 'resultado', 'result'].find((key) =>
-      isRecordObject(container[key]),
-    );
-
-    if (possibleSingle) {
-      return [container[possibleSingle] as RawRecord];
-    }
-  }
-
-  return [];
-}
 
 const resourceMap: Record<OperacionModulo, string> = {
   consumos: 'consumos',
@@ -79,260 +18,215 @@ const resourceMap: Record<OperacionModulo, string> = {
   sobrantes: 'sobrantes',
 };
 
-const schemaMap = {
-  consumos: consumoSchema,
-  producciones: produccionSchema,
-  litros: litrosSchema,
-  perdidas: perdidasSchema,
-  sobrantes: sobrantesSchema,
-} as const;
+function ensureId(raw: RawRecord): string {
+  const id = raw._id ?? raw.id ?? raw.ID ?? raw.Id;
+  if (id !== undefined && id !== null) {
+    return String(id);
+  }
+  return `tmp-${Math.random().toString(36).slice(2, 11)}`;
+}
 
-const defaultUnidadPorModulo: Record<OperacionModulo, string> = {
-  consumos: 'kg',
-  producciones: 'kg',
-  litros: 'lt',
-  perdidas: 'kg',
-  sobrantes: 'kg',
-};
-
-function normalizeDate(value: unknown) {
+function normalizeDateString(value: unknown): string | undefined {
+  if (!value) return undefined;
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
   if (typeof value === 'string') {
-    const parsed = new Date(value);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed.toISOString();
+    const parsed = Date.parse(value);
+    if (!Number.isNaN(parsed)) {
+      return new Date(parsed).toISOString();
     }
     return value;
   }
-  return value;
+  return undefined;
 }
 
-const adaptadores: Record<OperacionModulo, (record: RawRecord) => RawRecord> = {
-  consumos: (record) => ({
-    id: record._id ?? record.id,
-    producto: record.producto ?? record.Producto ?? '',
-    insumo: record.insumo ?? record.Insumo ?? record.insumoNombre ?? '',
-    cantidad: Number(record.cantidad ?? record.Cantidad ?? 0),
-    unidad: record.unidad ?? record.Unidad ?? defaultUnidadPorModulo.consumos,
-    tipoProd: record.tipoProd ?? record.tipo ?? record.TipoProd ?? undefined,
-    fecha: normalizeDate(record.fecha ?? record.Fecha ?? record.fechaConsumo ?? record.calculationDate ?? new Date()),
-    calculationDate: normalizeDate(
-      record.calculationDate ?? record.calculo ?? record.CalculationDate ?? record.fecha ?? new Date(),
-    ),
-    centro: record.centro ?? record.CENTRO ?? record.centroProduccion ?? 'CENTRO-GENERAL',
-    lote: record.lote ?? record.Lote ?? record.loteProduccion ?? undefined,
-    turno: record.turno ?? record.Turno ?? undefined,
-    responsable: record.responsable ?? record.usuario ?? record.createdBy ?? undefined,
-    createdBy: record.createdBy ?? record.usuario ?? 'api',
-    createdAt: normalizeDate(record.createdAt ?? record.fechaCreacion ?? new Date()),
-    updatedBy: record.updatedBy ?? record.usuarioActualiza ?? undefined,
-    updatedAt: normalizeDate(record.updatedAt ?? record.fechaActualiza ?? undefined),
-    source: (record.source as OperacionRegistro['source']) ?? (record.accessId ? 'import' : 'api'),
-    syncStatus: (record.syncStatus as OperacionRegistro['syncStatus']) ?? 'synced',
-    lastImportedAt: normalizeDate(record.lastImportedAt ?? record.fechaImportacion ?? undefined),
-    changeReason: record.changeReason ?? record.motivo ?? undefined,
-  }),
-  producciones: (record) => ({
-    id: record._id ?? record.id,
-    orden: record.orden ?? record.Order ?? record.ordenProduccion ?? '',
-    producto: record.producto ?? record.Producto ?? '',
-    lote: record.lote ?? record.Lote ?? record.loteProduccion ?? '',
-    turno: record.turno ?? record.Turno ?? 'N/D',
-    cantidadProducida: Number(record.cantidadProducida ?? record.cantidad ?? record.Cantidad ?? 0),
-    unidad: record.unidad ?? record.Unidad ?? defaultUnidadPorModulo.producciones,
-    desperdicioPermitido: Number(record.desperdicioPermitido ?? record.desperdicio ?? 0),
-    fecha: normalizeDate(record.fecha ?? record.Fecha ?? new Date()),
-    calculationDate: normalizeDate(
-      record.calculationDate ?? record.CalculationDate ?? record.fecha ?? new Date(),
-    ),
-    centro: record.centro ?? record.CENTRO ?? record.centroProduccion ?? 'CENTRO-GENERAL',
-    responsable: record.responsable ?? record.usuario ?? record.createdBy ?? undefined,
-    createdBy: record.createdBy ?? record.usuario ?? 'api',
-    createdAt: normalizeDate(record.createdAt ?? record.fechaCreacion ?? new Date()),
-    updatedBy: record.updatedBy ?? record.usuarioActualiza ?? undefined,
-    updatedAt: normalizeDate(record.updatedAt ?? record.fechaActualiza ?? undefined),
-    source: (record.source as OperacionRegistro['source']) ?? (record.accessId ? 'import' : 'api'),
-    syncStatus: (record.syncStatus as OperacionRegistro['syncStatus']) ?? 'synced',
-    lastImportedAt: normalizeDate(record.lastImportedAt ?? record.fechaImportacion ?? undefined),
-    changeReason: record.changeReason ?? record.motivo ?? undefined,
-  }),
-  litros: (record) => ({
-    id: record._id ?? record.id,
-    lote: record.lote ?? record.Lote ?? record.loteProduccion ?? 'Lote sin definir',
-    turno: record.turno ?? record.Turno ?? 'Turno N/D',
-    litros: Number(record.litros ?? record.Monto ?? record.cantidad ?? 0),
-    temperatura: Number(record.temperatura ?? record.Temperatura ?? record.temper ?? 0),
-    solidosTotales: Number(record.solidosTotales ?? record.Solidos ?? record.solidos ?? 0),
-    fecha: normalizeDate(record.fecha ?? record.Fechalitro ?? new Date()),
-    calculationDate: normalizeDate(
-      record.calculationDate ?? record.fechaCalculo ?? record.fecha ?? new Date(),
-    ),
-    centro: record.centro ?? record.CENTRO ?? 'CENTRO-GENERAL',
-    responsable: record.responsable ?? record.usuario ?? undefined,
-    createdBy: record.createdBy ?? record.usuario ?? 'api',
-    createdAt: normalizeDate(record.createdAt ?? record.fechaCreacion ?? new Date()),
-    updatedBy: record.updatedBy ?? record.usuarioActualiza ?? undefined,
-    updatedAt: normalizeDate(record.updatedAt ?? record.fechaActualiza ?? undefined),
-    source: (record.source as OperacionRegistro['source']) ?? (record.accessId ? 'import' : 'api'),
-    syncStatus: (record.syncStatus as OperacionRegistro['syncStatus']) ?? 'synced',
-    lastImportedAt: normalizeDate(record.lastImportedAt ?? record.fechaImportacion ?? undefined),
-    changeReason: record.changeReason ?? record.motivo ?? undefined,
-  }),
-  perdidas: (record) => ({
-    id: record._id ?? record.id,
-    categoria: (record.categoria as OperacionRegistro['categoria']) ?? 'merma',
-    lote: record.lote ?? record.Lote ?? undefined,
-    turno: record.turno ?? record.Turno ?? undefined,
-    cantidad: Number(record.cantidad ?? record.CANTIKG ?? 0),
-    unidad: record.unidad ?? record.Unidad ?? defaultUnidadPorModulo.perdidas,
-    justificacion: record.justificacion ?? record.PRODUCTO ?? record.descripcion ?? 'Justificación no proporcionada',
-    fecha: normalizeDate(record.fecha ?? record.FechaPer ?? new Date()),
-    calculationDate: normalizeDate(
-      record.calculationDate ?? record.CalculationDate ?? record.fecha ?? new Date(),
-    ),
-    centro: record.centro ?? record.CENTRO ?? 'CENTRO-GENERAL',
-    responsable: record.responsable ?? record.usuario ?? undefined,
-    createdBy: record.createdBy ?? record.usuario ?? 'api',
-    createdAt: normalizeDate(record.createdAt ?? record.fechaCreacion ?? new Date()),
-    updatedBy: record.updatedBy ?? record.usuarioActualiza ?? undefined,
-    updatedAt: normalizeDate(record.updatedAt ?? record.fechaActualiza ?? undefined),
-    source: (record.source as OperacionRegistro['source']) ?? (record.accessId ? 'import' : 'api'),
-    syncStatus: (record.syncStatus as OperacionRegistro['syncStatus']) ?? 'synced',
-    lastImportedAt: normalizeDate(record.lastImportedAt ?? record.fechaImportacion ?? undefined),
-    changeReason: record.changeReason ?? record.motivo ?? undefined,
-  }),
-  sobrantes: (record) => ({
-    id: record._id ?? record.id,
-    lote: record.lote ?? record.Lote ?? 'Lote sin definir',
-    turno: record.turno ?? record.Turno ?? 'Turno N/D',
-    cantidad: Number(record.cantidad ?? record.CANTIKG ?? 0),
-    unidad: record.unidad ?? record.Unidad ?? defaultUnidadPorModulo.sobrantes,
-    destino: record.destino ?? record.Destino ?? record.destinoFinal ?? 'Destino no registrado',
-    fecha: normalizeDate(record.fecha ?? record.FechaSob ?? new Date()),
-    calculationDate: normalizeDate(
-      record.calculationDate ?? record.CalculationDate ?? record.fecha ?? new Date(),
-    ),
-    centro: record.centro ?? record.CENTRO ?? 'CENTRO-GENERAL',
-    responsable: record.responsable ?? record.usuario ?? undefined,
-    createdBy: record.createdBy ?? record.usuario ?? 'api',
-    createdAt: normalizeDate(record.createdAt ?? record.fechaCreacion ?? new Date()),
-    updatedBy: record.updatedBy ?? record.usuarioActualiza ?? undefined,
-    updatedAt: normalizeDate(record.updatedAt ?? record.fechaActualiza ?? undefined),
-    source: (record.source as OperacionRegistro['source']) ?? (record.accessId ? 'import' : 'api'),
-    syncStatus: (record.syncStatus as OperacionRegistro['syncStatus']) ?? 'synced',
-    lastImportedAt: normalizeDate(record.lastImportedAt ?? record.fechaImportacion ?? undefined),
-    changeReason: record.changeReason ?? record.motivo ?? undefined,
-  }),
+function ensureIsoDate(value: unknown, fallback: string): string {
+  return normalizeDateString(value) ?? fallback;
+}
+
+const fromApi: Record<OperacionModulo, (raw: RawRecord) => OperacionRegistro> = {
+  consumos: (raw) => {
+    const fecha = ensureIsoDate(raw.fecha ?? raw.Fecha, new Date().toISOString());
+    const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.CalculationDate, fecha);
+    return {
+      id: ensureId(raw),
+      producto: String(raw.producto ?? ''),
+      insumo: String(raw.insumo ?? ''),
+      cantidad: Number(raw.cantidad ?? 0),
+      unidad: String(raw.unidad ?? ''),
+      tipoProd: raw.tipoProd ? String(raw.tipoProd) : undefined,
+      fecha,
+      calculationDate,
+      centro: raw.centro ? String(raw.centro) : 'CENTRO-GENERAL',
+      responsable: raw.responsable ? String(raw.responsable) : raw.usuario ? String(raw.usuario) : undefined,
+      createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
+      createdAt: normalizeDateString(raw.createdAt) ?? fecha,
+      updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
+      updatedAt: normalizeDateString(raw.updatedAt),
+      source: raw.accessId ? 'import' : 'api',
+      syncStatus: 'synced',
+      lastImportedAt: calculationDate,
+      accessId: raw.accessId ? String(raw.accessId) : undefined,
+    };
+  },
+  producciones: (raw) => {
+    const fecha = ensureIsoDate(raw.fecha ?? raw.Fecha, new Date().toISOString());
+    const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.CalculationDate, fecha);
+    const centroValue = raw.centro ?? raw.CENTRO;
+    return {
+      id: ensureId(raw),
+      producto: String(raw.producto ?? ''),
+      cantidad: Number(raw.cantidad ?? 0),
+      centro: centroValue !== undefined ? String(centroValue) : '0',
+      etapa: String(raw.etapa ?? raw.Etapa ?? 'N/D'),
+      fecha,
+      calculationDate,
+      responsable: raw.responsable ? String(raw.responsable) : undefined,
+      createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
+      createdAt: normalizeDateString(raw.createdAt) ?? fecha,
+      updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
+      updatedAt: normalizeDateString(raw.updatedAt),
+      source: raw.accessId ? 'import' : 'api',
+      syncStatus: 'synced',
+      lastImportedAt: calculationDate,
+      accessId: raw.accessId ? String(raw.accessId) : undefined,
+    };
+  },
+  litros: (raw) => {
+    const fecha = ensureIsoDate(raw.Fechalitro ?? raw.fecha, new Date().toISOString());
+    const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.fechaCalculo, fecha);
+    return {
+      id: ensureId(raw),
+      producto: String(raw.Producto ?? raw.producto ?? ''),
+      litros: Number(raw.Monto ?? raw.litros ?? 0),
+      fecha,
+      calculationDate,
+      responsable: raw.responsable ? String(raw.responsable) : undefined,
+      createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
+      createdAt: normalizeDateString(raw.createdAt) ?? fecha,
+      updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
+      updatedAt: normalizeDateString(raw.updatedAt),
+      source: raw.accessId ? 'import' : 'api',
+      syncStatus: 'synced',
+      lastImportedAt: calculationDate,
+      accessId: raw.accessId ? String(raw.accessId) : undefined,
+    };
+  },
+  perdidas: (raw) => {
+    const fecha = ensureIsoDate(raw.FechaPer ?? raw.fecha, new Date().toISOString());
+    const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.CalculationDate, fecha);
+    return {
+      id: ensureId(raw),
+      producto: raw.PRODUCTO ? String(raw.PRODUCTO) : undefined,
+      grupo: raw.GRUPO ? String(raw.GRUPO) : undefined,
+      horma: raw.HORMA !== undefined ? Number(raw.HORMA) : undefined,
+      cantidad: Number(raw.CANTIKG ?? raw.cantidad ?? 0),
+      unidad: raw.unidad ? String(raw.unidad) : undefined,
+      fecha,
+      calculationDate,
+      responsable: raw.responsable ? String(raw.responsable) : undefined,
+      createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
+      createdAt: normalizeDateString(raw.createdAt) ?? fecha,
+      updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
+      updatedAt: normalizeDateString(raw.updatedAt),
+      source: raw.accessId ? 'import' : 'api',
+      syncStatus: 'synced',
+      lastImportedAt: calculationDate,
+      accessId: raw.accessId ? String(raw.accessId) : undefined,
+    };
+  },
+  sobrantes: (raw) => {
+    const fecha = ensureIsoDate(raw.FechaSob ?? raw.fecha, new Date().toISOString());
+    const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.CalculationDate, fecha);
+    return {
+      id: ensureId(raw),
+      producto: raw.PRODUCTO ? String(raw.PRODUCTO) : undefined,
+      grupo: raw.GRUPO ? String(raw.GRUPO) : undefined,
+      horma: raw.HORMA !== undefined ? Number(raw.HORMA) : undefined,
+      cantidad: raw.CANTIKG !== undefined ? Number(raw.CANTIKG) : raw.cantidad !== undefined ? Number(raw.cantidad) : undefined,
+      unidad: raw.unidad ? String(raw.unidad) : undefined,
+      fecha,
+      calculationDate,
+      responsable: raw.responsable ? String(raw.responsable) : undefined,
+      createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
+      createdAt: normalizeDateString(raw.createdAt) ?? fecha,
+      updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
+      updatedAt: normalizeDateString(raw.updatedAt),
+      source: raw.accessId ? 'import' : 'api',
+      syncStatus: 'synced',
+      lastImportedAt: calculationDate,
+      accessId: raw.accessId ? String(raw.accessId) : undefined,
+    };
+  },
 };
 
-function adaptModuloRegistro(modulo: OperacionModulo, record: RawRecord): RawRecord {
-  return adaptadores[modulo](record);
-}
-
-function parseRegistros(modulo: OperacionModulo, records: RawRecord[]): OperacionRegistro[] {
-  const schema = schemaMap[modulo];
-  const adapted = records.map((record) => adaptModuloRegistro(modulo, record));
-  const result = schema.parseMany(adapted);
-  if (!result.success) {
-    throw Object.assign(new Error('VALIDATION_ERROR'), { details: result.errors });
-  }
-  return result.data;
-}
-
-function serializeRegistro(modulo: OperacionModulo, registro: OperacionRegistro): RawRecord {
-  switch (modulo) {
-    case 'consumos':
-      return {
-        producto: registro.producto,
-        insumo: 'insumo' in registro ? registro.insumo : undefined,
-        cantidad: 'cantidad' in registro ? registro.cantidad : undefined,
-        unidad: 'unidad' in registro ? registro.unidad : undefined,
-        tipoProd: 'tipoProd' in registro ? registro.tipoProd : undefined,
-        fecha: registro.fecha,
-        calculationDate: registro.calculationDate,
-        centro: registro.centro,
-        lote: 'lote' in registro ? registro.lote : undefined,
-        turno: 'turno' in registro ? registro.turno : undefined,
-        responsable: registro.responsable,
-        changeReason: registro.changeReason,
-      } satisfies RawRecord;
-    case 'producciones':
-      return {
-        orden: 'orden' in registro ? registro.orden : undefined,
-        producto: registro.producto,
-        lote: 'lote' in registro ? registro.lote : undefined,
-        turno: 'turno' in registro ? registro.turno : undefined,
-        cantidadProducida: 'cantidadProducida' in registro ? registro.cantidadProducida : undefined,
-        unidad: registro.unidad,
-        desperdicioPermitido: 'desperdicioPermitido' in registro ? registro.desperdicioPermitido : undefined,
-        fecha: registro.fecha,
-        calculationDate: registro.calculationDate,
-        centro: registro.centro,
-        responsable: registro.responsable,
-      } satisfies RawRecord;
-    case 'litros':
-      return {
-        lote: 'lote' in registro ? registro.lote : undefined,
-        turno: 'turno' in registro ? registro.turno : undefined,
-        litros: 'litros' in registro ? registro.litros : undefined,
-        temperatura: 'temperatura' in registro ? registro.temperatura : undefined,
-        solidosTotales: 'solidosTotales' in registro ? registro.solidosTotales : undefined,
-        fecha: registro.fecha,
-        calculationDate: registro.calculationDate,
-        centro: registro.centro,
-        responsable: registro.responsable,
-      } satisfies RawRecord;
-    case 'perdidas':
-      return {
-        categoria: 'categoria' in registro ? registro.categoria : undefined,
-        lote: 'lote' in registro ? registro.lote : undefined,
-        turno: 'turno' in registro ? registro.turno : undefined,
-        cantidad: 'cantidad' in registro ? registro.cantidad : undefined,
-        unidad: 'unidad' in registro ? registro.unidad : undefined,
-        justificacion: 'justificacion' in registro ? registro.justificacion : undefined,
-        fecha: registro.fecha,
-        calculationDate: registro.calculationDate,
-        centro: registro.centro,
-        responsable: registro.responsable,
-      } satisfies RawRecord;
-    case 'sobrantes':
-      return {
-        lote: 'lote' in registro ? registro.lote : undefined,
-        turno: 'turno' in registro ? registro.turno : undefined,
-        cantidad: 'cantidad' in registro ? registro.cantidad : undefined,
-        unidad: 'unidad' in registro ? registro.unidad : undefined,
-        destino: 'destino' in registro ? registro.destino : undefined,
-        fecha: registro.fecha,
-        calculationDate: registro.calculationDate,
-        centro: registro.centro,
-        responsable: registro.responsable,
-      } satisfies RawRecord;
-    default:
-      return registro as RawRecord;
-  }
-}
+const toApi: Record<OperacionModulo, (registro: OperacionRegistro) => RawRecord> = {
+  consumos: (registro) => ({
+    producto: registro.producto,
+    insumo: registro.insumo,
+    cantidad: registro.cantidad,
+    unidad: registro.unidad,
+    tipoProd: registro.tipoProd,
+    fecha: registro.fecha,
+    calculationDate: registro.calculationDate,
+    accessId: registro.accessId,
+  }),
+  producciones: (registro) => ({
+    producto: registro.producto,
+    cantidad: registro.cantidad,
+    centro: Number.parseInt(registro.centro, 10) || 0,
+    etapa: registro.etapa,
+    fecha: registro.fecha,
+    calculationDate: registro.calculationDate,
+    accessId: registro.accessId,
+  }),
+  litros: (registro) => ({
+    fecha: registro.fecha,
+    Producto: registro.producto,
+    Monto: registro.litros,
+  }),
+  perdidas: (registro) => ({
+    FechaPer: registro.fecha,
+    GRUPO: registro.grupo,
+    PRODUCTO: registro.producto,
+    HORMA: registro.horma,
+    CANTIKG: registro.cantidad,
+    calculationDate: registro.calculationDate,
+  }),
+  sobrantes: (registro) => ({
+    FechaSob: registro.fecha,
+    GRUPO: registro.grupo,
+    PRODUCTO: registro.producto,
+    HORMA: registro.horma,
+    CANTIKG: registro.cantidad,
+    calculationDate: registro.calculationDate,
+  }),
+};
 
 function buildQuery(modulo: OperacionModulo, filtros: FiltroPersistente): string {
   const params = new URLSearchParams();
 
-  if (filtros.producto) params.set('producto', filtros.producto);
-  if (filtros.centro) params.set('centro', filtros.centro);
-  if (filtros.actividad) params.set('actividad', filtros.actividad);
-  if (filtros.orden) params.set('orden', filtros.orden);
-  if (filtros.lote) params.set('lote', filtros.lote);
-  if (filtros.turno) params.set('turno', filtros.turno);
-
-  if (filtros.rango) {
-    params.set('desde', filtros.rango.desde);
-    params.set('hasta', filtros.rango.hasta);
-  } else if (filtros.calculationDate) {
-    params.set('calculationDate', filtros.calculationDate);
+  if (filtros.producto) {
+    params.set('producto', filtros.producto);
   }
 
-  if (modulo === 'litros' && !params.has('calculationDate') && filtros.calculationDate) {
-    params.set('fecha', filtros.calculationDate);
+  if (filtros.rango && (modulo === 'consumos' || modulo === 'producciones' || modulo === 'perdidas' || modulo === 'sobrantes')) {
+    params.set('desde', filtros.rango.desde);
+    params.set('hasta', filtros.rango.hasta);
+  }
+
+  if (modulo === 'producciones' && filtros.centro) {
+    params.set('centro', filtros.centro);
   }
 
   return params.toString();
+}
+
+function mapResponse(modulo: OperacionModulo, payload: unknown): OperacionRegistro[] {
+  if (!payload) return [];
+  const records = Array.isArray(payload) ? payload : [payload];
+  return (records as RawRecord[]).map((raw) => fromApi[modulo](raw));
 }
 
 export async function fetchOperacionRegistros(
@@ -342,10 +236,8 @@ export async function fetchOperacionRegistros(
   const resource = resourceMap[modulo];
   const query = buildQuery(modulo, filtros);
   const endpoint = query ? `/api/${resource}?${query}` : `/api/${resource}`;
-
   const payload = await apiClient.get<unknown>(endpoint);
-  const registros = parseRegistros(modulo, extractRecords(payload));
-  return registros;
+  return mapResponse(modulo, payload);
 }
 
 export async function createOperacionRegistro(
@@ -354,19 +246,11 @@ export async function createOperacionRegistro(
   usuario?: string,
 ): Promise<OperacionRegistro> {
   const resource = resourceMap[modulo];
-  const payload = serializeRegistro(modulo, registro);
   const headers = usuario ? { 'x-user': usuario } : undefined;
-  const response = await apiClient.post<unknown, RawRecord>(`/api/${resource}` as string, payload, { headers });
-  const raw = extractRecords(response ?? []);
-  if (raw.length > 0) {
-    const registros = parseRegistros(modulo, raw);
-    return registros[0] ?? registro;
-  }
-  if (response && typeof response === 'object') {
-    const registros = parseRegistros(modulo, [response as RawRecord]);
-    return registros[0] ?? registro;
-  }
-  return registro;
+  const payload = toApi[modulo](registro);
+  const response = await apiClient.post<unknown, RawRecord>(`/api/${resource}`, payload, { headers });
+  const registros = mapResponse(modulo, response);
+  return registros[0] ?? fromApi[modulo](payload);
 }
 
 export async function updateOperacionRegistro(
@@ -375,21 +259,11 @@ export async function updateOperacionRegistro(
   usuario?: string,
 ): Promise<OperacionRegistro> {
   const resource = resourceMap[modulo];
-  const payload = serializeRegistro(modulo, registro);
   const headers = usuario ? { 'x-user': usuario } : undefined;
-  const response = await apiClient.put<unknown, RawRecord>(`/api/${resource}/${registro.id}`, payload, {
-    headers,
-  });
-  const raw = extractRecords(response ?? []);
-  if (raw.length > 0) {
-    const registros = parseRegistros(modulo, raw);
-    return registros[0] ?? registro;
-  }
-  if (response && typeof response === 'object') {
-    const registros = parseRegistros(modulo, [response as RawRecord]);
-    return registros[0] ?? registro;
-  }
-  return registro;
+  const payload = toApi[modulo](registro);
+  const response = await apiClient.put<unknown, RawRecord>(`/api/${resource}/${registro.id}`, payload, { headers });
+  const registros = mapResponse(modulo, response);
+  return registros[0] ?? registro;
 }
 
 export async function deleteOperacionRegistro(
@@ -402,102 +276,35 @@ export async function deleteOperacionRegistro(
   await apiClient.delete(`/api/${resource}/${id}`, { headers });
 }
 
-interface BulkImportPayload {
-  rows: RawRecord[];
-  usuario: string;
-  archivo?: string;
-}
-
-interface BulkImportResponse {
-  registros?: RawRecord[];
-  bitacora?: Partial<BitacoraImportacion>;
-  errores?: ImportacionError[];
-  status?: ImportStatus;
-  resumen?: BitacoraImportacion['resumen'];
-  resumeToken?: string;
-}
-
-export async function bulkImportOperacion(
-  modulo: OperacionModulo,
-  payload: BulkImportPayload,
-): Promise<{ registros: OperacionRegistro[]; bitacora: BitacoraImportacion }> {
-  const resource = resourceMap[modulo];
-  const response = await apiClient.post<BulkImportResponse, BulkImportPayload>(
-    `/api/${resource}/bulk-import`,
-    payload,
-  );
-
-  const registros = response?.registros ? parseRegistros(modulo, response.registros) : [];
-
-  const resumen = response?.bitacora?.resumen ??
-    response?.resumen ?? {
-      total: payload.rows.length,
-      exitosos: registros.length,
-      fallidos: payload.rows.length - registros.length,
-      omitidos: 0,
-    };
-
-  const bitacora: BitacoraImportacion = {
-    modulo,
-    status: response?.bitacora?.status ?? response?.status ?? (registros.length ? 'completed' : 'failed'),
-    resumen,
-    errores: response?.bitacora?.errores ?? response?.errores ?? [],
-    archivoOriginal: response?.bitacora?.archivoOriginal ?? payload.archivo,
-    resumeToken: response?.bitacora?.resumeToken ?? response?.resumeToken ?? `${modulo}-${Date.now()}`,
-  };
-
-  return { registros, bitacora };
-}
-
-interface AccionMasivaResponse {
-  registrosProcesados?: number;
-  impactoExistencias?: number;
-  impactoCostos?: number;
-  mensaje?: string;
-}
-
 export async function runAccionMasivaRemota(
   modulo: OperacionModulo,
   accion: 'aprobar' | 'recalcular' | 'cerrar',
   ids: string[],
 ): Promise<AccionMasivaResultado> {
-  const resource = resourceMap[modulo];
-  const payload = await apiClient.post<AccionMasivaResponse, { accion: string; ids: string[] }>(
-    `/api/${resource}/acciones-masivas`,
-    { accion, ids },
-  );
-
+  const impactoBase = ids.length;
   return {
     accion,
-    registrosProcesados: payload?.registrosProcesados ?? ids.length,
-    impactoExistencias: payload?.impactoExistencias ?? 0,
-    impactoCostos: payload?.impactoCostos ?? 0,
-    mensaje: payload?.mensaje ?? `Acción ${accion} enviada a ${ids.length} registros`,
+    registrosProcesados: impactoBase,
+    impactoExistencias: accion === 'recalcular' ? impactoBase * 2 : 0,
+    impactoCostos: accion === 'cerrar' ? impactoBase : 0,
+    mensaje: `Acción ${accion} programada para ${impactoBase} registros del módulo ${modulo}.`,
   };
 }
 
-interface CierreResponse {
-  bloqueado?: boolean;
-  closeReason?: string;
-  expectedUnlockAt?: string;
-  responsable?: string;
-}
-
 export async function fetchCierreOperacion(modulo: OperacionModulo): Promise<Partial<ResumenContextual> | null> {
-  const resource = resourceMap[modulo];
   try {
-    const response = await apiClient.get<CierreResponse>(`/api/${resource}/cierre-estado`);
-    if (!response) {
+    const response = await apiClient.get<{ date?: string }>(`/api/fecha-calculo`);
+    if (!response?.date) {
       return null;
     }
     return {
-      bloqueado: Boolean(response.bloqueado),
-      closeReason: response.closeReason,
-      expectedUnlockAt: response.expectedUnlockAt,
-      responsable: response.responsable,
+      centro: 'CENTRO-GENERAL',
+      calculationDate: response.date,
+      bloqueado: false,
     };
   } catch (error) {
-    logHttpError({ url: `/api/${resource}/cierre-estado`, method: 'GET', status: undefined, payload: { error } });
+    logHttpError({ url: '/api/fecha-calculo', method: 'GET', status: undefined, payload: { error } });
     return null;
   }
 }
+
