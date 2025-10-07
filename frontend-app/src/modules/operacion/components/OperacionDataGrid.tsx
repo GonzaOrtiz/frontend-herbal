@@ -19,6 +19,12 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
 
   const agrupacion = config.agrupaciones?.[0];
 
+  const datos = useMemo(() => {
+    if (!agrupacion) return [{ key: 'all', registros }];
+    return groupBy(registros, agrupacion);
+  }, [registros, agrupacion]);
+
+
   useEffect(() => {
     setVisibleRows(50);
   }, [registros]);
@@ -69,11 +75,6 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
       </div>
     );
   }
-
-  const datos = useMemo(() => {
-    if (!agrupacion) return [{ key: 'all', registros }];
-    return groupBy(registros, agrupacion);
-  }, [registros, agrupacion]);
 
   const renderCell = (registro: OperacionRegistro, key: string) => {
     const value = (registro as Record<string, unknown>)[key];
