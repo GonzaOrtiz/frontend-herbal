@@ -20,6 +20,57 @@ import {
 
 type RawRecord = Record<string, unknown>;
 
+function isRecordObject(value: unknown): value is RawRecord {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function findRecordArray(value: unknown, depth = 0): RawRecord[] | null {
+  if (Array.isArray(value)) {
+    return value as RawRecord[];
+  }
+
+  if (!isRecordObject(value) || depth > 3) {
+    return null;
+  }
+
+  const container = value as Record<string, unknown>;
+  const keys = ['items', 'data', 'results', 'records', 'rows', 'registros', 'content'];
+
+  for (const key of keys) {
+    if (!(key in container)) continue;
+    const found = findRecordArray(container[key], depth + 1);
+    if (found) {
+      return found;
+    }
+  }
+
+  return null;
+}
+
+function extractRecords(payload: unknown): RawRecord[] {
+  if (Array.isArray(payload)) {
+    return payload as RawRecord[];
+  }
+
+  const fromNested = findRecordArray(payload);
+  if (fromNested) {
+    return fromNested;
+  }
+
+  if (isRecordObject(payload)) {
+    const container = payload as Record<string, unknown>;
+    const possibleSingle = ['item', 'record', 'data', 'resultado', 'result'].find((key) =>
+      isRecordObject(container[key]),
+    );
+
+    if (possibleSingle) {
+      return [container[possibleSingle] as RawRecord];
+    }
+  }
+
+  return [];
+}
+
 const resourceMap: Record<OperacionModulo, string> = {
   consumos: 'consumos',
   producciones: 'producciones',
@@ -43,25 +94,6 @@ const defaultUnidadPorModulo: Record<OperacionModulo, string> = {
   perdidas: 'kg',
   sobrantes: 'kg',
 };
-
-function extractRecords(payload: unknown): RawRecord[] {
-  if (Array.isArray(payload)) {
-    return payload as RawRecord[];
-  }
-
-  if (payload && typeof payload === 'object') {
-    const data = payload as Record<string, unknown>;
-    const candidates = [data.items, data.data, data.results, data.records].find(
-      (value): value is RawRecord[] => Array.isArray(value),
-    );
-
-    if (candidates) {
-      return candidates;
-    }
-  }
-
-  return [];
-}
 
 function normalizeDate(value: unknown) {
   if (typeof value === 'string') {
