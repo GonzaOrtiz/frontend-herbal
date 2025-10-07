@@ -19,7 +19,7 @@ export function buildOperacionRoutes(): OperacionRoute[] {
       title: 'Consumos',
       description: 'Captura y valida consumos diarios según documentación funcional.',
       permissions: ['operacion.consumos'],
-      element: <OperacionModule />,
+      element: <OperacionModule initialModulo="consumos" />,
     },
     {
       id: 'producciones',
@@ -27,7 +27,7 @@ export function buildOperacionRoutes(): OperacionRoute[] {
       title: 'Producciones',
       description: 'Gestiona órdenes de producción y sincronización con existencias.',
       permissions: ['operacion.producciones'],
-      element: <OperacionModule />,
+      element: <OperacionModule initialModulo="producciones" />,
     },
     {
       id: 'litros',
@@ -35,7 +35,7 @@ export function buildOperacionRoutes(): OperacionRoute[] {
       title: 'Litros de crema',
       description: 'Monitoreo de litros de crema por lote y turno.',
       permissions: ['operacion.litros'],
-      element: <OperacionModule />,
+      element: <OperacionModule initialModulo="litros" />,
     },
     {
       id: 'perdidas',
@@ -43,7 +43,7 @@ export function buildOperacionRoutes(): OperacionRoute[] {
       title: 'Pérdidas',
       description: 'Registro y auditoría de pérdidas y mermas.',
       permissions: ['operacion.perdidas'],
-      element: <OperacionModule />,
+      element: <OperacionModule initialModulo="perdidas" />,
     },
     {
       id: 'sobrantes',
@@ -51,7 +51,7 @@ export function buildOperacionRoutes(): OperacionRoute[] {
       title: 'Sobrantes',
       description: 'Control de sobrantes y destino final.',
       permissions: ['operacion.sobrantes'],
-      element: <OperacionModule />,
+      element: <OperacionModule initialModulo="sobrantes" />,
     },
   ];
 }
