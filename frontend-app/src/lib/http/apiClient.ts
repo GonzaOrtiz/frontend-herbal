@@ -13,7 +13,8 @@ async function request<TResponse, TBody = unknown>(
   url: string,
   options: RequestOptions<TBody> = {}
 ): Promise<TResponse> {
-  const baseUrl = import.meta.env?.VITE_API_URL ?? '';
+  const rawBaseUrl = import.meta.env?.VITE_API_URL;
+  const baseUrl = (rawBaseUrl ?? 'http://localhost:3000').replace(/\/$/, '');
   const controller = new AbortController();
   const signal = options.signal ?? controller.signal;
 

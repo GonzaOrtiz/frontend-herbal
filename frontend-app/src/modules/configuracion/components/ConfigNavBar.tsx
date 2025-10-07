@@ -7,17 +7,20 @@ const ConfigNavBar: React.FC = () => {
 
   return (
     <nav className="config-nav" aria-label="Navegación secundaria">
-      {routes.map((route) => (
-        <button
-          key={route.id}
-          type="button"
-          className={`config-nav__item ${activeRoute?.id === route.id ? 'config-nav__item--active' : ''}`}
-          onClick={() => selectRoute(route.id)}
-          aria-current={activeRoute?.id === route.id ? 'page' : undefined}
-        >
-          {route.meta.secondaryNavLabel ?? route.meta.title}
-        </button>
-      ))}
+      <ul className="config-nav__list">
+        {routes.map((route) => (
+          <li key={route.id}>
+            <button
+              type="button"
+              className={`config-nav__item ${activeRoute?.id === route.id ? 'config-nav__item--active' : ''}`}
+              onClick={() => selectRoute(route.id)}
+              aria-current={activeRoute?.id === route.id ? 'page' : undefined}
+            >
+              {route.meta.secondaryNavLabel ?? route.meta.title}
+            </button>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 };

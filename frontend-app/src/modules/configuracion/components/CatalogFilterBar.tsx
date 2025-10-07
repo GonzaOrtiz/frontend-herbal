@@ -6,6 +6,9 @@ interface CatalogFilterBarProps {
   value: CatalogFilterState;
   onChange: (value: CatalogFilterState) => void;
   disabled?: boolean;
+  searchPlaceholder?: string;
+  hideStatus?: boolean;
+  hideUpdatedBy?: boolean;
 }
 
 const statusOptions: Array<{ value: CatalogFilterState['status']; label: string }> = [
@@ -15,7 +18,14 @@ const statusOptions: Array<{ value: CatalogFilterState['status']; label: string 
   { value: 'sincronizando', label: 'Sincronizando' },
 ];
 
-const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({ value, onChange, disabled }) => (
+const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
+  value,
+  onChange,
+  disabled,
+  searchPlaceholder,
+  hideStatus,
+  hideUpdatedBy,
+}) => (
   <div className="config-filter-bar" role="search">
     <div className="config-filter-bar__field">
       <label htmlFor="catalog-search" className="config-field-label">
@@ -24,43 +34,47 @@ const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({ value, onChange, di
       <input
         id="catalog-search"
         className="config-input"
-        placeholder="Buscar por nombre o código"
+        placeholder={searchPlaceholder ?? 'Buscar por nombre o código'}
         value={value.search}
         onChange={(event) => onChange({ ...value, search: event.target.value })}
         disabled={disabled}
       />
     </div>
-    <div className="config-filter-bar__field">
-      <label htmlFor="catalog-status" className="config-field-label">
-        Estado
-      </label>
-      <select
-        id="catalog-status"
-        className="config-select"
-        value={value.status}
-        onChange={(event) => onChange({ ...value, status: event.target.value as CatalogFilterState['status'] })}
-        disabled={disabled}
-      >
-        {statusOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
-    <div className="config-filter-bar__field">
-      <label htmlFor="catalog-updated-by" className="config-field-label">
-        Último cambio por
-      </label>
-      <input
-        id="catalog-updated-by"
-        className="config-input"
-        placeholder="Usuario"
-        value={value.updatedBy ?? ''}
-        onChange={(event) => onChange({ ...value, updatedBy: event.target.value || undefined })}
-        disabled={disabled}
-      />
-    </div>
+    {!hideStatus && (
+      <div className="config-filter-bar__field">
+        <label htmlFor="catalog-status" className="config-field-label">
+          Estado
+        </label>
+        <select
+          id="catalog-status"
+          className="config-select"
+          value={value.status ?? 'todos'}
+          onChange={(event) => onChange({ ...value, status: event.target.value as CatalogFilterState['status'] })}
+          disabled={disabled}
+        >
+          {statusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    )}
+    {!hideUpdatedBy && (
+      <div className="config-filter-bar__field">
+        <label htmlFor="catalog-updated-by" className="config-field-label">
+          Último cambio por
+        </label>
+        <input
+          id="catalog-updated-by"
+          className="config-input"
+          placeholder="Usuario"
+          value={value.updatedBy ?? ''}
+          onChange={(event) => onChange({ ...value, updatedBy: event.target.value || undefined })}
+          disabled={disabled}
+        />
+      </div>
+    )}
   </div>
 );
 
