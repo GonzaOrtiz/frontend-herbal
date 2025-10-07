@@ -40,18 +40,27 @@ export function useQueryClient(): QueryClient {
 
 export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TData> {
   const client = useQueryClient();
+  const enabled = options.enabled ?? true;
+  const staleTime = options.staleTime ?? client.getConfig().staleTime ?? 0;
+  const serializedKey = useMemo(() => JSON.stringify(options.queryKey), [options.queryKey]);
+  const queryFnRef = useRef(options.queryFn);
+
+  useEffect(() => {
+    queryFnRef.current = options.queryFn;
+  }, [options.queryFn]);
+
+  const fetchLatest = useCallback(
+    () => client.fetchQuery(serializedKey, () => queryFnRef.current()),
+    [client, serializedKey],
+  );
+
   const [state, setState] = useState<UseQueryResult<TData>>({
     status: 'idle',
     data: undefined,
     error: undefined,
     updatedAt: 0,
-    refetch: () => client.fetchQuery(options.queryKey, options.queryFn),
+    refetch: fetchLatest,
   });
-
-  const enabled = options.enabled ?? true;
-  const staleTime = options.staleTime ?? client.getConfig().staleTime ?? 0;
-  const serializedKey = useMemo(() => JSON.stringify(options.queryKey), [options.queryKey]);
-  const stableQueryFn = useCallback(options.queryFn, []);
 
   useEffect(() => {
     if (!enabled) return;
@@ -62,7 +71,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
           ...prev,
           ...state,
           data: state.data as TData | undefined,
-          refetch: () => client.fetchQuery(serializedKey, stableQueryFn),
+          refetch: fetchLatest,
         }));
       },
     });
@@ -75,15 +84,14 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
         data: record.data as TData,
         error: undefined,
         updatedAt: record.updatedAt,
-        refetch: () => client.fetchQuery(serializedKey, stableQueryFn),
+        refetch: fetchLatest,
       });
       return unsubscribe;
     }
 
     let isMounted = true;
 
-    client
-      .fetchQuery(serializedKey, stableQueryFn)
+    fetchLatest()
       .then((data) => {
         if (!isMounted) return;
         setState({
@@ -91,7 +99,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
           data,
           error: undefined,
           updatedAt: Date.now(),
-          refetch: () => client.fetchQuery(serializedKey, stableQueryFn),
+          refetch: fetchLatest,
         });
       })
       .catch((error) => {
@@ -101,7 +109,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
           data: undefined,
           error,
           updatedAt: Date.now(),
-          refetch: () => client.fetchQuery(serializedKey, stableQueryFn),
+          refetch: fetchLatest,
         });
       });
 
@@ -109,10 +117,13 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
       isMounted = false;
       unsubscribe();
     };
-  }, [client, serializedKey, enabled, staleTime, stableQueryFn]);
+  }, [client, serializedKey, enabled, staleTime, fetchLatest]);
 
-  const refetchRef = useRef(state.refetch);
-  refetchRef.current = () => client.fetchQuery(serializedKey, options.queryFn);
+  const refetchRef = useRef(fetchLatest);
+
+  useEffect(() => {
+    refetchRef.current = fetchLatest;
+  }, [fetchLatest]);
 
   return { ...state, refetch: () => refetchRef.current() };
 }

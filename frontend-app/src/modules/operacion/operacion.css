@@ -61,6 +61,24 @@
   cursor: pointer;
 }
 
+.operacion-filtros .saved-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  grid-column: 1 / -1;
+}
+
+.operacion-filtros .saved-views select {
+  min-width: 200px;
+  flex: 1 1 220px;
+}
+
+.operacion-filtros .saved-views button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .operacion-datagrid {
   background: #fff;
   border-radius: 12px;
@@ -68,6 +86,47 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.operacion-datagrid--placeholder {
+  justify-content: center;
+  align-items: center;
+  min-height: 220px;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.operacion-datagrid--placeholder p {
+  margin: 0;
+  color: #475569;
+}
+
+.operacion-datagrid--placeholder button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.operacion-datagrid--placeholder small {
+  color: #64748b;
+}
+
+.operacion-datagrid--placeholder .spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #cbd5f5;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .operacion-datagrid table {
