@@ -87,36 +87,50 @@ const ParametrosGeneralesPage: React.FC = () => {
           title="Actualizar parámetros generales"
           description="Modifica la fecha de cálculo y la política de costeo utilizada como base para los reportes."
         >
-          <form onSubmit={handleSubmit} noValidate>
-            <label htmlFor="parametros-fecha" className="audit-meta">
-              Fecha de cálculo
-            </label>
-            <input id="parametros-fecha" className="config-input" type="date" {...form.register('fechaCalculo')} />
-            {form.formState.errors.fechaCalculo && <p className="config-alert">{form.formState.errors.fechaCalculo}</p>}
+          <form onSubmit={handleSubmit} noValidate className="config-form">
+            <div className="config-form-field">
+              <label htmlFor="parametros-fecha" className="config-field-label">
+                Fecha de cálculo
+              </label>
+              <input id="parametros-fecha" className="config-input" type="date" {...form.register('fechaCalculo')} />
+              {form.formState.errors.fechaCalculo && (
+                <p className="config-field-error">{form.formState.errors.fechaCalculo}</p>
+              )}
+            </div>
 
-            <label htmlFor="parametros-politica" className="audit-meta">
-              Política de costeo
-            </label>
-            <select
-              id="parametros-politica"
-              className="config-select"
-              value={form.formState.values.politicaCosteo}
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                form.setValue('politicaCosteo', event.target.value as ParametrosGeneralesFormValues['politicaCosteo'])
-              }
-            >
-              <option value="promedio">Promedio ponderado</option>
-              <option value="peps">PEPS</option>
-              <option value="ueps">UEPS</option>
-            </select>
+            <div className="config-form-field">
+              <label htmlFor="parametros-politica" className="config-field-label">
+                Política de costeo
+              </label>
+              <select
+                id="parametros-politica"
+                className="config-select"
+                value={form.formState.values.politicaCosteo}
+                onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+                  form.setValue('politicaCosteo', event.target.value as ParametrosGeneralesFormValues['politicaCosteo'])
+                }
+              >
+                <option value="promedio">Promedio ponderado</option>
+                <option value="peps">PEPS</option>
+                <option value="ueps">UEPS</option>
+              </select>
+            </div>
 
-            <label htmlFor="parametros-aprobador" className="audit-meta">
-              Aprobador responsable
-            </label>
-            <input id="parametros-aprobador" className="config-input" {...form.register('aprobador')} />
-            {form.formState.errors.aprobador && <p className="config-alert">{form.formState.errors.aprobador}</p>}
+            <div className="config-form-field">
+              <label htmlFor="parametros-aprobador" className="config-field-label">
+                Aprobador responsable
+              </label>
+              <input id="parametros-aprobador" className="config-input" {...form.register('aprobador')} />
+              {form.formState.errors.aprobador && (
+                <p className="config-field-error">{form.formState.errors.aprobador}</p>
+              )}
+            </div>
 
-            <FormActions isSubmitting={form.formState.isSubmitting} onCancel={() => form.reset()} submitLabel="Guardar" />
+            <FormActions
+              isSubmitting={form.formState.isSubmitting}
+              onCancel={() => form.reset()}
+              submitLabel="Guardar"
+            />
           </form>
         </FormSection>
       </ProtectedRoute>

@@ -84,48 +84,60 @@ const ActividadesPage: React.FC = () => {
           title="Registrar nueva actividad"
           description="Completa los campos obligatorios para sincronizar la actividad con producción y consumos."
         >
-          <form onSubmit={handleSubmit} noValidate>
-            <label htmlFor="actividad-nombre" className="audit-meta">
-              Nombre de la actividad
-            </label>
-            <input id="actividad-nombre" className="config-input" {...form.register('nombre')} />
-            {form.formState.errors.nombre && <p className="config-alert">{form.formState.errors.nombre}</p>}
+          <form onSubmit={handleSubmit} noValidate className="config-form">
+            <div className="config-form-field">
+              <label htmlFor="actividad-nombre" className="config-field-label">
+                Nombre de la actividad
+              </label>
+              <input id="actividad-nombre" className="config-input" {...form.register('nombre')} />
+              {form.formState.errors.nombre && <p className="config-field-error">{form.formState.errors.nombre}</p>}
+            </div>
 
-            <label htmlFor="actividad-descripcion" className="audit-meta">
-              Descripción operativa
-            </label>
-            <textarea
-              id="actividad-descripcion"
-              className="config-input"
-              rows={3}
-              value={form.formState.values.descripcion}
-              onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
-                form.setValue('descripcion', event.target.value)
-              }
-            />
-            {form.formState.errors.descripcion && <p className="config-alert">{form.formState.errors.descripcion}</p>}
+            <div className="config-form-field config-form-field--full">
+              <label htmlFor="actividad-descripcion" className="config-field-label">
+                Descripción operativa
+              </label>
+              <textarea
+                id="actividad-descripcion"
+                className="config-input"
+                rows={3}
+                value={form.formState.values.descripcion}
+                onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  form.setValue('descripcion', event.target.value)
+                }
+              />
+              {form.formState.errors.descripcion && (
+                <p className="config-field-error">{form.formState.errors.descripcion}</p>
+              )}
+            </div>
 
-            <label htmlFor="actividad-responsable" className="audit-meta">
-              Responsable
-            </label>
-            <input id="actividad-responsable" className="config-input" {...form.register('responsable')} />
-            {form.formState.errors.responsable && <p className="config-alert">{form.formState.errors.responsable}</p>}
+            <div className="config-form-field">
+              <label htmlFor="actividad-responsable" className="config-field-label">
+                Responsable
+              </label>
+              <input id="actividad-responsable" className="config-input" {...form.register('responsable')} />
+              {form.formState.errors.responsable && (
+                <p className="config-field-error">{form.formState.errors.responsable}</p>
+              )}
+            </div>
 
-            <label htmlFor="actividad-estado" className="audit-meta">
-              Estado
-            </label>
-            <select
-              id="actividad-estado"
-              className="config-select"
-              value={form.formState.values.estado}
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                form.setValue('estado', event.target.value as ActividadFormValues['estado'])
-              }
-            >
-              <option value="activo">Activo</option>
-              <option value="inactivo">Inactivo</option>
-              <option value="sincronizando">Sincronizando</option>
-            </select>
+            <div className="config-form-field">
+              <label htmlFor="actividad-estado" className="config-field-label">
+                Estado
+              </label>
+              <select
+                id="actividad-estado"
+                className="config-select"
+                value={form.formState.values.estado}
+                onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+                  form.setValue('estado', event.target.value as ActividadFormValues['estado'])
+                }
+              >
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+                <option value="sincronizando">Sincronizando</option>
+              </select>
+            </div>
 
             <FormActions isSubmitting={form.formState.isSubmitting} onCancel={() => form.reset()} />
           </form>

@@ -17,44 +17,50 @@ const statusOptions: Array<{ value: CatalogFilterState['status']; label: string 
 
 const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({ value, onChange, disabled }) => (
   <div className="config-filter-bar" role="search">
-    <label htmlFor="catalog-search" className="audit-meta">
-      Búsqueda
-    </label>
-    <input
-      id="catalog-search"
-      className="config-input"
-      placeholder="Buscar por nombre o código"
-      value={value.search}
-      onChange={(event) => onChange({ ...value, search: event.target.value })}
-      disabled={disabled}
-    />
-    <label htmlFor="catalog-status" className="audit-meta">
-      Estado
-    </label>
-    <select
-      id="catalog-status"
-      className="config-select"
-      value={value.status}
-      onChange={(event) => onChange({ ...value, status: event.target.value as CatalogFilterState['status'] })}
-      disabled={disabled}
-    >
-      {statusOptions.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-    <label htmlFor="catalog-updated-by" className="audit-meta">
-      Último cambio por
-    </label>
-    <input
-      id="catalog-updated-by"
-      className="config-input"
-      placeholder="Usuario"
-      value={value.updatedBy ?? ''}
-      onChange={(event) => onChange({ ...value, updatedBy: event.target.value || undefined })}
-      disabled={disabled}
-    />
+    <div className="config-filter-bar__field">
+      <label htmlFor="catalog-search" className="config-field-label">
+        Búsqueda
+      </label>
+      <input
+        id="catalog-search"
+        className="config-input"
+        placeholder="Buscar por nombre o código"
+        value={value.search}
+        onChange={(event) => onChange({ ...value, search: event.target.value })}
+        disabled={disabled}
+      />
+    </div>
+    <div className="config-filter-bar__field">
+      <label htmlFor="catalog-status" className="config-field-label">
+        Estado
+      </label>
+      <select
+        id="catalog-status"
+        className="config-select"
+        value={value.status}
+        onChange={(event) => onChange({ ...value, status: event.target.value as CatalogFilterState['status'] })}
+        disabled={disabled}
+      >
+        {statusOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+    <div className="config-filter-bar__field">
+      <label htmlFor="catalog-updated-by" className="config-field-label">
+        Último cambio por
+      </label>
+      <input
+        id="catalog-updated-by"
+        className="config-input"
+        placeholder="Usuario"
+        value={value.updatedBy ?? ''}
+        onChange={(event) => onChange({ ...value, updatedBy: event.target.value || undefined })}
+        disabled={disabled}
+      />
+    </div>
   </div>
 );
 

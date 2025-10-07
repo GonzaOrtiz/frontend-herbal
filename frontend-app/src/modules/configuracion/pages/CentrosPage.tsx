@@ -82,39 +82,49 @@ const CentrosPage: React.FC = () => {
           title="Crear centro"
           description="Los centros impactan directamente en el costeo y producción. Valida con finanzas antes de crear uno nuevo."
         >
-          <form onSubmit={handleSubmit} noValidate>
-            <label htmlFor="centro-codigo" className="audit-meta">
-              Código
-            </label>
-            <input id="centro-codigo" className="config-input" {...form.register('codigo')} />
-            {form.formState.errors.codigo && <p className="config-alert">{form.formState.errors.codigo}</p>}
+          <form onSubmit={handleSubmit} noValidate className="config-form">
+            <div className="config-form-field">
+              <label htmlFor="centro-codigo" className="config-field-label">
+                Código
+              </label>
+              <input id="centro-codigo" className="config-input" {...form.register('codigo')} />
+              {form.formState.errors.codigo && <p className="config-field-error">{form.formState.errors.codigo}</p>}
+            </div>
 
-            <label htmlFor="centro-nombre" className="audit-meta">
-              Nombre
-            </label>
-            <input id="centro-nombre" className="config-input" {...form.register('nombre')} />
-            {form.formState.errors.nombre && <p className="config-alert">{form.formState.errors.nombre}</p>}
+            <div className="config-form-field">
+              <label htmlFor="centro-nombre" className="config-field-label">
+                Nombre
+              </label>
+              <input id="centro-nombre" className="config-input" {...form.register('nombre')} />
+              {form.formState.errors.nombre && <p className="config-field-error">{form.formState.errors.nombre}</p>}
+            </div>
 
-            <label htmlFor="centro-tipo" className="audit-meta">
-              Tipo de centro
-            </label>
-            <select
-              id="centro-tipo"
-              className="config-select"
-              value={form.formState.values.tipo}
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                form.setValue('tipo', event.target.value as CentroFormValues['tipo'])
-              }
-            >
-              <option value="produccion">Producción</option>
-              <option value="apoyo">Apoyo</option>
-            </select>
+            <div className="config-form-field">
+              <label htmlFor="centro-tipo" className="config-field-label">
+                Tipo de centro
+              </label>
+              <select
+                id="centro-tipo"
+                className="config-select"
+                value={form.formState.values.tipo}
+                onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+                  form.setValue('tipo', event.target.value as CentroFormValues['tipo'])
+                }
+              >
+                <option value="produccion">Producción</option>
+                <option value="apoyo">Apoyo</option>
+              </select>
+            </div>
 
-            <label htmlFor="centro-responsable" className="audit-meta">
-              Responsable
-            </label>
-            <input id="centro-responsable" className="config-input" {...form.register('responsable')} />
-            {form.formState.errors.responsable && <p className="config-alert">{form.formState.errors.responsable}</p>}
+            <div className="config-form-field">
+              <label htmlFor="centro-responsable" className="config-field-label">
+                Responsable
+              </label>
+              <input id="centro-responsable" className="config-input" {...form.register('responsable')} />
+              {form.formState.errors.responsable && (
+                <p className="config-field-error">{form.formState.errors.responsable}</p>
+              )}
+            </div>
 
             <FormActions isSubmitting={form.formState.isSubmitting} onCancel={() => form.reset()} />
           </form>
