@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { OperacionRegistro, VistaModuloConfig } from '../types';
 import { formatDate, formatNumber } from '../utils/format';
 import { groupBy } from '../utils/grouping';
@@ -8,13 +8,67 @@ interface Props {
   config: VistaModuloConfig;
   registros: OperacionRegistro[];
   onSelect: (ids: string[]) => void;
+  loading?: boolean;
+  error?: unknown;
+  onRetry?: () => void;
 }
 
-const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect }) => {
+const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loading, error, onRetry }) => {
   const [visibleRows, setVisibleRows] = useState(50);
   const [selected, setSelected] = useState<string[]>([]);
 
   const agrupacion = config.agrupaciones?.[0];
+
+  useEffect(() => {
+    setVisibleRows(50);
+  }, [registros]);
+
+  useEffect(() => {
+    setSelected((prev) => {
+      if (prev.length === 0) return prev;
+      const validIds = new Set(registros.map((registro) => registro.id));
+      const next = prev.filter((id) => validIds.has(id));
+      if (next.length !== prev.length) {
+        onSelect(next);
+      }
+      return next;
+    });
+  }, [registros, onSelect]);
+
+  if (loading) {
+    return (
+      <div className="operacion-datagrid operacion-datagrid--placeholder" role="status" aria-live="polite">
+        <div className="spinner" aria-hidden="true" />
+        <p>Cargando registros de {config.titulo.toLowerCase()}…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    const message = error instanceof Error ? error.message : 'No se pudo obtener la información.';
+    return (
+      <div className="operacion-datagrid operacion-datagrid--placeholder" role="alert">
+        <p>Ocurrió un problema al consultar los datos.</p>
+        <small>{message}</small>
+        {onRetry && (
+          <button type="button" onClick={onRetry}>
+            Reintentar consulta
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  if (registros.length === 0) {
+    return (
+      <div className="operacion-datagrid operacion-datagrid--placeholder">
+        <p>No hay registros que coincidan con los filtros actuales.</p>
+        <button type="button" onClick={() => onSelect([])}>
+          Limpiar selección
+        </button>
+      </div>
+    );
+  }
 
   const datos = useMemo(() => {
     if (!agrupacion) return [{ key: 'all', registros }];

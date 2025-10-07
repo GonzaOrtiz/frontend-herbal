@@ -81,7 +81,14 @@ const OperacionLayout: React.FC = () => {
       </header>
       <ResumenContextualSection resumen={resumen} totalRegistros={totalRegistros} lastEvent={lastEvent} />
       <OperacionFilterBar config={config} />
-      <OperacionDataGrid config={config} registros={query.data ?? []} onSelect={setSelected} />
+      <OperacionDataGrid
+        config={config}
+        registros={query.data ?? []}
+        onSelect={setSelected}
+        loading={query.status === 'loading'}
+        error={query.error}
+        onRetry={query.refetch}
+      />
       <MassActionsDrawer
         selected={selected}
         onRun={handleAccion}
