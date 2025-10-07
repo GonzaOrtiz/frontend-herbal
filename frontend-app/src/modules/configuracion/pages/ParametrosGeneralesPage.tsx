@@ -6,6 +6,7 @@ import EntityStatusBadge from '../components/EntityStatusBadge';
 import FormActions from '../components/FormActions';
 import FormSection from '../components/FormSection';
 import ProtectedRoute from '../components/ProtectedRoute';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { useConfigContext } from '../context/ConfigContext';
 import { useToast } from '../context/ToastContext';
 import { useParametrosGenerales, type ParametroGeneral } from '../hooks/useParametrosGenerales';
@@ -27,6 +28,7 @@ const ParametrosGeneralesPage: React.FC = () => {
   });
   const { showToast } = useToast();
   const [selectedParametro, setSelectedParametro] = useState<ParametroGeneral | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ParametroGeneral | null>(null);
 
   const filteredItems = useMemo<ParametroGeneral[]>(() => {
     return catalog.items.filter((parametro) => {
@@ -52,27 +54,29 @@ const ParametrosGeneralesPage: React.FC = () => {
     [form, showToast],
   );
 
-  const handleDelete = useCallback(
-    async (parametro: ParametroGeneral) => {
-      const confirmed = window.confirm('¿Deseas eliminar el registro de parámetros generales seleccionado?');
-      if (!confirmed) {
-        return;
-      }
+  const requestDelete = useCallback((parametro: ParametroGeneral) => {
+    setPendingDelete(parametro);
+  }, []);
 
-      try {
-        await catalog.remove(parametro.id);
-        showToast('Parámetro eliminado.', 'success');
-        if (selectedParametro?.id === parametro.id) {
-          setSelectedParametro(null);
-          form.reset();
-        }
-        await catalog.refetch();
-      } catch (error) {
-        showToast('No se pudo eliminar el parámetro.', 'error');
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete) {
+      return;
+    }
+
+    try {
+      await catalog.remove(pendingDelete.id);
+      showToast('Parámetro eliminado.', 'success');
+      if (selectedParametro?.id === pendingDelete.id) {
+        setSelectedParametro(null);
+        form.reset();
       }
-    },
-    [catalog, form, selectedParametro, showToast],
-  );
+      await catalog.refetch();
+    } catch (error) {
+      showToast('No se pudo eliminar el parámetro.', 'error');
+    } finally {
+      setPendingDelete(null);
+    }
+  }, [catalog, form, pendingDelete, selectedParametro, showToast]);
 
   const columns: CatalogTableColumn<ParametroGeneral>[] = useMemo(
     () => [
@@ -98,17 +102,23 @@ const ParametrosGeneralesPage: React.FC = () => {
         width: '200px',
         render: (parametro) => (
           <div className="catalog-row-actions">
-            <button type="button" onClick={() => handleEdit(parametro)}>
-              Editar
+            <button type="button" className="catalog-row-actions__edit" onClick={() => handleEdit(parametro)}>
+              <span className="catalog-row-actions__icon" aria-hidden="true">
+                ✏️
+              </span>
+              <span>Editar</span>
             </button>
-            <button type="button" onClick={() => handleDelete(parametro)}>
-              Eliminar
+            <button type="button" className="catalog-row-actions__delete" onClick={() => requestDelete(parametro)}>
+              <span className="catalog-row-actions__icon" aria-hidden="true">
+                🗑️
+              </span>
+              <span>Eliminar</span>
             </button>
           </div>
         ),
       },
     ],
-    [handleDelete, handleEdit],
+    [handleEdit, requestDelete],
   );
 
   const handleSubmit = form.handleSubmit(async (values: ParametrosGeneralesFormValues) => {
@@ -225,6 +235,16 @@ const ParametrosGeneralesPage: React.FC = () => {
           pageSizeOptions={[5, 10, 20]}
         />
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Eliminar parámetros generales"
+        description={`¿Deseas eliminar el registro seleccionado con política "${pendingDelete?.politicaCosteo ?? ''}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

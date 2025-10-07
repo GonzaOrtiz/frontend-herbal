@@ -5,6 +5,7 @@ import type { CatalogTableColumn } from '../components/CatalogTable';
 import FormActions from '../components/FormActions';
 import FormSection from '../components/FormSection';
 import ProtectedRoute from '../components/ProtectedRoute';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { useConfigContext } from '../context/ConfigContext';
 import { useToast } from '../context/ToastContext';
 import { useEmpleados, type Empleado } from '../hooks/useEmpleados';
@@ -20,6 +21,7 @@ const EmpleadosPage: React.FC = () => {
   const [filters, setFilters] = useState<CatalogFilterState>({ search: '', status: 'todos' });
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEmpleado, setEditingEmpleado] = useState<Empleado | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Empleado | null>(null);
   const form = useForm<EmpleadoFormValues>({ defaultValues: defaultEmpleadoValues, validator: empleadoValidator });
 
   const empleados = useMemo<Empleado[]>(() => {
@@ -71,23 +73,25 @@ const EmpleadosPage: React.FC = () => {
     [form],
   );
 
-  const handleDelete = useCallback(
-    async (empleado: Empleado) => {
-      const confirmed = window.confirm(`¿Deseas eliminar al empleado "${empleado.nombre}"?`);
-      if (!confirmed) {
-        return;
-      }
+  const requestDelete = useCallback((empleado: Empleado) => {
+    setPendingDelete(empleado);
+  }, []);
 
-      try {
-        await catalog.remove(empleado.id);
-        showToast('Empleado eliminado.', 'success');
-        await catalog.refetch();
-      } catch (error) {
-        showToast('No se pudo eliminar al empleado.', 'error');
-      }
-    },
-    [catalog, showToast],
-  );
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete) {
+      return;
+    }
+
+    try {
+      await catalog.remove(pendingDelete.id);
+      showToast('Empleado eliminado.', 'success');
+      await catalog.refetch();
+    } catch (error) {
+      showToast('No se pudo eliminar al empleado.', 'error');
+    } finally {
+      setPendingDelete(null);
+    }
+  }, [catalog, pendingDelete, showToast]);
 
   const closeForm = useCallback(() => {
     form.reset();
@@ -120,17 +124,23 @@ const EmpleadosPage: React.FC = () => {
         width: '180px',
         render: (empleado) => (
           <div className="catalog-row-actions">
-            <button type="button" onClick={() => handleEdit(empleado)}>
-              Editar
+            <button type="button" className="catalog-row-actions__edit" onClick={() => handleEdit(empleado)}>
+              <span className="catalog-row-actions__icon" aria-hidden="true">
+                ✏️
+              </span>
+              <span>Editar</span>
             </button>
-            <button type="button" onClick={() => handleDelete(empleado)}>
-              Eliminar
+            <button type="button" className="catalog-row-actions__delete" onClick={() => requestDelete(empleado)}>
+              <span className="catalog-row-actions__icon" aria-hidden="true">
+                🗑️
+              </span>
+              <span>Eliminar</span>
             </button>
           </div>
         ),
       },
     ],
-    [handleDelete, handleEdit],
+    [handleEdit, requestDelete],
   );
 
   return (
@@ -228,6 +238,16 @@ const EmpleadosPage: React.FC = () => {
           </FormSection>
         </ProtectedRoute>
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Eliminar empleado"
+        description={`¿Deseas eliminar al colaborador "${pendingDelete?.nombre ?? ''}"? Perderás el historial asociado.`}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };
