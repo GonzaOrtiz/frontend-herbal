@@ -14,7 +14,8 @@ interface Props {
 }
 
 const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loading, error, onRetry }) => {
-  const [visibleRows, setVisibleRows] = useState(50);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [selected, setSelected] = useState<string[]>([]);
 
   const agrupacion = config.agrupaciones?.[0];
@@ -26,8 +27,12 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
 
 
   useEffect(() => {
-    setVisibleRows(50);
+    setPage(1);
   }, [registros]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
 
   useEffect(() => {
     setSelected((prev) => {
@@ -96,9 +101,38 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
     });
   };
 
-  const loadMore = () => {
-    setVisibleRows((prev) => prev + 50);
-  };
+  const flattenedRows = useMemo(
+    () =>
+      datos.flatMap((grupo) =>
+        grupo.registros.map((registro) => ({
+          registro,
+          groupKey: agrupacion ? `${agrupacion}:${grupo.key}` : undefined,
+        })),
+      ),
+    [datos, agrupacion],
+  );
+
+  const totalRows = flattenedRows.length;
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(totalRows / pageSize)), [totalRows, pageSize]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const pageRows = useMemo(() => {
+    const startIndex = (page - 1) * pageSize;
+    return flattenedRows.slice(startIndex, startIndex + pageSize);
+  }, [flattenedRows, page, pageSize]);
+
+  const from = totalRows === 0 ? 0 : (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, totalRows);
+
+  const pageSizeOptions = useMemo(() => {
+    const options = new Set([10, 25, 50, pageSize]);
+    return Array.from(options).sort((a, b) => a - b);
+  }, [pageSize]);
 
   return (
     <div className="operacion-datagrid">
@@ -126,37 +160,68 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
           </tr>
         </thead>
         <tbody>
-          {datos.flatMap((grupo) =>
-            grupo.registros.slice(0, visibleRows).map((registro, index) => (
-              <tr key={`${grupo.key}-${registro.id}`}
-                data-group={agrupacion ? `${agrupacion}:${grupo.key}` : undefined}
-              >
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(registro.id)}
-                    onChange={() => toggleSelection(registro.id)}
-                    aria-label={`Seleccionar registro ${registro.id}`}
-                  />
-                </td>
-                {config.columnas.map((columna) => (
-                  <td key={`${registro.id}-${String(columna.key)}`}>{renderCell(registro, String(columna.key))}</td>
-                ))}
-                <td>
-                  <SyncStatusBadge status={registro.syncStatus}>
-                    {registro.source} · {formatDate(registro.createdAt)}
-                  </SyncStatusBadge>
-                </td>
-              </tr>
-            ))
-          )}
+          {pageRows.map(({ registro, groupKey }) => (
+            <tr
+              key={`${registro.id}-${groupKey ?? 'all'}`}
+              data-group={groupKey}
+            >
+              <td>
+                <input
+                  type="checkbox"
+                  checked={selected.includes(registro.id)}
+                  onChange={() => toggleSelection(registro.id)}
+                  aria-label={`Seleccionar registro ${registro.id}`}
+                />
+              </td>
+              {config.columnas.map((columna) => (
+                <td key={`${registro.id}-${String(columna.key)}`}>{renderCell(registro, String(columna.key))}</td>
+              ))}
+              <td>
+                <SyncStatusBadge status={registro.syncStatus}>
+                  {registro.source} · {formatDate(registro.createdAt)}
+                </SyncStatusBadge>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
-      {registros.length > visibleRows && (
-        <button type="button" onClick={loadMore} className="secondary" style={{ margin: '1rem auto' }}>
-          Cargar más ({visibleRows}/{registros.length})
-        </button>
-      )}
+      <div className="operacion-pagination" aria-label="Paginación de tabla">
+        <span className="operacion-pagination__info">
+          Mostrando {from.toLocaleString()}-{to.toLocaleString()} de {totalRows.toLocaleString()}
+        </span>
+        <div className="operacion-pagination__actions">
+          <label className="operacion-pagination__page-size">
+            Mostrar
+            <select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>
+              {pageSizeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            registros
+          </label>
+          <button
+            type="button"
+            className="operacion-pagination__button"
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            disabled={page === 1}
+          >
+            Anterior
+          </button>
+          <span className="operacion-pagination__page">
+            Página {page} de {totalPages}
+          </span>
+          <button
+            type="button"
+            className="operacion-pagination__button"
+            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            disabled={page === totalPages}
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
