@@ -82,42 +82,57 @@ const EmpleadosPage: React.FC = () => {
           title="Agregar empleado"
           description="Este formulario sincroniza empleados y sus centros asignados con los módulos de planeación."
         >
-          <form onSubmit={handleSubmit} noValidate>
-            <label htmlFor="empleado-identificador" className="audit-meta">
-              Identificador interno
-            </label>
-            <input id="empleado-identificador" className="config-input" {...form.register('identificador')} />
-            {form.formState.errors.identificador && <p className="config-alert">{form.formState.errors.identificador}</p>}
+          <form onSubmit={handleSubmit} noValidate className="config-form">
+            <div className="config-form-field">
+              <label htmlFor="empleado-identificador" className="config-field-label">
+                Identificador interno
+              </label>
+              <input id="empleado-identificador" className="config-input" {...form.register('identificador')} />
+              {form.formState.errors.identificador && (
+                <p className="config-field-error">{form.formState.errors.identificador}</p>
+              )}
+            </div>
 
-            <label htmlFor="empleado-nombre" className="audit-meta">
-              Nombre completo
-            </label>
-            <input id="empleado-nombre" className="config-input" {...form.register('nombre')} />
-            {form.formState.errors.nombre && <p className="config-alert">{form.formState.errors.nombre}</p>}
+            <div className="config-form-field">
+              <label htmlFor="empleado-nombre" className="config-field-label">
+                Nombre completo
+              </label>
+              <input id="empleado-nombre" className="config-input" {...form.register('nombre')} />
+              {form.formState.errors.nombre && <p className="config-field-error">{form.formState.errors.nombre}</p>}
+            </div>
 
-            <label htmlFor="empleado-correo" className="audit-meta">
-              Correo electrónico
-            </label>
-            <input id="empleado-correo" className="config-input" type="email" {...form.register('correo')} />
-            {form.formState.errors.correo && <p className="config-alert">{form.formState.errors.correo}</p>}
+            <div className="config-form-field">
+              <label htmlFor="empleado-correo" className="config-field-label">
+                Correo electrónico
+              </label>
+              <input id="empleado-correo" className="config-input" type="email" {...form.register('correo')} />
+              {form.formState.errors.correo && <p className="config-field-error">{form.formState.errors.correo}</p>}
+            </div>
 
-            <label htmlFor="empleado-centro" className="audit-meta">
-              Centro asignado
-            </label>
-            <input id="empleado-centro" className="config-input" {...form.register('centroAsignado')} />
-            {form.formState.errors.centroAsignado && <p className="config-alert">{form.formState.errors.centroAsignado}</p>}
+            <div className="config-form-field">
+              <label htmlFor="empleado-centro" className="config-field-label">
+                Centro asignado
+              </label>
+              <input id="empleado-centro" className="config-input" {...form.register('centroAsignado')} />
+              {form.formState.errors.centroAsignado && (
+                <p className="config-field-error">{form.formState.errors.centroAsignado}</p>
+              )}
+            </div>
 
-            <label htmlFor="empleado-activo" className="audit-meta">
-              Activo
-            </label>
-            <input
-              id="empleado-activo"
-              type="checkbox"
-              checked={form.formState.values.activo}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                form.setValue('activo', event.target.checked)
-              }
-            />
+            <div className="config-form-field config-form-field--inline">
+              <span className="config-field-label">Estado</span>
+              <label className="config-checkbox" htmlFor="empleado-activo">
+                <input
+                  id="empleado-activo"
+                  type="checkbox"
+                  checked={form.formState.values.activo}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    form.setValue('activo', event.target.checked)
+                  }
+                />
+                <span>Activo</span>
+              </label>
+            </div>
 
             <FormActions isSubmitting={form.formState.isSubmitting} onCancel={() => form.reset()} />
           </form>

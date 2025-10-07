@@ -4,15 +4,77 @@ import './App.css';
 function App() {
   return (
     <div className="app-shell">
-      <header className="app-shell__header">
-        <h1>Configuración y catálogos</h1>
-        <p className="app-shell__subtitle">
-          Administra los catálogos maestros y parámetros generales utilizados por los módulos operativos.
-        </p>
+      <header className="app-header">
+        <div className="app-header__brand">
+          <div className="app-header__logo" aria-hidden="true">
+            🌿
+          </div>
+          <div className="app-header__headline">
+            <p className="app-header__eyebrow">Suite Herbal ERP</p>
+            <h1>Configuración y catálogos</h1>
+            <p className="app-header__subtitle">
+              Administra los catálogos maestros y parámetros generales utilizados por los módulos operativos.
+            </p>
+          </div>
+        </div>
+        <div className="app-header__actions" aria-label="Acciones rápidas">
+          <button type="button" className="app-header__action app-header__action--primary">
+            Agregar catálogo
+          </button>
+          <button type="button" className="app-header__action">Centro de ayuda</button>
+        </div>
       </header>
-      <section className="app-shell__content">
-        <ConfiguracionModule />
-      </section>
+
+      <div className="app-layout">
+        <aside className="app-sidebar" aria-label="Panel contextual de configuración">
+          <section className="app-sidebar__section">
+            <h2 className="app-sidebar__title">Resumen del panel</h2>
+            <p className="app-sidebar__description">
+              Consulta el estado general de los catálogos y mantén visibles las dependencias clave antes de publicar
+              cambios.
+            </p>
+            <ul className="app-sidebar__stats">
+              <li className="app-sidebar__stat">
+                <span className="app-sidebar__stat-value">4</span>
+                <span className="app-sidebar__stat-label">Catálogos activos</span>
+              </li>
+              <li className="app-sidebar__stat">
+                <span className="app-sidebar__stat-value">3</span>
+                <span className="app-sidebar__stat-label">Dependencias críticas</span>
+              </li>
+              <li className="app-sidebar__stat">
+                <span className="app-sidebar__stat-value">En línea</span>
+                <span className="app-sidebar__stat-label">Estado de sincronización</span>
+              </li>
+            </ul>
+          </section>
+
+          <section className="app-sidebar__section">
+            <h3 className="app-sidebar__subtitle">Atajos recomendados</h3>
+            <ul className="app-sidebar__links">
+              <li>
+                <button type="button" className="app-sidebar__link">
+                  Revisar dependencias
+                </button>
+              </li>
+              <li>
+                <button type="button" className="app-sidebar__link">
+                  Programar sincronización
+                </button>
+              </li>
+              <li>
+                <button type="button" className="app-sidebar__link">
+                  Descargar respaldo
+                </button>
+              </li>
+            </ul>
+          </section>
+        </aside>
+
+        <main className="app-main">
+          <ConfiguracionModule />
+        </main>
+      </div>
     </div>
   );
 }
