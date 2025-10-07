@@ -18,12 +18,72 @@ const resourceMap: Record<OperacionModulo, string> = {
   sobrantes: 'sobrantes',
 };
 
+const possibleIdKeys = ['_id', 'id', 'ID', 'Id', 'idRegistro', 'IDRegistro', 'idLitros', 'IDLitros'];
+
 function ensureId(raw: RawRecord): string {
-  const id = raw._id ?? raw.id ?? raw.ID ?? raw.Id;
-  if (id !== undefined && id !== null) {
-    return String(id);
+  for (const key of possibleIdKeys) {
+    const value = raw[key];
+    if (value !== undefined && value !== null && value !== '') {
+      return String(value);
+    }
   }
+
+  const dynamicIdKey = Object.keys(raw).find((key) => /id$/i.test(key) || /^id/i.test(key));
+  if (dynamicIdKey) {
+    const value = raw[dynamicIdKey];
+    if (value !== undefined && value !== null && value !== '') {
+      return String(value);
+    }
+  }
+
   return `tmp-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function getRawValue(raw: RawRecord, ...candidates: string[]): unknown {
+  for (const candidate of candidates) {
+    if (candidate in raw) {
+      return raw[candidate];
+    }
+  }
+
+  const normalizedCandidates = candidates.map((candidate) => candidate.toLowerCase());
+  const matchingKey = Object.keys(raw).find((key) => normalizedCandidates.includes(key.toLowerCase()));
+  if (matchingKey) {
+    return raw[matchingKey];
+  }
+
+  return undefined;
+}
+
+function parseNumeric(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed === '') return 0;
+
+    const normalized = trimmed.replace(/\s+/g, '');
+    const commaIndex = normalized.lastIndexOf(',');
+    const dotIndex = normalized.lastIndexOf('.');
+    let sanitized = normalized;
+
+    if (commaIndex > dotIndex) {
+      sanitized = sanitized.replace(/\./g, '').replace(/,/g, '.');
+    } else {
+      sanitized = sanitized.replace(/,/g, '');
+    }
+
+    const parsed = Number.parseFloat(sanitized);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+
+  if (typeof value === 'bigint') {
+    return Number(value);
+  }
+
+  return 0;
 }
 
 function normalizeDateString(value: unknown): string | undefined {
@@ -42,121 +102,136 @@ function normalizeDateString(value: unknown): string | undefined {
 }
 
 function ensureIsoDate(value: unknown, fallback: string): string {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return new Date(value).toISOString();
+  }
   return normalizeDateString(value) ?? fallback;
 }
 
 const fromApi: Record<OperacionModulo, (raw: RawRecord) => OperacionRegistro> = {
   consumos: (raw) => {
-    const fecha = ensureIsoDate(raw.fecha ?? raw.Fecha, new Date().toISOString());
-    const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.CalculationDate, fecha);
+    const fecha = ensureIsoDate(getRawValue(raw, 'fecha', 'Fecha'), new Date().toISOString());
+    const calculationDate = ensureIsoDate(getRawValue(raw, 'calculationDate', 'CalculationDate', 'fechaCalculo'), fecha);
     return {
       id: ensureId(raw),
-      producto: String(raw.producto ?? ''),
-      insumo: String(raw.insumo ?? ''),
-      cantidad: Number(raw.cantidad ?? 0),
-      unidad: String(raw.unidad ?? ''),
-      tipoProd: raw.tipoProd ? String(raw.tipoProd) : undefined,
+      producto: String(getRawValue(raw, 'producto', 'Producto') ?? ''),
+      insumo: String(getRawValue(raw, 'insumo', 'Insumo') ?? ''),
+      cantidad: parseNumeric(getRawValue(raw, 'cantidad', 'Cantidad')), 
+      unidad: String(getRawValue(raw, 'unidad', 'Unidad') ?? ''),
+      tipoProd: getRawValue(raw, 'tipoProd', 'TipoProd') ? String(getRawValue(raw, 'tipoProd', 'TipoProd')) : undefined,
       fecha,
       calculationDate,
-      centro: raw.centro ? String(raw.centro) : 'CENTRO-GENERAL',
-      responsable: raw.responsable ? String(raw.responsable) : raw.usuario ? String(raw.usuario) : undefined,
-      createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
-      createdAt: normalizeDateString(raw.createdAt) ?? fecha,
-      updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
-      updatedAt: normalizeDateString(raw.updatedAt),
-      source: raw.accessId ? 'import' : 'api',
+      centro: getRawValue(raw, 'centro', 'Centro') ? String(getRawValue(raw, 'centro', 'Centro')) : 'CENTRO-GENERAL',
+      responsable: getRawValue(raw, 'responsable', 'usuario')
+        ? String(getRawValue(raw, 'responsable', 'usuario'))
+        : undefined,
+      createdBy: getRawValue(raw, 'createdBy') ? String(getRawValue(raw, 'createdBy')) : undefined,
+      createdAt: normalizeDateString(getRawValue(raw, 'createdAt')) ?? fecha,
+      updatedBy: getRawValue(raw, 'updatedBy') ? String(getRawValue(raw, 'updatedBy')) : undefined,
+      updatedAt: normalizeDateString(getRawValue(raw, 'updatedAt')),
+      source: getRawValue(raw, 'accessId') ? 'import' : 'api',
       syncStatus: 'synced',
       lastImportedAt: calculationDate,
-      accessId: raw.accessId ? String(raw.accessId) : undefined,
+      accessId: getRawValue(raw, 'accessId') ? String(getRawValue(raw, 'accessId')) : undefined,
     };
   },
   producciones: (raw) => {
-    const fecha = ensureIsoDate(raw.fecha ?? raw.Fecha, new Date().toISOString());
-    const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.CalculationDate, fecha);
-    const centroValue = raw.centro ?? raw.CENTRO;
+    const fecha = ensureIsoDate(getRawValue(raw, 'fecha', 'Fecha'), new Date().toISOString());
+    const calculationDate = ensureIsoDate(getRawValue(raw, 'calculationDate', 'CalculationDate', 'fechaCalculo'), fecha);
+    const centroValue = getRawValue(raw, 'centro', 'Centro', 'CENTRO');
     return {
       id: ensureId(raw),
-      producto: String(raw.producto ?? ''),
-      cantidad: Number(raw.cantidad ?? 0),
+      producto: String(getRawValue(raw, 'producto', 'Producto') ?? ''),
+      cantidad: parseNumeric(getRawValue(raw, 'cantidad', 'Cantidad')), 
       centro: centroValue !== undefined ? String(centroValue) : '0',
-      etapa: String(raw.etapa ?? raw.Etapa ?? 'N/D'),
+      etapa: String(getRawValue(raw, 'etapa', 'Etapa') ?? 'N/D'),
       fecha,
       calculationDate,
-      responsable: raw.responsable ? String(raw.responsable) : undefined,
-      createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
-      createdAt: normalizeDateString(raw.createdAt) ?? fecha,
-      updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
-      updatedAt: normalizeDateString(raw.updatedAt),
-      source: raw.accessId ? 'import' : 'api',
+      responsable: getRawValue(raw, 'responsable') ? String(getRawValue(raw, 'responsable')) : undefined,
+      createdBy: getRawValue(raw, 'createdBy') ? String(getRawValue(raw, 'createdBy')) : undefined,
+      createdAt: normalizeDateString(getRawValue(raw, 'createdAt')) ?? fecha,
+      updatedBy: getRawValue(raw, 'updatedBy') ? String(getRawValue(raw, 'updatedBy')) : undefined,
+      updatedAt: normalizeDateString(getRawValue(raw, 'updatedAt')),
+      source: getRawValue(raw, 'accessId') ? 'import' : 'api',
       syncStatus: 'synced',
       lastImportedAt: calculationDate,
-      accessId: raw.accessId ? String(raw.accessId) : undefined,
+      accessId: getRawValue(raw, 'accessId') ? String(getRawValue(raw, 'accessId')) : undefined,
     };
   },
   litros: (raw) => {
-    const fecha = ensureIsoDate(raw.Fechalitro ?? raw.fecha, new Date().toISOString());
-    const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.fechaCalculo, fecha);
+    const fecha = ensureIsoDate(getRawValue(raw, 'Fechalitro', 'fecha'), new Date().toISOString());
+    const calculationDate = ensureIsoDate(getRawValue(raw, 'calculationDate', 'fechaCalculo'), fecha);
     return {
       id: ensureId(raw),
-      producto: String(raw.Producto ?? raw.producto ?? ''),
-      litros: Number(raw.Monto ?? raw.litros ?? 0),
+      producto: String(getRawValue(raw, 'Producto', 'producto') ?? ''),
+      litros: parseNumeric(getRawValue(raw, 'Monto', 'monto', 'litros', 'Litros')),
       fecha,
       calculationDate,
-      responsable: raw.responsable ? String(raw.responsable) : undefined,
-      createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
-      createdAt: normalizeDateString(raw.createdAt) ?? fecha,
-      updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
-      updatedAt: normalizeDateString(raw.updatedAt),
-      source: raw.accessId ? 'import' : 'api',
+      responsable: getRawValue(raw, 'responsable') ? String(getRawValue(raw, 'responsable')) : undefined,
+      createdBy: getRawValue(raw, 'createdBy') ? String(getRawValue(raw, 'createdBy')) : undefined,
+      createdAt: normalizeDateString(getRawValue(raw, 'createdAt')) ?? fecha,
+      updatedBy: getRawValue(raw, 'updatedBy') ? String(getRawValue(raw, 'updatedBy')) : undefined,
+      updatedAt: normalizeDateString(getRawValue(raw, 'updatedAt')),
+      source: getRawValue(raw, 'accessId') ? 'import' : 'api',
       syncStatus: 'synced',
       lastImportedAt: calculationDate,
-      accessId: raw.accessId ? String(raw.accessId) : undefined,
+      accessId: getRawValue(raw, 'accessId') ? String(getRawValue(raw, 'accessId')) : undefined,
     };
   },
   perdidas: (raw) => {
-    const fecha = ensureIsoDate(raw.FechaPer ?? raw.fecha, new Date().toISOString());
-    const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.CalculationDate, fecha);
+    const fecha = ensureIsoDate(getRawValue(raw, 'FechaPer', 'fecha'), new Date().toISOString());
+    const calculationDate = ensureIsoDate(
+      getRawValue(raw, 'calculationDate', 'CalculationDate', 'fechaCalculo'),
+      fecha,
+    );
     return {
       id: ensureId(raw),
-      producto: raw.PRODUCTO ? String(raw.PRODUCTO) : undefined,
-      grupo: raw.GRUPO ? String(raw.GRUPO) : undefined,
-      horma: raw.HORMA !== undefined ? Number(raw.HORMA) : undefined,
-      cantidad: Number(raw.CANTIKG ?? raw.cantidad ?? 0),
-      unidad: raw.unidad ? String(raw.unidad) : undefined,
+      producto: getRawValue(raw, 'PRODUCTO', 'producto') ? String(getRawValue(raw, 'PRODUCTO', 'producto')) : undefined,
+      grupo: getRawValue(raw, 'GRUPO', 'grupo') ? String(getRawValue(raw, 'GRUPO', 'grupo')) : undefined,
+      horma: getRawValue(raw, 'HORMA', 'horma') !== undefined ? parseNumeric(getRawValue(raw, 'HORMA', 'horma')) : undefined,
+      cantidad: parseNumeric(getRawValue(raw, 'CANTIKG', 'cantidad', 'Cantidad')),
+      unidad: getRawValue(raw, 'unidad', 'Unidad') ? String(getRawValue(raw, 'unidad', 'Unidad')) : undefined,
       fecha,
       calculationDate,
-      responsable: raw.responsable ? String(raw.responsable) : undefined,
-      createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
-      createdAt: normalizeDateString(raw.createdAt) ?? fecha,
-      updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
-      updatedAt: normalizeDateString(raw.updatedAt),
-      source: raw.accessId ? 'import' : 'api',
+      responsable: getRawValue(raw, 'responsable') ? String(getRawValue(raw, 'responsable')) : undefined,
+      createdBy: getRawValue(raw, 'createdBy') ? String(getRawValue(raw, 'createdBy')) : undefined,
+      createdAt: normalizeDateString(getRawValue(raw, 'createdAt')) ?? fecha,
+      updatedBy: getRawValue(raw, 'updatedBy') ? String(getRawValue(raw, 'updatedBy')) : undefined,
+      updatedAt: normalizeDateString(getRawValue(raw, 'updatedAt')),
+      source: getRawValue(raw, 'accessId') ? 'import' : 'api',
       syncStatus: 'synced',
       lastImportedAt: calculationDate,
-      accessId: raw.accessId ? String(raw.accessId) : undefined,
+      accessId: getRawValue(raw, 'accessId') ? String(getRawValue(raw, 'accessId')) : undefined,
     };
   },
   sobrantes: (raw) => {
-    const fecha = ensureIsoDate(raw.FechaSob ?? raw.fecha, new Date().toISOString());
-    const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.CalculationDate, fecha);
+    const fecha = ensureIsoDate(getRawValue(raw, 'FechaSob', 'fecha'), new Date().toISOString());
+    const calculationDate = ensureIsoDate(
+      getRawValue(raw, 'calculationDate', 'CalculationDate', 'fechaCalculo'),
+      fecha,
+    );
     return {
       id: ensureId(raw),
-      producto: raw.PRODUCTO ? String(raw.PRODUCTO) : undefined,
-      grupo: raw.GRUPO ? String(raw.GRUPO) : undefined,
-      horma: raw.HORMA !== undefined ? Number(raw.HORMA) : undefined,
-      cantidad: raw.CANTIKG !== undefined ? Number(raw.CANTIKG) : raw.cantidad !== undefined ? Number(raw.cantidad) : undefined,
-      unidad: raw.unidad ? String(raw.unidad) : undefined,
+      producto: getRawValue(raw, 'PRODUCTO', 'producto') ? String(getRawValue(raw, 'PRODUCTO', 'producto')) : undefined,
+      grupo: getRawValue(raw, 'GRUPO', 'grupo') ? String(getRawValue(raw, 'GRUPO', 'grupo')) : undefined,
+      horma:
+        getRawValue(raw, 'HORMA', 'horma') !== undefined ? parseNumeric(getRawValue(raw, 'HORMA', 'horma')) : undefined,
+      cantidad:
+        getRawValue(raw, 'CANTIKG', 'cantidad', 'Cantidad') !== undefined
+          ? parseNumeric(getRawValue(raw, 'CANTIKG', 'cantidad', 'Cantidad'))
+          : undefined,
+      unidad: getRawValue(raw, 'unidad', 'Unidad') ? String(getRawValue(raw, 'unidad', 'Unidad')) : undefined,
       fecha,
       calculationDate,
-      responsable: raw.responsable ? String(raw.responsable) : undefined,
-      createdBy: raw.createdBy ? String(raw.createdBy) : undefined,
-      createdAt: normalizeDateString(raw.createdAt) ?? fecha,
-      updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
-      updatedAt: normalizeDateString(raw.updatedAt),
-      source: raw.accessId ? 'import' : 'api',
+      responsable: getRawValue(raw, 'responsable') ? String(getRawValue(raw, 'responsable')) : undefined,
+      createdBy: getRawValue(raw, 'createdBy') ? String(getRawValue(raw, 'createdBy')) : undefined,
+      createdAt: normalizeDateString(getRawValue(raw, 'createdAt')) ?? fecha,
+      updatedBy: getRawValue(raw, 'updatedBy') ? String(getRawValue(raw, 'updatedBy')) : undefined,
+      updatedAt: normalizeDateString(getRawValue(raw, 'updatedAt')),
+      source: getRawValue(raw, 'accessId') ? 'import' : 'api',
       syncStatus: 'synced',
       lastImportedAt: calculationDate,
-      accessId: raw.accessId ? String(raw.accessId) : undefined,
+      accessId: getRawValue(raw, 'accessId') ? String(getRawValue(raw, 'accessId')) : undefined,
     };
   },
 };
@@ -172,19 +247,25 @@ const toApi: Record<OperacionModulo, (registro: OperacionRegistro) => RawRecord>
     calculationDate: registro.calculationDate,
     accessId: registro.accessId,
   }),
-  producciones: (registro) => ({
-    producto: registro.producto,
-    cantidad: registro.cantidad,
-    centro: Number.parseInt(registro.centro, 10) || 0,
-    etapa: registro.etapa,
-    fecha: registro.fecha,
-    calculationDate: registro.calculationDate,
-    accessId: registro.accessId,
-  }),
+  producciones: (registro) => {
+    const centroParsed = Number.parseInt(registro.centro, 10);
+    const centro = Number.isNaN(centroParsed) ? registro.centro : centroParsed;
+    return {
+      producto: registro.producto,
+      cantidad: registro.cantidad,
+      centro,
+      etapa: registro.etapa,
+      fecha: registro.fecha,
+      calculationDate: registro.calculationDate,
+      accessId: registro.accessId,
+    };
+  },
   litros: (registro) => ({
     fecha: registro.fecha,
     Producto: registro.producto,
     Monto: registro.litros,
+    calculationDate: registro.calculationDate,
+    accessId: registro.accessId,
   }),
   perdidas: (registro) => ({
     FechaPer: registro.fecha,
@@ -223,10 +304,43 @@ function buildQuery(modulo: OperacionModulo, filtros: FiltroPersistente): string
   return params.toString();
 }
 
-function mapResponse(modulo: OperacionModulo, payload: unknown): OperacionRegistro[] {
+function extractRecords(payload: unknown): RawRecord[] {
   if (!payload) return [];
-  const records = Array.isArray(payload) ? payload : [payload];
-  return (records as RawRecord[]).map((raw) => fromApi[modulo](raw));
+  if (Array.isArray(payload)) {
+    return payload as RawRecord[];
+  }
+
+  if (typeof payload === 'object') {
+    const container = payload as RawRecord;
+    const possibleKeys = ['data', 'records', 'items', 'result', 'values', 'rows'];
+
+    for (const key of possibleKeys) {
+      const value = container[key];
+      if (Array.isArray(value)) {
+        return value as RawRecord[];
+      }
+      if (value && typeof value === 'object') {
+        const nested = extractRecords(value);
+        if (nested.length > 0) {
+          return nested;
+        }
+      }
+    }
+
+    const firstArray = Object.values(container).find((value) => Array.isArray(value));
+    if (Array.isArray(firstArray)) {
+      return firstArray as RawRecord[];
+    }
+
+    return [container];
+  }
+
+  return [];
+}
+
+function mapResponse(modulo: OperacionModulo, payload: unknown): OperacionRegistro[] {
+  const records = extractRecords(payload);
+  return records.map((raw) => fromApi[modulo](raw));
 }
 
 export async function fetchOperacionRegistros(
