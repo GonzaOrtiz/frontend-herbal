@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "noEmit": false,
     "outDir": "dist-test",
     "module": "ESNext",
@@ -14,14 +14,21 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": true,
-    "types": []
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": [
     "src/lib/query/queryClientCore.ts",
     "src/modules/configuracion/schemas/**/*.ts",
     "src/modules/configuracion/stores/**/*.ts",
+    "src/lib/formatters.ts",
     "src/modules/configuracion/utils/**/*.ts",
     "src/modules/configuracion/__tests__/**/*.js",
+    "src/modules/costos/utils/**/*.ts",
+    "src/modules/costos/__tests__/**/*.ts",
     "src/types/**/*.d.ts"
   ],
   "exclude": ["src/**/*.tsx", "src/modules/configuracion/types.ts"]

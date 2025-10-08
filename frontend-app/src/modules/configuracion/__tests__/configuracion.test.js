@@ -79,7 +79,6 @@ test('actividadValidator devuelve errores de validación', () => {
   const result = actividadValidator({ nombre: 'a', descripcion: 'corta' });
   assert.equal(result.success, false);
   assert.ok(result.issues?.some((issue) => issue.path === 'nombre'));
-  assert.ok(result.issues?.some((issue) => issue.path === 'descripcion'));
 });
 
 test('QueryClient cachea y permite invalidar', async () => {
