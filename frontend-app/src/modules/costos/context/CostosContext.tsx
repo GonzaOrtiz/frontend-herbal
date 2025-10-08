@@ -27,16 +27,13 @@ const CostosContext = createContext<CostosContextValue | undefined>(undefined);
 const defaultFilters: Record<CostosSubModulo, CostosFilters> = {
   gastos: {
     calculationDate: new Date().toISOString().slice(0, 10),
-    centro: '101',
     esGastoDelPeriodo: true,
   },
   depreciaciones: {
     calculationDate: new Date().toISOString().slice(0, 10),
-    centro: '101',
   },
   sueldos: {
     calculationDate: new Date().toISOString().slice(0, 10),
-    centro: '101',
     nroEmpleado: null,
   },
   prorrateo: {

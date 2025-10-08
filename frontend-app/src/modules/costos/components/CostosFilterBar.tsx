@@ -1,17 +1,24 @@
 import React, { useMemo } from 'react';
+import { useCentros } from '../../configuracion/hooks/useCentros';
 import { useCostosContext } from '../context/CostosContext';
 import '../costos.css';
 
-const centrosEjemplo = [
-  { id: '101', nombre: 'Planta Principal' },
-  { id: '202', nombre: 'Centro de Apoyo' },
-  { id: '303', nombre: 'Planta Norte' },
-];
-
 const CostosFilterBar: React.FC = () => {
   const { submodule, filters, updateFilters, resetFilters } = useCostosContext();
+  const catalog = useCentros();
 
-  const centros = useMemo(() => centrosEjemplo, []);
+  const centros = useMemo(
+    () =>
+      [...catalog.items]
+        .map((centro) => ({
+          id: centro.id,
+          nombre: centro.nombre,
+          value: centro.nroCentro.toString(),
+          label: `${centro.nroCentro.toString().padStart(3, '0')} · ${centro.nombre}`.trim(),
+        }))
+        .sort((a, b) => Number(a.value) - Number(b.value)),
+    [catalog.items],
+  );
 
   return (
     <form
@@ -29,8 +36,8 @@ const CostosFilterBar: React.FC = () => {
         >
           <option value="">Todos</option>
           {centros.map((centro) => (
-            <option key={centro.id} value={centro.id}>
-              {centro.id} · {centro.nombre}
+            <option key={centro.id} value={centro.value}>
+              {centro.label}
             </option>
           ))}
         </select>
