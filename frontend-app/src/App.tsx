@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import ConfiguracionModule from './modules/configuracion';
 import OperacionModule from './modules/operacion';
+import CostosModule from './modules/costos';
 import { buildOperacionRoutes } from './modules/operacion/routes';
+import { buildCostosRoutes } from './modules/costos/routes';
 import type { OperacionModulo } from './modules/operacion/types';
+import type { CostosSubModulo } from './modules/costos/types';
 import './App.css';
 
 type NavItem = {
@@ -11,7 +14,7 @@ type NavItem = {
   description: string;
   icon: JSX.Element;
 };
-type DomainKey = 'configuracion' | 'operacion';
+type DomainKey = 'configuracion' | 'operacion' | 'costos';
 
 type DomainAction = {
   label: string;
@@ -46,7 +49,11 @@ type SidebarIconName =
   | 'producciones'
   | 'litros'
   | 'perdidas'
-  | 'sobrantes';
+  | 'sobrantes'
+  | 'gastos'
+  | 'depreciaciones'
+  | 'sueldos'
+  | 'prorrateo';
 
 type EnhancedNavItem = NavItem & {
   onSelect?: () => void;
@@ -128,11 +135,33 @@ const domainConfigs: Record<DomainKey, DomainConfig> = {
     },
     shortcuts: ['Revisar consumos pendientes', 'Descargar bitácoras', 'Configurar alertas'],
   },
+  costos: {
+    eyebrow: 'Suite Herbal ERP · Costos',
+    title: 'Costos y consolidaciones',
+    subtitle:
+      'Controla gastos, depreciaciones, sueldos y monitorea las consolidaciones automáticas con trazabilidad completa.',
+    logo: '💰',
+    actions: [
+      { label: 'Reprocesar consolidación', variant: 'primary' },
+      { label: 'Historial de bitácoras' },
+    ],
+    overview: {
+      description:
+        'Consulta balances, identifica variaciones entre periodos y navega rápidamente hacia existencias y asientos relacionados.',
+      stats: [
+        { value: '3', label: 'Procesos en curso' },
+        { value: '12', label: 'Alertas de balance' },
+        { value: 'Actual', label: 'Periodo activo' },
+      ],
+    },
+    shortcuts: ['Ver existencias', 'Ir a asientos', 'Descargar bitácora'],
+  },
 };
 
 const domainEntries: { id: DomainKey; label: string }[] = [
   { id: 'configuracion', label: 'Configuración' },
   { id: 'operacion', label: 'Operación diaria' },
+  { id: 'costos', label: 'Costos y consolidaciones' },
 ];
 
 function SidebarIcon({ name }: { name: SidebarIconName }) {
@@ -224,6 +253,42 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
           />
         </svg>
       );
+    case 'gastos':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M4 5h16v2H4zm2 4h12v2H6zm-2 4h16v6H4z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'depreciaciones':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M12 2 3 7v2h18V7l-9-5zm-9 9h18v11H3zm5 2v7h2v-7zm4 0v7h2v-7zm4 0v7h2v-7z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'sueldos':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-3.314 0-8 1.657-8 5v3h16v-3c0-3.343-4.686-5-8-5z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'prorrateo':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-8-8zm1 1v9h9a9 9 0 0 0-9-9z"
+            fill="currentColor"
+          />
+        </svg>
+      );
     default:
       return null;
   }
@@ -236,8 +301,10 @@ function App() {
   const [openSections, setOpenSections] = useState({ overview: true, shortcuts: false });
   const [activeDomain, setActiveDomain] = useState<DomainKey>('configuracion');
   const [operacionModulo, setOperacionModulo] = useState<OperacionModulo>('consumos');
+  const [costosModulo, setCostosModulo] = useState<CostosSubModulo>('gastos');
 
   const operacionRoutes = useMemo(() => buildOperacionRoutes(), []);
+  const costosRoutes = useMemo(() => buildCostosRoutes(), []);
   const navigationItems = useMemo<EnhancedNavItem[]>(() => {
     if (activeDomain === 'operacion') {
       return operacionRoutes.map((route) => ({
@@ -254,8 +321,31 @@ function App() {
         isActive: route.id === operacionModulo,
       }));
     }
+    if (activeDomain === 'costos') {
+      return costosRoutes.map((route) => ({
+        id: route.id,
+        label: route.title,
+        description: route.description,
+        icon: <SidebarIcon name={route.id} />,
+        onSelect: () => {
+          setCostosModulo(route.id);
+          if (isCompactViewport) {
+            setIsSidebarVisible(false);
+          }
+        },
+        isActive: route.id === costosModulo,
+      }));
+    }
     return buildConfiguracionNavigation();
-  }, [activeDomain, operacionRoutes, operacionModulo, isCompactViewport, setIsSidebarVisible]);
+  }, [
+    activeDomain,
+    operacionRoutes,
+    operacionModulo,
+    costosRoutes,
+    costosModulo,
+    isCompactViewport,
+    setIsSidebarVisible,
+  ]);
 
   const domainConfig = domainConfigs[activeDomain];
 
@@ -485,8 +575,10 @@ function App() {
           <main className="app-main">
             {activeDomain === 'configuracion' ? (
               <ConfiguracionModule />
-            ) : (
+            ) : activeDomain === 'operacion' ? (
               <OperacionModule initialModulo={operacionModulo} />
+            ) : (
+              <CostosModule initialSubmodule={costosModulo} />
             )}
           </main>
         </div>
