@@ -13,7 +13,7 @@ const levelLabel: Record<ProcessLogEntry['level'], string> = {
 };
 
 const ProcessLog: React.FC<ProcessLogProps> = ({ logs }) => (
-  <section className="costos-card">
+  <section className="costos-card costos-card--highlight">
     <h2>Bitácora del proceso</h2>
     {logs.length === 0 ? (
       <p className="costos-empty-state">Aún no se registran eventos para el proceso en curso.</p>

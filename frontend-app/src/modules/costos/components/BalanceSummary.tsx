@@ -17,7 +17,7 @@ interface BalanceSummaryProps {
 }
 
 const BalanceSummary: React.FC<BalanceSummaryProps> = ({ summary, formatted, onRefresh, isLoading }) => (
-  <section className="costos-card" aria-live="polite">
+  <section className="costos-card costos-card--highlight" aria-live="polite">
     <header className="costos-toolbar">
       <div>
         <h2>Resumen de balances</h2>

@@ -9,7 +9,7 @@ interface AllocationBreakdownProps {
 }
 
 const AllocationBreakdown: React.FC<AllocationBreakdownProps> = ({ items, currency }) => (
-  <section className="costos-card">
+  <section className="costos-card costos-card--highlight">
     <h2>Distribución por centro</h2>
     <p className="costos-metadata">
       Visualiza cómo se distribuye el importe total entre centros para validar prorrateos y asignaciones.
