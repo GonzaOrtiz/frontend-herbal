@@ -49,6 +49,7 @@ type SidebarIconName =
   | 'sliders'
   | 'factory'
   | 'users'
+  | 'centros-apoyo'
   | 'workflow'
   | 'consumos'
   | 'producciones'
@@ -118,6 +119,13 @@ const buildConfiguracionNavigation = ({
       description: 'Administra ubicaciones, responsables y capacidades.',
       icon: 'factory',
       routeId: 'centros',
+    },
+    {
+      id: 'centros-apoyo',
+      label: 'Centros de apoyo',
+      description: 'Consulta gastos consolidados por centro de apoyo y administra sus nombres.',
+      icon: 'centros-apoyo',
+      routeId: 'centros-apoyo',
     },
     {
       id: 'empleados',
@@ -294,6 +302,15 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path
             d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zm-4 6c-4.418 0-8 1.79-8 4v2h16v-2c0-2.21-3.582-4-8-4zm8-7a3 3 0 1 0-6 0 3 3 0 0 0 6 0zm-1 7c1.298.607 2 1.398 2 2.3V21h-3v-2c0-.673-.342-1.3-.959-1.87z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'centros-apoyo':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M4 7a4 4 0 0 1 8 0v2H9v1h6V9h-3V7a4 4 0 0 1 8 0v10h2v2H2v-2h2zm2 0a2 2 0 0 1 4 0v2H6zm8 4H6v6h6v-3h2v3h4v-6z"
             fill="currentColor"
           />
         </svg>
