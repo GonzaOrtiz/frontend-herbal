@@ -263,6 +263,19 @@ const domainEntries: { id: DomainKey; label: string }[] = [
   { id: 'reportes', label: 'Reportes y analítica' },
 ];
 
+type Theme = 'light' | 'dark';
+
+const readStoredTheme = (): Theme | null => {
+  if (typeof window === 'undefined') return null;
+  const storedValue = window.localStorage.getItem('suite-theme');
+  return storedValue === 'light' || storedValue === 'dark' ? storedValue : null;
+};
+
+const readSystemTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
+
 function SidebarIcon({ name }: { name: SidebarIconName }) {
   switch (name) {
     case 'dashboard':
@@ -439,6 +452,8 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
 }
 
 function App() {
+  const [theme, setTheme] = useState<Theme>(() => readStoredTheme() ?? readSystemTheme());
+  const [isThemeLocked, setIsThemeLocked] = useState(() => readStoredTheme() !== null);
   const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
@@ -552,6 +567,35 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.theme = theme;
+    }
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('suite-theme', theme);
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (event: MediaQueryListEvent) => {
+      if (!isThemeLocked) {
+        setTheme(event.matches ? 'dark' : 'light');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [isThemeLocked]);
+
+  const toggleTheme = () => {
+    setTheme((current) => (current === 'light' ? 'dark' : 'light'));
+    setIsThemeLocked(true);
+  };
+
+  const isDarkMode = theme === 'dark';
+
   const toggleSidebar = () => {
     if (isCompactViewport) {
       setIsSidebarVisible((visible) => {
@@ -649,6 +693,33 @@ function App() {
                 {action.label}
               </button>
             ))}
+            <button
+              type="button"
+              className="app-navbar__action app-navbar__theme-toggle"
+              onClick={toggleTheme}
+              aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              title={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              data-theme={theme}
+            >
+              <span className="app-navbar__theme-icon" aria-hidden="true">
+                {isDarkMode ? (
+                  <svg viewBox="0 0 24 24" role="img" focusable="false">
+                    <path
+                      d="M21 15.3A9 9 0 0 1 11.7 3a1 1 0 0 0-1.2 1.2A7 7 0 0 0 12 21a7 7 0 0 0 9.8-6.1 1 1 0 0 0-.8-.9z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" role="img" focusable="false">
+                    <path
+                      d="M12 5a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V6a1 1 0 0 1 1-1zm6.364 1.636a1 1 0 0 1 1.414 1.414l-.707.707a1 1 0 0 1-1.414-1.414zm-12.728 0a1 1 0 0 1 1.414 0l.707.707A1 1 0 0 1 5.636 8.05l-.707-.707a1 1 0 0 1 0-1.414zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm9 3a1 1 0 0 1 0 2h-1a1 1 0 0 1 0-2zM4 11a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm14.657 5.657a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0zM6.464 16.05a1 1 0 0 1 1.414 1.414l-.707.707A1 1 0 0 1 5.757 16.757zM12 18a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                )}
+              </span>
+              <span className="app-navbar__theme-label">{isDarkMode ? 'Oscuro' : 'Claro'}</span>
+            </button>
           </div>
         </div>
       </header>
