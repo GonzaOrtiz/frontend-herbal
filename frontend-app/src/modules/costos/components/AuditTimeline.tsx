@@ -9,7 +9,7 @@ interface AuditTimelineProps {
 const AuditTimeline: React.FC<AuditTimelineProps> = ({ record }) => {
   if (!record) {
     return (
-      <section className="costos-card">
+      <section className="costos-card costos-card--highlight">
         <h2>Auditoría</h2>
         <p className="costos-empty-state">Selecciona un registro para visualizar su historial de auditoría.</p>
       </section>
@@ -17,7 +17,7 @@ const AuditTimeline: React.FC<AuditTimelineProps> = ({ record }) => {
   }
 
   return (
-    <section className="costos-card">
+    <section className="costos-card costos-card--highlight">
       <h2>Auditoría</h2>
       <div className="costos-audit-timeline">
         <div className="costos-audit-entry">

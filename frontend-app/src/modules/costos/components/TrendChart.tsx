@@ -28,7 +28,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ points }) => {
   }, [points]);
 
   return (
-    <section className="costos-card">
+    <section className="costos-card costos-card--highlight">
       <h2>Tendencia del periodo</h2>
       <p className="costos-metadata">
         Evolución del total registrado por periodo de cálculo. Utiliza la variación para identificar anomalías.
