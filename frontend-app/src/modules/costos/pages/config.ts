@@ -15,7 +15,13 @@ export interface CostosModuleConfig {
   detailTitle: string;
   columns: ColumnDefinition[];
   emptyState: string;
-  actions: Array<{ id: string; label: string; intent?: 'primary' | 'secondary' }>;
+  actions: Array<{
+    id: string;
+    label: string;
+    intent?: 'primary' | 'secondary';
+    disabled?: boolean;
+    description?: string;
+  }>;
 }
 
 export const costosConfigs: Record<Exclude<CostosSubModulo, 'prorrateo'>, CostosModuleConfig> = {
@@ -35,9 +41,25 @@ export const costosConfigs: Record<Exclude<CostosSubModulo, 'prorrateo'>, Costos
       { key: 'accessId', label: 'AccessId', width: '160px' },
     ],
     actions: [
-      { id: 'registrar', label: 'Registrar gasto', intent: 'primary' },
-      { id: 'carga-masiva', label: 'Carga masiva' },
-      { id: 'exportar', label: 'Exportar' },
+      {
+        id: 'registrar',
+        label: 'Registrar gasto',
+        intent: 'primary',
+        disabled: true,
+        description: 'Disponible al conectar el formulario de registro con los servicios reales.',
+      },
+      {
+        id: 'carga-masiva',
+        label: 'Carga masiva',
+        disabled: true,
+        description: 'Se habilitará cuando esté lista la carga masiva del backend.',
+      },
+      {
+        id: 'exportar',
+        label: 'Exportar',
+        disabled: true,
+        description: 'La exportación estará disponible en la integración final.',
+      },
     ],
   },
   depreciaciones: {
@@ -56,8 +78,19 @@ export const costosConfigs: Record<Exclude<CostosSubModulo, 'prorrateo'>, Costos
       { key: 'accessId', label: 'AccessId', width: '160px' },
     ],
     actions: [
-      { id: 'registrar', label: 'Registrar depreciación', intent: 'primary' },
-      { id: 'carga-masiva', label: 'Carga masiva' },
+      {
+        id: 'registrar',
+        label: 'Registrar depreciación',
+        intent: 'primary',
+        disabled: true,
+        description: 'Pendiente de habilitar junto con el formulario de depreciaciones.',
+      },
+      {
+        id: 'carga-masiva',
+        label: 'Carga masiva',
+        disabled: true,
+        description: 'Se activará con la sincronización oficial de depreciaciones.',
+      },
     ],
   },
   sueldos: {
@@ -74,9 +107,25 @@ export const costosConfigs: Record<Exclude<CostosSubModulo, 'prorrateo'>, Costos
       { key: 'accessId', label: 'AccessId', width: '160px' },
     ],
     actions: [
-      { id: 'registrar', label: 'Registrar sueldo', intent: 'primary' },
-      { id: 'carga-masiva', label: 'Carga masiva' },
-      { id: 'exportar', label: 'Exportar' },
+      {
+        id: 'registrar',
+        label: 'Registrar sueldo',
+        intent: 'primary',
+        disabled: true,
+        description: 'Disponible cuando se integre el formulario de sueldos.',
+      },
+      {
+        id: 'carga-masiva',
+        label: 'Carga masiva',
+        disabled: true,
+        description: 'Se activará con la carga masiva de nóminas.',
+      },
+      {
+        id: 'exportar',
+        label: 'Exportar',
+        disabled: true,
+        description: 'Las exportaciones estarán disponibles en la versión conectada.',
+      },
     ],
   },
 };

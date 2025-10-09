@@ -1,137 +1,126 @@
 import { useCallback, useEffect, useRef } from 'react';
-import {
-  cancelProcess,
-  fetchProcessStatus,
-  retryProcess,
-  startCostosProcess,
-} from '../api/costosApi';
 import { useCostosContext } from '../context/CostosContext';
-import type { CostosProcessPayload } from '../types';
+import type { CostosProcessPayload, ProcessLogEntry } from '../types';
 
-const POLLING_INTERVAL = 2500;
+const SIMULATION_DURATION = 4500;
+const STEP_COUNT = 4;
+
+function createLog(message: string, level: ProcessLogEntry['level'] = 'info'): ProcessLogEntry {
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    timestamp: new Date().toISOString(),
+    message,
+    level,
+    actor: 'sistema',
+  };
+}
 
 export function useProcessRunner() {
-  const { filters, processState, updateProcessState } = useCostosContext();
-  const pollerRef = useRef<NodeJS.Timeout | null>(null);
+  const { filters, processState, updateProcessState, lastSummary } = useCostosContext();
+  const timersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
 
-  const clearPoller = useCallback(() => {
-    if (pollerRef.current) {
-      clearInterval(pollerRef.current);
-      pollerRef.current = null;
-    }
+  const clearTimers = useCallback(() => {
+    timersRef.current.forEach((timerId) => clearTimeout(timerId));
+    timersRef.current = [];
   }, []);
 
-  const pollStatus = useCallback(
-    (processId: string) => {
-      clearPoller();
-      const executePoll = async () => {
-        try {
-          const status = await fetchProcessStatus(processId);
-          updateProcessState((current) => ({
-            ...current,
-            progress: status.progress,
-            result: {
-              balance: status.balance,
-              difference: status.difference,
-              warning: status.warning,
-            },
-            logs: status.logs ?? current.logs,
-            status: status.status === 'completed' ? 'success' : status.status === 'error' ? 'error' : 'running',
-            finishedAt: status.finishedAt,
-            error: status.error,
-          }));
-
-          if (status.status === 'completed' || status.status === 'error') {
-            clearPoller();
-          }
-        } catch (error) {
-          clearPoller();
-          updateProcessState((current) => ({
-            ...current,
-            status: 'error',
-            error: error instanceof Error ? error.message : 'No se pudo obtener el estado del proceso.',
-          }));
-        }
-      };
-
-      void executePoll();
-      pollerRef.current = setInterval(executePoll, POLLING_INTERVAL);
-    },
-    [clearPoller, updateProcessState],
-  );
+  const schedule = useCallback((callback: () => void, delay: number) => {
+    const timerId = setTimeout(callback, delay);
+    timersRef.current.push(timerId);
+  }, []);
 
   const start = useCallback(
-    async (payload?: Partial<CostosProcessPayload>) => {
-      updateProcessState(() => ({ status: 'running', logs: [], progress: 0 }));
-      try {
-        const response = await startCostosProcess({
-          calculationDate: filters.calculationDate,
-          centro: filters.centro,
-          motivo: payload?.motivo ?? 'consolidacion',
-          retryProcessId: payload?.retryProcessId,
+    (payload?: Partial<CostosProcessPayload>) => {
+      clearTimers();
+      const centroLabel = filters.centro ? ` · Centro ${filters.centro}` : '';
+      const motivoLabel = payload?.motivo === 'reprocesar' ? ' (reproceso manual)' : '';
+
+      updateProcessState(() => ({
+        status: 'running',
+        progress: 5,
+        logs: [
+          createLog(
+            `Se inició la simulación de consolidación para ${filters.calculationDate}${centroLabel}${motivoLabel}.`,
+          ),
+        ],
+        startedAt: new Date().toISOString(),
+        finishedAt: undefined,
+        error: undefined,
+        processId: undefined,
+        result: undefined,
+      }));
+
+      const stepMessages = [
+        'Validando movimientos importados…',
+        'Distribuyendo costos entre centros…',
+        'Recalculando balances consolidados…',
+      ];
+
+      stepMessages.forEach((message, index) => {
+        schedule(() => {
+          updateProcessState((current) => ({
+            ...current,
+            progress: Math.min(25 + index * 25, 90),
+            logs: [...current.logs, createLog(message)],
+          }));
+        }, ((index + 1) * SIMULATION_DURATION) / STEP_COUNT);
+      });
+
+      schedule(() => {
+        clearTimers();
+        updateProcessState((current) => {
+          const result = {
+            balance: lastSummary?.balance ?? 0,
+            difference: lastSummary?.difference ?? 0,
+            warning: lastSummary?.warning ?? null,
+          };
+          return {
+            ...current,
+            status: 'success',
+            progress: 100,
+            finishedAt: new Date().toISOString(),
+            result,
+            logs: [
+              ...current.logs,
+              createLog(
+                result.warning
+                  ? `Simulación finalizada con advertencias: ${result.warning}`
+                  : 'Simulación finalizada sin advertencias. Se conservan los balances vigentes.',
+                result.warning ? 'warning' : 'info',
+              ),
+            ],
+          };
         });
-        updateProcessState((current) => ({
-          ...current,
-          processId: response.processId,
-          startedAt: new Date().toISOString(),
-          progress: 5,
-        }));
-        pollStatus(response.processId);
-      } catch (error) {
-        updateProcessState((current) => ({
-          ...current,
-          status: 'error',
-          error: error instanceof Error ? error.message : 'No se pudo iniciar el proceso.',
-        }));
-      }
+      }, SIMULATION_DURATION);
     },
-    [filters.calculationDate, filters.centro, pollStatus, updateProcessState],
+    [clearTimers, filters.calculationDate, filters.centro, lastSummary, schedule, updateProcessState],
   );
 
-  const cancel = useCallback(async () => {
-    if (!processState.processId) return;
-    try {
-      await cancelProcess(processState.processId);
-      clearPoller();
-      updateProcessState((current) => ({
-        ...current,
-        status: 'idle',
-        progress: 0,
-      }));
-    } catch (error) {
-      updateProcessState((current) => ({
-        ...current,
-        error: error instanceof Error ? error.message : 'No se pudo cancelar el proceso.',
-      }));
-    }
-  }, [processState.processId, clearPoller, updateProcessState]);
+  const cancel = useCallback(() => {
+    if (processState.status !== 'running') return;
+    clearTimers();
+    updateProcessState((current) => ({
+      ...current,
+      status: 'idle',
+      progress: 0,
+      finishedAt: new Date().toISOString(),
+      logs: [
+        ...current.logs,
+        createLog('La simulación se canceló. Se conservarán los últimos balances conocidos.', 'warning'),
+      ],
+    }));
+  }, [clearTimers, processState.status, updateProcessState]);
 
-  const retry = useCallback(async () => {
-    if (!processState.processId) {
-      await start({ motivo: 'reprocesar' });
-      return;
-    }
-    try {
-      const handle = await retryProcess(processState.processId);
-      updateProcessState((current) => ({
-        ...current,
-        status: 'running',
-        progress: 0,
-        logs: [],
-        processId: handle.processId,
-        startedAt: new Date().toISOString(),
-      }));
-      pollStatus(handle.processId);
-    } catch (error) {
-      updateProcessState((current) => ({
-        ...current,
-        status: 'error',
-        error: error instanceof Error ? error.message : 'No se pudo reiniciar el proceso.',
-      }));
-    }
-  }, [pollStatus, processState.processId, start, updateProcessState]);
+  const retry = useCallback(() => {
+    start({ motivo: 'reprocesar' });
+  }, [start]);
 
-  useEffect(() => () => clearPoller(), [clearPoller]);
+  useEffect(
+    () => () => {
+      clearTimers();
+    },
+    [clearTimers],
+  );
 
   return {
     processState,

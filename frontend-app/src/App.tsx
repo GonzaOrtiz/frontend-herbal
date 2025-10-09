@@ -24,6 +24,8 @@ type DomainKey = 'configuracion' | 'operacion' | 'importaciones' | 'costos' | 'r
 type DomainAction = {
   label: string;
   variant?: 'primary' | 'default';
+  disabled?: boolean;
+  description?: string;
 };
 
 type SidebarStat = {
@@ -163,8 +165,17 @@ const domainConfigs: Record<DomainKey, DomainConfig> = {
     subtitle: 'Administra los catálogos maestros y parámetros generales utilizados por los módulos operativos.',
     logo: '🌿',
     actions: [
-      { label: 'Agregar catálogo', variant: 'primary' },
-      { label: 'Centro de ayuda' },
+      {
+        label: 'Agregar catálogo',
+        variant: 'primary',
+        disabled: true,
+        description: 'Disponible cuando se integre el flujo de alta de catálogos con el backend.',
+      },
+      {
+        label: 'Centro de ayuda',
+        disabled: true,
+        description: 'Enlace en preparación; se habilitará al publicar la documentación oficial.',
+      },
     ],
     overview: {
       description:
@@ -184,8 +195,17 @@ const domainConfigs: Record<DomainKey, DomainConfig> = {
       'Captura y monitorea consumos, producciones, litros, pérdidas y sobrantes con trazabilidad y cierres controlados.',
     logo: '🛠️',
     actions: [
-      { label: 'Nueva importación', variant: 'primary' },
-      { label: 'Ver bitácoras' },
+      {
+        label: 'Nueva importación',
+        variant: 'primary',
+        disabled: true,
+        description: 'Acceso directo pendiente; utiliza el módulo de Importaciones para realizar cargas.',
+      },
+      {
+        label: 'Ver bitácoras',
+        disabled: true,
+        description: 'Se habilitará cuando se publique el listado resumido de bitácoras.',
+      },
     ],
     overview: {
       description:
@@ -205,8 +225,17 @@ const domainConfigs: Record<DomainKey, DomainConfig> = {
       'Controla gastos, depreciaciones, sueldos y monitorea las consolidaciones automáticas con trazabilidad completa.',
     logo: '💰',
     actions: [
-      { label: 'Reprocesar consolidación', variant: 'primary' },
-      { label: 'Historial de bitácoras' },
+      {
+        label: 'Reprocesar consolidación',
+        variant: 'primary',
+        disabled: true,
+        description: 'La consolidación se ejecuta automáticamente; esta acción se reservará para el backend real.',
+      },
+      {
+        label: 'Historial de bitácoras',
+        disabled: true,
+        description: 'Acceso directo pendiente; consulta el módulo de Costos para los detalles.',
+      },
     ],
     overview: {
       description:
@@ -226,8 +255,17 @@ const domainConfigs: Record<DomainKey, DomainConfig> = {
       'Explora indicadores financieros, operativos y de auditoría con filtros avanzados y exportaciones seguras.',
     logo: '📊',
     actions: [
-      { label: 'Descargar guía rápida' },
-      { label: 'Solicitar nuevo reporte', variant: 'primary' },
+      {
+        label: 'Descargar guía rápida',
+        disabled: true,
+        description: 'La guía estará disponible cuando se publique la documentación de reportes.',
+      },
+      {
+        label: 'Solicitar nuevo reporte',
+        variant: 'primary',
+        disabled: true,
+        description: 'Funcionalidad pendiente de integrar con el flujo de solicitudes.',
+      },
     ],
     overview: {
       description:
@@ -247,8 +285,17 @@ const domainConfigs: Record<DomainKey, DomainConfig> = {
       'Carga archivos .mdb, monitorea el procesamiento por tabla y gestiona las bitácoras generadas automáticamente.',
     logo: '📥',
     actions: [
-      { label: 'Nueva importación', variant: 'primary' },
-      { label: 'Bitácoras recientes' },
+      {
+        label: 'Nueva importación',
+        variant: 'primary',
+        disabled: true,
+        description: 'Utiliza la pestaña Importar archivo para ejecutar cargas mientras se habilita este acceso rápido.',
+      },
+      {
+        label: 'Bitácoras recientes',
+        disabled: true,
+        description: 'Se activará cuando se exponga el resumen de bitácoras.',
+      },
     ],
     overview: {
       description:
@@ -662,6 +709,9 @@ function App() {
                 key={action.label}
                 type="button"
                 className={`app-navbar__action${action.variant === 'primary' ? ' app-navbar__action--primary' : ''}`}
+                disabled={action.disabled ?? false}
+                aria-disabled={action.disabled ? 'true' : undefined}
+                title={action.disabled ? action.description ?? 'Acción disponible próximamente.' : undefined}
               >
                 {action.label}
               </button>
@@ -715,6 +765,7 @@ function App() {
                         tabIndex={item.onSelect ? 0 : -1}
                         onClick={item.onSelect}
                         disabled={!item.onSelect}
+                        title={!item.onSelect ? 'Sección informativa disponible próximamente' : undefined}
                         data-active={item.isActive ?? false}
                         aria-pressed={item.isActive ?? undefined}
                         aria-current={item.isActive ? 'page' : undefined}
@@ -769,7 +820,13 @@ function App() {
                   <ul className="app-sidebar__links">
                     {domainConfig.shortcuts.map((shortcut) => (
                       <li key={shortcut}>
-                        <button type="button" className="app-sidebar__link">
+                        <button
+                          type="button"
+                          className="app-sidebar__link"
+                          disabled
+                          title="Disponible próximamente"
+                          aria-disabled="true"
+                        >
                           {shortcut}
                         </button>
                       </li>
