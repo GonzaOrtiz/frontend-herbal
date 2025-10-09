@@ -10,7 +10,12 @@ import { buildConfigRoutes } from './routes';
 import { filterRoutesByFeatureFlags, getSyncStatus } from './utils/moduleState';
 import './configuracion.css';
 
-const ConfiguracionModule: React.FC = () => {
+interface ConfiguracionModuleProps {
+  activeRouteId?: string;
+  onRouteChange?: (routeId: string) => void;
+}
+
+const ConfiguracionModule: React.FC<ConfiguracionModuleProps> = ({ activeRouteId, onRouteChange }) => {
   const featureFlags = useFeatureFlags();
 
   const routes = useMemo(() => {
@@ -29,7 +34,7 @@ const ConfiguracionModule: React.FC = () => {
 
   return (
     <ToastProvider>
-      <ConfigProvider routes={routes}>
+      <ConfigProvider routes={routes} activeRouteId={activeRouteId} onRouteChange={onRouteChange}>
         <div className="configuracion-module">
           <ConfigBreadcrumbs />
           <ConfigNavBar />

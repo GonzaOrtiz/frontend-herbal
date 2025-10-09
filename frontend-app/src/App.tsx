@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ConfiguracionModule from './modules/configuracion';
 import OperacionModule from './modules/operacion';
 import CostosModule from './modules/costos';
@@ -79,38 +79,68 @@ type EnhancedNavItem = NavItem & {
   isActive?: boolean;
 };
 
-const buildConfiguracionNavigation = (): EnhancedNavItem[] => [
-  {
-    id: 'overview',
-    label: 'Panel general',
-    description: 'Monitorea el estado global de los catálogos y sus dependencias.',
-    icon: <SidebarIcon name="dashboard" />,
-  },
-  {
-    id: 'parametros',
-    label: 'Parámetros generales',
-    description: 'Ajusta políticas y parámetros maestros del sistema.',
-    icon: <SidebarIcon name="sliders" />,
-  },
-  {
-    id: 'centros',
-    label: 'Centros de producción',
-    description: 'Administra ubicaciones, responsables y capacidades.',
-    icon: <SidebarIcon name="factory" />,
-  },
-  {
-    id: 'empleados',
-    label: 'Personal operativo',
-    description: 'Gestiona credenciales, roles y perfiles por área.',
-    icon: <SidebarIcon name="users" />,
-  },
-  {
-    id: 'actividades',
-    label: 'Actividades',
-    description: 'Define etapas de producción y tareas dependientes.',
-    icon: <SidebarIcon name="workflow" />,
-  },
-];
+const buildConfiguracionNavigation = ({
+  activeRouteId,
+  onSelectRoute,
+}: {
+  activeRouteId: string;
+  onSelectRoute: (routeId: string) => void;
+}): EnhancedNavItem[] => {
+  const items: Array<{
+    id: string;
+    label: string;
+    description: string;
+    icon: SidebarIconName;
+    routeId?: string;
+  }> = [
+    {
+      id: 'overview',
+      label: 'Panel general',
+      description: 'Monitorea el estado global de los catálogos y sus dependencias.',
+      icon: 'dashboard',
+    },
+    {
+      id: 'parametros',
+      label: 'Parámetros generales',
+      description: 'Ajusta políticas y parámetros maestros del sistema.',
+      icon: 'sliders',
+      routeId: 'parametros-generales',
+    },
+    {
+      id: 'centros',
+      label: 'Centros de producción',
+      description: 'Administra ubicaciones, responsables y capacidades.',
+      icon: 'factory',
+      routeId: 'centros',
+    },
+    {
+      id: 'empleados',
+      label: 'Personal operativo',
+      description: 'Gestiona credenciales, roles y perfiles por área.',
+      icon: 'users',
+      routeId: 'empleados',
+    },
+    {
+      id: 'actividades',
+      label: 'Actividades',
+      description: 'Define etapas de producción y tareas dependientes.',
+      icon: 'workflow',
+      routeId: 'actividades',
+    },
+  ];
+
+  return items.map((item) => {
+    const routeId = item.routeId;
+    return {
+      id: item.id,
+      label: item.label,
+      description: item.description,
+      icon: <SidebarIcon name={item.icon} />,
+      onSelect: routeId ? () => onSelectRoute(routeId) : undefined,
+      isActive: routeId ? routeId === activeRouteId : false,
+    };
+  });
+};
 
 const domainConfigs: Record<DomainKey, DomainConfig> = {
   configuracion: {
@@ -359,12 +389,23 @@ function App() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [openSections, setOpenSections] = useState({ overview: true, shortcuts: false });
   const [activeDomain, setActiveDomain] = useState<DomainKey>('configuracion');
+  const [configuracionRouteId, setConfiguracionRouteId] = useState('actividades');
   const [operacionModulo, setOperacionModulo] = useState<OperacionModulo>('consumos');
   const [costosModulo, setCostosModulo] = useState<CostosSubModulo>('gastos');
   const [importacionesSection, setImportacionesSection] = useState<ImportacionesSection>('importar');
 
   const operacionRoutes = useMemo(() => buildOperacionRoutes(), []);
   const costosRoutes = useMemo(() => buildCostosRoutes(), []);
+  const handleConfiguracionRouteChange = useCallback(
+    (routeId: string) => {
+      setConfiguracionRouteId(routeId);
+      if (isCompactViewport) {
+        setIsSidebarVisible(false);
+      }
+    },
+    [isCompactViewport, setIsSidebarVisible]
+  );
+
   const navigationItems = useMemo<EnhancedNavItem[]>(() => {
     if (activeDomain === 'operacion') {
       return operacionRoutes.map((route) => ({
@@ -396,22 +437,11 @@ function App() {
         isActive: route.id === costosModulo,
       }));
     }
-    if (activeDomain === 'importaciones') {
-      return importacionesNavigation.map((item) => ({
-        id: item.id,
-        label: item.label,
-        description: item.description,
-        icon: <SidebarIcon name={item.icon} />,
-        onSelect: () => {
-          setImportacionesSection(item.id);
-          if (isCompactViewport) {
-            setIsSidebarVisible(false);
-          }
-        },
-        isActive: item.id === importacionesSection,
-      }));
-    }
-    return buildConfiguracionNavigation();
+    return buildConfiguracionNavigation({
+      activeRouteId: configuracionRouteId,
+      onSelectRoute: handleConfiguracionRouteChange,
+    });
+
   }, [
     activeDomain,
     operacionRoutes,
@@ -421,6 +451,8 @@ function App() {
     importacionesSection,
     isCompactViewport,
     setIsSidebarVisible,
+    configuracionRouteId,
+    handleConfiguracionRouteChange,
   ]);
 
   const domainConfig = domainConfigs[activeDomain];
@@ -581,8 +613,9 @@ function App() {
                         type="button"
                         className="app-sidebar__nav-item"
                         aria-label={item.label}
-                        tabIndex={0}
+                        tabIndex={item.onSelect ? 0 : -1}
                         onClick={item.onSelect}
+                        disabled={!item.onSelect}
                         data-active={item.isActive ?? false}
                         aria-pressed={item.isActive ?? undefined}
                         aria-current={item.isActive ? 'page' : undefined}
@@ -650,7 +683,10 @@ function App() {
 
           <main className="app-main">
             {activeDomain === 'configuracion' ? (
-              <ConfiguracionModule />
+              <ConfiguracionModule
+                activeRouteId={configuracionRouteId}
+                onRouteChange={handleConfiguracionRouteChange}
+              />
             ) : activeDomain === 'operacion' ? (
               <OperacionModule initialModulo={operacionModulo} />
             ) : activeDomain === 'importaciones' ? (
