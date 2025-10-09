@@ -12,27 +12,76 @@ const ConfigContext = createContext<ConfigContextValue | undefined>(undefined);
 interface ConfigProviderProps {
   routes: ConfigRoute[];
   children: React.ReactNode;
+  activeRouteId?: string;
+  onRouteChange?: (routeId: string) => void;
 }
 
-export const ConfigProvider: React.FC<ConfigProviderProps> = ({ routes, children }) => {
-  const [activeRouteId, setActiveRouteId] = useState<string>(() => routes[0]?.id ?? '');
+export const ConfigProvider: React.FC<ConfigProviderProps> = ({
+  routes,
+  children,
+  activeRouteId: externalActiveRouteId,
+  onRouteChange,
+}) => {
+  const [internalActiveRouteId, setInternalActiveRouteId] = useState<string>(() => routes[0]?.id ?? '');
 
   useEffect(() => {
     if (!routes.length) {
-      setActiveRouteId('');
+      setInternalActiveRouteId('');
       return;
     }
-    const exists = routes.some((route) => route.id === activeRouteId);
-    if (!exists) {
-      setActiveRouteId(routes[0].id);
-    }
-  }, [routes, activeRouteId]);
 
-  const activeRoute = useMemo(() => routes.find((route) => route.id === activeRouteId), [routes, activeRouteId]);
+    setInternalActiveRouteId((current) => {
+      if (routes.some((route) => route.id === current)) {
+        return current;
+      }
+      const fallbackId = routes[0].id;
+      if (!externalActiveRouteId) {
+        onRouteChange?.(fallbackId);
+      }
+      return fallbackId;
+    });
+  }, [routes, externalActiveRouteId, onRouteChange]);
+
+  useEffect(() => {
+    if (!externalActiveRouteId) {
+      return;
+    }
+    const exists = routes.some((route) => route.id === externalActiveRouteId);
+    if (!exists && routes[0]) {
+      onRouteChange?.(routes[0].id);
+    }
+  }, [externalActiveRouteId, routes, onRouteChange]);
+
+  const resolvedActiveRouteId = useMemo(() => {
+    if (externalActiveRouteId && routes.some((route) => route.id === externalActiveRouteId)) {
+      return externalActiveRouteId;
+    }
+    return internalActiveRouteId;
+  }, [externalActiveRouteId, routes, internalActiveRouteId]);
+
+  const activeRoute = useMemo(
+    () => routes.find((route) => route.id === resolvedActiveRouteId),
+    [routes, resolvedActiveRouteId]
+  );
+
+  const selectRoute = useMemo<ConfigContextValue['selectRoute']>(() => {
+    return (routeId: string) => {
+      if (!routes.some((route) => route.id === routeId)) {
+        return;
+      }
+      if (externalActiveRouteId && onRouteChange) {
+        onRouteChange(routeId);
+        return;
+      }
+
+      setInternalActiveRouteId(routeId);
+      onRouteChange?.(routeId);
+    };
+  }, [externalActiveRouteId, onRouteChange, routes]);
 
   const value = useMemo<ConfigContextValue>(
-    () => ({ routes, activeRoute, selectRoute: setActiveRouteId }),
-    [routes, activeRoute]
+    () => ({ routes, activeRoute, selectRoute }),
+    [routes, activeRoute, selectRoute]
   );
 
   return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>;
