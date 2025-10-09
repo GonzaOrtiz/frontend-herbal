@@ -202,6 +202,29 @@ La siguiente tabla resume los recursos expuestos por el backend según el `docs/
 - **Funcionalidad**: muestra los pasos de prorrateo aplicados a un centro en una fecha dada.
 - **Contexto en frontend**: panel analítico del historial de costos donde se detalla cómo se distribuyeron los montos.
 
+## Asignaciones manuales y costos finales
+
+### POST `/api/asignaciones-manuales`
+- **Request**:
+  - **Headers**: opcional `x-user` si se desea registrar auditoría adicional.
+  - **Body JSON**: `{ centro: string, monto: number, fecha: 'YYYY-MM-DD' }`.
+- **Response**: `201 Created` con arreglo de pasos `{ desde, hacia, porcentaje, monto }[]` que detalla cómo se distribuyó el monto entre centros.
+- **Funcionalidad**: ejecuta un prorrateo manual tomando como base los litros producidos en el período indicado.
+- **Contexto en frontend**: wizard de ajustes manuales en el módulo de centros para simular/registrar transferencias extraordinarias.【F:src/modules/centros-asignaciones/routes/centros-asignaciones.routes.ts†L10-L11】【F:src/modules/centros-asignaciones/controllers/centros-asignaciones.controller.ts†L33-L45】【F:src/services/prorrateo/prorrateo.service.ts†L68-L103】
+
+### GET `/api/asignaciones-finales`
+- **Request**:
+  - **Query param obligatorio** `centro` (string con el identificador del centro).
+- **Response**: `200 OK` con `{ centro, costoFinal: number }`; `400` si falta el parámetro.
+- **Funcionalidad**: consulta el costo final acumulado para el centro solicitado combinando asignaciones históricas.
+- **Contexto en frontend**: vista de resultados finales por centro o resumen en dashboards de costos.【F:src/modules/centros-asignaciones/routes/centros-asignaciones.routes.ts†L12-L12】【F:src/modules/centros-asignaciones/controllers/centros-asignaciones.controller.ts†L47-L65】
+
+### GET `/api/costos-finales/{sku}`
+- **Request**: parámetro `sku` (string) con el código de producto.
+- **Response**: `200 OK` con `{ sku, costoFinal }` calculado en backend.
+- **Funcionalidad**: expone el costo consolidado por producto con base en asignaciones y prorrateos.
+- **Contexto en frontend**: consulta rápida desde reportes, existencias o módulos de pricing para mostrar el costo unitario actualizado.【F:src/modules/centros/routes/costos-finales.routes.ts†L6-L8】【F:src/modules/centros/controllers/costos-finales.controller.ts†L6-L9】
+
 ## Catálogos
 
 ### Insumos
@@ -348,6 +371,15 @@ La siguiente tabla resume los recursos expuestos por el backend según el `docs/
 - **Funcionalidad**: consulta gastos indirectos asociados al centro de apoyo general.
 - **Contexto en frontend**: panel analítico de costos indirectos y validación posterior a importaciones MDB.
 
+### GET `/api/centros-apoyo/distribucion`
+- **Request**:
+  - **Query params opcionales**:
+    - `fechaCalculo` (`YYYY-MM-DD`) — recalcula la distribución tomando como base los gastos consolidados de la fecha indicada; si el valor es inválido, el backend responde `400`.
+    - `incluirGastosDelPeriodo` (`true|false`) — cuando es `true` incluye gastos del período activo además de diferidos.
+- **Response**: `200 OK` con resumen `{ centro: string, sueldos: number, amortizaciones: number }[]` calculado dinámicamente según las asignaciones vigentes.
+- **Funcionalidad**: ejecuta el prorrateo de gastos del centro de apoyo en tiempo real para validar resultados antes de consolidar.
+- **Contexto en frontend**: pestaña de "Distribución" dentro del módulo de centros de apoyo para mostrar cómo se reparte el gasto actual entre centros de producción.【F:src/modules/centros/routes/distribucion-centro-apoyo.routes.ts†L6-L7】【F:src/modules/centros/controllers/distribucion-centro-apoyo.controller.ts†L7-L34】
+
 ## Centros de producción
 
 ### GET `/api/centros-produccion`
@@ -414,6 +446,23 @@ La siguiente tabla resume los recursos expuestos por el backend según el `docs/
 - **Funcionalidad**: registra un nuevo consumo de insumos asociándolo a producto y fecha.
 - **Contexto en frontend**: formulario de captura manual y confirmación de importaciones parciales.
 
+### PUT `/api/consumos/{id}`
+- **Request**:
+  - **Headers**: `x-user` obligatorio para registrar auditoría.
+  - **Params**: `id` (ObjectId válido).
+  - **Body JSON**: al menos uno de los campos modificables `{ producto?, insumo?, cantidad?, unidad?, tipoProd?, fecha? }`.
+- **Response**: `200 OK` con el consumo actualizado; `400` si no se envía ningún campo válido o los datos fallan las validaciones; `404` cuando el registro no existe.
+- **Funcionalidad**: permite ajustar consumos sin perder el `accessId` original.
+- **Contexto en frontend**: edición desde la tabla principal o un drawer de detalle.【F:src/modules/consumo/routes/consumo.routes.ts†L16-L24】【F:src/modules/consumo/controllers/consumo.controller.ts†L32-L53】
+
+### DELETE `/api/consumos/{id}`
+- **Request**:
+  - **Headers**: `x-user` requerido para identificar al operador que elimina.
+  - **Params**: `id` (ObjectId válido).
+- **Response**: `200 OK` con `{ message: 'Consumo eliminado con éxito' }` o `404` si el recurso ya no existe.
+- **Funcionalidad**: elimina consumos duplicados o erróneos y recalcula totales derivados en backend.
+- **Contexto en frontend**: acción destructiva desde la grilla con confirmación previa y refresco automático.【F:src/modules/consumo/routes/consumo.routes.ts†L20-L27】【F:src/modules/consumo/controllers/consumo.controller.ts†L44-L55】
+
 ## Costos operativos
 
 ### GET `/api/costos/gasto-centro`
@@ -434,6 +483,23 @@ La siguiente tabla resume los recursos expuestos por el backend según el `docs/
 - **Funcionalidad**: registra gastos individuales o masivos y devuelve el balance global contra los montos distribuidos.
 - **Contexto en frontend**: carga manual y resultado del import wizard; mostrar alertas cuando `warning` esté presente.
 
+### PUT `/api/costos/gasto-centro/{id}`
+- **Request**:
+  - **Headers**: `x-user` obligatorio para registrar auditoría.
+  - **Params**: `id` (ObjectId válido).
+  - **Body JSON**: `{ centro?, fecha?, concepto?, monto?, tipo?, esGastoDelPeriodo?, detalle? }` con los campos a ajustar.
+- **Response**: `200 OK` con `{ actualizado, balance, warning? }`; `404` cuando el gasto no existe.
+- **Funcionalidad**: ajusta montos o metadatos de un gasto puntual y devuelve el balance consolidado tras la edición.
+- **Contexto en frontend**: edición inline o en modal con actualización de totales de inmediato.【F:src/modules/costos/routes/costos.routes.ts†L19-L38】【F:src/modules/costos/controllers/costos.controller.ts†L56-L119】
+
+### DELETE `/api/costos/gasto-centro/{id}`
+- **Request**:
+  - **Headers**: `x-user` requerido.
+  - **Params**: `id` (ObjectId válido).
+- **Response**: `200 OK` con `{ message: 'Gasto eliminado con éxito', balance, warning? }` o `404` si no se localiza el registro.
+- **Funcionalidad**: elimina un gasto registrado y recalcula las diferencias entre importado y distribuido.
+- **Contexto en frontend**: botón "Eliminar" con confirmación mostrando el impacto en el balance.【F:src/modules/costos/routes/costos.routes.ts†L34-L41】【F:src/modules/costos/controllers/costos.controller.ts†L101-L137】
+
 ### GET `/api/costos/depreciacion`
 - **Request**:
   - **Query params opcionales** `centro`, `fechaCalculo`, `esGastoDelPeriodo` con el mismo significado que en `gasto-centro`.
@@ -449,6 +515,23 @@ La siguiente tabla resume los recursos expuestos por el backend según el `docs/
 - **Funcionalidad**: registra depreciaciones y recalcula el balance de costos.
 - **Contexto en frontend**: cargas manuales y procesos de importación; mostrar el balance devuelto en la UI.
 
+### PUT `/api/costos/depreciacion/{id}`
+- **Request**:
+  - **Headers**: `x-user` obligatorio.
+  - **Params**: `id` (ObjectId válido).
+  - **Body JSON**: `{ depreMensual?, vidaUtil?, valorUso?, periodo?, esGastoDelPeriodo? }`.
+- **Response**: `200 OK` con `{ actualizado, balance, warning? }` o `404` si la depreciación no existe.
+- **Funcionalidad**: corrige valores de depreciación manteniendo sincronizados los totales distribuidos.
+- **Contexto en frontend**: edición puntual tras conciliaciones contables.【F:src/modules/costos/routes/costos.routes.ts†L42-L55】【F:src/modules/costos/controllers/costos.controller.ts†L121-L170】
+
+### DELETE `/api/costos/depreciacion/{id}`
+- **Request**:
+  - **Headers**: `x-user` requerido.
+  - **Params**: `id` (ObjectId válido).
+- **Response**: `200 OK` con `{ message: 'Depreciación eliminada con éxito', balance, warning? }` o `404` si el registro no existe.
+- **Funcionalidad**: da de baja una depreciación mal cargada y recalcula el balance global.
+- **Contexto en frontend**: acción de limpieza en tablas de depreciaciones con previsualización del nuevo balance.【F:src/modules/costos/routes/costos.routes.ts†L55-L62】【F:src/modules/costos/controllers/costos.controller.ts†L149-L188】
+
 ### GET `/api/costos/sueldo`
 - **Request**: queries `centro?`, `fechaCalculo?`, `nroEmpleado?`, `esGastoDelPeriodo?` con las mismas reglas de filtrado mencionadas.
 - **Response**: `200 OK` con `{ _id, centro, nroEmpleado, fechaSueldo, sueldoTotal, fechaCalculo, esGastoDelPeriodo? }`.
@@ -462,6 +545,23 @@ La siguiente tabla resume los recursos expuestos por el backend según el `docs/
 - **Response**: `201 Created` con `{ created, skipped?, balance, warning? }`.
 - **Funcionalidad**: carga sueldos y devuelve el estado del balance global.
 - **Contexto en frontend**: botón "Registrar sueldos" y cierre del asistente de importación.
+
+### PUT `/api/costos/sueldo/{id}`
+- **Request**:
+  - **Headers**: `x-user` obligatorio.
+  - **Params**: `id` (ObjectId válido).
+  - **Body JSON**: `{ sueldoTotal?, fechaSueldo?, esGastoDelPeriodo? }` y campos opcionales como `detalle`.
+- **Response**: `200 OK` con `{ actualizado, balance, warning? }`; `404` cuando el sueldo no se encuentra.
+- **Funcionalidad**: corrige montos pagados o fechas de registro manteniendo la auditoría.
+- **Contexto en frontend**: edición puntual tras conciliación con nómina.【F:src/modules/costos/routes/costos.routes.ts†L63-L70】【F:src/modules/costos/controllers/costos.controller.ts†L190-L214】
+
+### DELETE `/api/costos/sueldo/{id}`
+- **Request**:
+  - **Headers**: `x-user` requerido.
+  - **Params**: `id` (ObjectId válido).
+- **Response**: `200 OK` con `{ message: 'Sueldo eliminado con éxito', balance, warning? }` o `404` si no se ubica el registro.
+- **Funcionalidad**: elimina sueldos duplicados o incorrectos y actualiza el balance global.
+- **Contexto en frontend**: acción de mantenimiento con confirmación explicando el impacto en costos distribuidos.【F:src/modules/costos/routes/costos.routes.ts†L70-L73】【F:src/modules/costos/controllers/costos.controller.ts†L198-L219】
 
 
 ## Empleados

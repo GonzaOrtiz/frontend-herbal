@@ -173,10 +173,10 @@ Ambos módulos almacenan movimientos en kilogramos relacionados con pérdidas de
 | Método | Ruta | Request | Respuesta | Notas |
 | --- | --- | --- | --- | --- |
 | GET | `/api/asignaciones/historial/:centro` | Parámetro `centro` (ObjectId). | Pasos de prorrateo por centro. | Ordenar por fecha desc.【F:src/modules/asignacion-historial/routes/asignacion-historial.routes.ts†L6-L7】 |
-| GET | `/api/centros-apoyo/distribucion` | — | Distribución vigente de centro de apoyo. | Solo lectura.【F:src/modules/centros/routes/distribucion-centro-apoyo.routes.ts†L6-L7】 |
-| GET | `/api/costos-finales/:sku` | Parámetro `sku`. | Costos finales por producto. | Integrar con reportes.【F:src/modules/centros/routes/costos-finales.routes.ts†L6-L7】 |
-| POST | `/api/asignaciones-manuales` | `{ centro, monto, fecha }` | Pasos aplicados. | Requiere `x-user`.【F:src/modules/centros-asignaciones/routes/centros-asignaciones.routes.ts†L9-L10】 |
-| GET | `/api/asignaciones-finales` | Query `centro`. | Costos finales por centro. | Validar query obligatorio.【F:src/modules/centros-asignaciones/routes/centros-asignaciones.routes.ts†L9-L10】 |
+| GET | `/api/centros-apoyo/distribucion` | Query opcionales `fechaCalculo?`, `incluirGastosDelPeriodo?`. | `[ { centro, sueldos, amortizaciones } ]`. | Devuelve `400` si `fechaCalculo` es inválida.【F:src/modules/centros/routes/distribucion-centro-apoyo.routes.ts†L6-L7】【F:src/modules/centros/controllers/distribucion-centro-apoyo.controller.ts†L7-L34】 |
+| GET | `/api/costos-finales/:sku` | Parámetro `sku`. | `{ sku, costoFinal }`. | Usar para mostrar costo unitario en pantallas de consulta.【F:src/modules/centros/routes/costos-finales.routes.ts†L6-L8】【F:src/modules/centros/controllers/costos-finales.controller.ts†L6-L9】 |
+| POST | `/api/asignaciones-manuales` | `{ centro: string, monto: number, fecha: 'YYYY-MM-DD' }`. | `[{ desde, hacia, porcentaje, monto }]`. | Ejecuta prorrateo manual; opcional `x-user` para auditoría.【F:src/modules/centros-asignaciones/routes/centros-asignaciones.routes.ts†L10-L11】【F:src/modules/centros-asignaciones/controllers/centros-asignaciones.controller.ts†L33-L45】【F:src/services/prorrateo/prorrateo.service.ts†L68-L103】 |
+| GET | `/api/asignaciones-finales` | Query obligatorio `centro`. | `{ centro, costoFinal }`. | Devuelve `400` si falta el parámetro.【F:src/modules/centros-asignaciones/routes/centros-asignaciones.routes.ts†L12-L12】【F:src/modules/centros-asignaciones/controllers/centros-asignaciones.controller.ts†L47-L65】 |
 
 ## Costos y consolidaciones
 
@@ -194,7 +194,7 @@ Ambos módulos almacenan movimientos en kilogramos relacionados con pérdidas de
 | DELETE | `/api/costos/depreciacion/:id` | — | `{ message, balance, warning? }` | Requiere `x-user`.【F:src/modules/costos/routes/costos.routes.ts†L55-L58】 |
 | GET | `/api/costos/sueldo` | Query `centro?`, `fechaCalculo?`, `nroEmpleado?`, `esGastoDelPeriodo?`. | Lista de sueldos. | —【F:src/modules/costos/routes/costos.routes.ts†L60-L79】 |
 | POST | `/api/costos/sueldo` | Objeto o arreglo. | `{ created?, balance, warning? }` | Requiere `x-user`.【F:src/modules/costos/routes/costos.routes.ts†L65-L68】【F:src/modules/costos/controllers/costos.controller.ts†L188-L219】 |
-| PUT | `/api/costos/sueldo/:id` | Campos parciales. | `{ actualizado, balance, warning? }` | Requiere `x-user`.【F:src/modules/costos/routes/costos.routes.ts†L70-L74】 |
+| PUT | `/api/costos/sueldo/:id` | Campos parciales. | `{ actualizado, balance, warning? }` | Requiere `x-user`.【F:src/modules/costos/routes/costos.routes.ts†L70-L74】【F:src/modules/costos/controllers/costos.controller.ts†L190-L214】 |
 | DELETE | `/api/costos/sueldo/:id` | — | `{ message, balance, warning? }` | Requiere `x-user`.【F:src/modules/costos/routes/costos.routes.ts†L75-L78】 |
 | Panel | — | — | Mostrar última ejecución del prorrateo automático (fecha, balance). | Datos provienen de las respuestas anteriores y del job `CostosSyncService`.【F:src/modules/costos/services/costos-sync.service.ts†L1-L143】 |
 
