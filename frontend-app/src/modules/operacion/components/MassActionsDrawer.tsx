@@ -36,13 +36,13 @@ const MassActionsDrawer: React.FC<Props> = ({
       <p>{selected.length} registros seleccionados</p>
       {isProcessing && <p>Ejecutando acción…</p>}
       <div>
-        <button type="button" onClick={() => onRun('aprobar')} disabled={disabled}>
+        <button type="button" className="primary" onClick={() => onRun('aprobar')} disabled={disabled}>
           Aprobar selección
         </button>
-        <button type="button" onClick={() => onRun('recalcular')} disabled={disabled}>
+        <button type="button" className="secondary" onClick={() => onRun('recalcular')} disabled={disabled}>
           Recalcular métricas
         </button>
-        <button type="button" onClick={() => onRun('cerrar')} disabled={disabled}>
+        <button type="button" className="secondary" onClick={() => onRun('cerrar')} disabled={disabled}>
           Cerrar turno
         </button>
       </div>

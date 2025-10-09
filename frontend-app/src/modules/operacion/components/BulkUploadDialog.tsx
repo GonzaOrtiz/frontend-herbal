@@ -86,7 +86,12 @@ const BulkUploadDialog: React.FC<Props> = ({ modulo, schema, status, bitacora, o
           placeholder='[ { "producto": "Mantequilla premium", ... } ]'
         />
       </label>
-      <button type="button" onClick={handleImport} disabled={!rawInput.trim() || status === 'processing'}>
+      <button
+        type="button"
+        className="primary"
+        onClick={handleImport}
+        disabled={!rawInput.trim() || status === 'processing'}
+      >
         Validar e importar
       </button>
       {mensaje && <p>{mensaje}</p>}

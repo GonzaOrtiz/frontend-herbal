@@ -78,15 +78,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           {description}
         </p>
         <div className="config-modal__actions">
-          <button
-            ref={cancelButtonRef}
-            type="button"
-            className="config-modal__button"
-            onClick={onCancel}
-          >
+          <button ref={cancelButtonRef} type="button" className="ghost" onClick={onCancel}>
             {cancelLabel}
           </button>
-          <button type="button" className="config-modal__button config-modal__button--danger" onClick={onConfirm}>
+          <button type="button" className="danger" onClick={onConfirm}>
             {confirmLabel}
           </button>
         </div>

@@ -113,7 +113,7 @@ const CatalogTable = <TEntity,>({
           </label>
           <button
             type="button"
-            className="config-pagination-button"
+            className="secondary small"
             onClick={() => setPage((current) => Math.max(1, current - 1))}
             disabled={page === 1}
           >
@@ -124,7 +124,7 @@ const CatalogTable = <TEntity,>({
           </span>
           <button
             type="button"
-            className="config-pagination-button"
+            className="secondary small"
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
             disabled={page === totalPages}
           >
