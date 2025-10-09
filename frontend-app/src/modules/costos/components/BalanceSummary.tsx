@@ -27,7 +27,7 @@ const BalanceSummary: React.FC<BalanceSummaryProps> = ({ summary, formatted, onR
         </p>
       </div>
       {onRefresh && (
-        <button type="button" onClick={onRefresh} disabled={isLoading}>
+        <button type="button" className="secondary" onClick={onRefresh} disabled={isLoading}>
           {isLoading ? 'Actualizando…' : 'Actualizar'}
         </button>
       )}

@@ -99,9 +99,7 @@ const EmpleadosPage: React.FC = () => {
     setIsFormOpen(false);
   }, [form]);
 
-  const toggleButtonClassName = `config-button ${
-    isFormOpen ? 'config-button--ghost' : 'config-button--primary'
-  }`;
+  const toggleButtonClassName = isFormOpen ? 'ghost' : 'primary';
 
   const toggleButtonLabel = isFormOpen
     ? editingEmpleado
@@ -187,7 +185,7 @@ const EmpleadosPage: React.FC = () => {
             {catalog.error && (
               <div className="config-alert" role="alert">
                 <span>No pudimos cargar los empleados. Intenta nuevamente.</span>
-                <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
+                <button type="button" className="ghost config-alert__action" onClick={() => catalog.refetch()}>
                   Reintentar
                 </button>
               </div>

@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import ConfiguracionModule from './modules/configuracion';
 import OperacionModule from './modules/operacion';
 import CostosModule from './modules/costos';
+import ImportacionesModule from './modules/importaciones';
 import { buildOperacionRoutes } from './modules/operacion/routes';
 import { buildCostosRoutes } from './modules/costos/routes';
 import type { OperacionModulo } from './modules/operacion/types';
 import type { CostosSubModulo } from './modules/costos/types';
+import type { ImportacionesSection } from './modules/importaciones/types';
 import './App.css';
 
 type NavItem = {
@@ -14,7 +16,7 @@ type NavItem = {
   description: string;
   icon: JSX.Element;
 };
-type DomainKey = 'configuracion' | 'operacion' | 'costos';
+type DomainKey = 'configuracion' | 'operacion' | 'importaciones' | 'costos';
 
 type DomainAction = {
   label: string;
@@ -53,7 +55,24 @@ type SidebarIconName =
   | 'gastos'
   | 'depreciaciones'
   | 'sueldos'
-  | 'prorrateo';
+  | 'prorrateo'
+  | 'importar'
+  | 'bitacoras';
+
+const importacionesNavigation: { id: ImportacionesSection; label: string; description: string; icon: SidebarIconName }[] = [
+  {
+    id: 'importar',
+    label: 'Importar archivo MDB',
+    description: 'Carga archivos Access y distribuye la información entre módulos.',
+    icon: 'importar',
+  },
+  {
+    id: 'historial',
+    label: 'Historial de bitácoras',
+    description: 'Administra y audita las importaciones registradas.',
+    icon: 'bitacoras',
+  },
+];
 
 type EnhancedNavItem = NavItem & {
   onSelect?: () => void;
@@ -186,11 +205,33 @@ const domainConfigs: Record<DomainKey, DomainConfig> = {
     },
     shortcuts: ['Ver existencias', 'Ir a asientos', 'Descargar bitácora'],
   },
+  importaciones: {
+    eyebrow: 'Suite Herbal ERP · Importaciones',
+    title: 'Importación de bases Access',
+    subtitle:
+      'Carga archivos .mdb, monitorea el procesamiento por tabla y gestiona las bitácoras generadas automáticamente.',
+    logo: '📥',
+    actions: [
+      { label: 'Nueva importación', variant: 'primary' },
+      { label: 'Bitácoras recientes' },
+    ],
+    overview: {
+      description:
+        'Controla la trazabilidad de las importaciones, revisa los resultados por tabla y audita los movimientos generados.',
+      stats: [
+        { value: '3', label: 'Importaciones en revisión' },
+        { value: '12', label: 'Tablas importadas hoy' },
+        { value: 'Sin alertas', label: 'Estado del proceso' },
+      ],
+    },
+    shortcuts: ['Ver últimas bitácoras', 'Descargar log de auditoría', 'Configurar alertas'],
+  },
 };
 
 const domainEntries: { id: DomainKey; label: string }[] = [
   { id: 'configuracion', label: 'Configuración' },
   { id: 'operacion', label: 'Operación diaria' },
+  { id: 'importaciones', label: 'Importaciones MDB' },
   { id: 'costos', label: 'Costos y consolidaciones' },
 ];
 
@@ -319,6 +360,24 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
           />
         </svg>
       );
+    case 'importar':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M12 2a3 3 0 0 1 3 3v6.586l1.293-1.293 1.414 1.414L12 16.414 6.293 11.707l1.414-1.414L9 11.586V5a3 3 0 0 1 3-3zm-7 14h2v4h10v-4h2v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'bitacoras':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M6 3a3 3 0 0 0-3 3v13h2.5l1 2H19a2 2 0 0 0 2-2V6a3 3 0 0 0-3-3H6zm0 2h12a1 1 0 0 1 1 1v13H8.5l-1-2H5V6a1 1 0 0 1 1-1zm2 3v2h8V8H8zm0 4v2h6v-2H8z"
+            fill="currentColor"
+          />
+        </svg>
+      );
     default:
       return null;
   }
@@ -333,6 +392,7 @@ function App() {
   const [configuracionRouteId, setConfiguracionRouteId] = useState('actividades');
   const [operacionModulo, setOperacionModulo] = useState<OperacionModulo>('consumos');
   const [costosModulo, setCostosModulo] = useState<CostosSubModulo>('gastos');
+  const [importacionesSection, setImportacionesSection] = useState<ImportacionesSection>('importar');
 
   const operacionRoutes = useMemo(() => buildOperacionRoutes(), []);
   const costosRoutes = useMemo(() => buildCostosRoutes(), []);
@@ -381,12 +441,14 @@ function App() {
       activeRouteId: configuracionRouteId,
       onSelectRoute: handleConfiguracionRouteChange,
     });
+
   }, [
     activeDomain,
     operacionRoutes,
     operacionModulo,
     costosRoutes,
     costosModulo,
+    importacionesSection,
     isCompactViewport,
     setIsSidebarVisible,
     configuracionRouteId,
@@ -627,6 +689,11 @@ function App() {
               />
             ) : activeDomain === 'operacion' ? (
               <OperacionModule initialModulo={operacionModulo} />
+            ) : activeDomain === 'importaciones' ? (
+              <ImportacionesModule
+                activeSection={importacionesSection}
+                onSectionChange={setImportacionesSection}
+              />
             ) : (
               <CostosModule initialSubmodule={costosModulo} />
             )}

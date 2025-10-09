@@ -62,7 +62,7 @@ const ProcessRunnerDialog: React.FC<ProcessRunnerDialogProps> = ({
           </div>
         </div>
         <div className="costos-dialog__footer">
-          <button type="button" onClick={onClose}>
+          <button type="button" className="ghost" onClick={onClose}>
             Cerrar
           </button>
           {process.status === 'idle' && (
@@ -71,7 +71,7 @@ const ProcessRunnerDialog: React.FC<ProcessRunnerDialogProps> = ({
             </button>
           )}
           {process.status === 'running' && (
-            <button type="button" onClick={onCancel}>
+            <button type="button" className="secondary" onClick={onCancel}>
               Cancelar
             </button>
           )}

@@ -34,10 +34,10 @@ const ImportErrorLog: React.FC<Props> = ({ bitacora }) => {
     <div className="import-error-log">
       <strong>Errores de importación</strong>
       <div>
-        <button type="button" onClick={() => descargar('csv')}>
+        <button type="button" className="secondary" onClick={() => descargar('csv')}>
           Descargar CSV
         </button>
-        <button type="button" onClick={() => descargar('json')}>
+        <button type="button" className="secondary" onClick={() => descargar('json')}>
           Descargar JSON
         </button>
       </div>

@@ -57,9 +57,9 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
         <p>Ocurrió un problema al consultar los datos.</p>
         <small>{message}</small>
         {onRetry && (
-          <button type="button" onClick={onRetry}>
-            Reintentar consulta
-          </button>
+        <button type="button" className="primary" onClick={onRetry}>
+          Reintentar consulta
+        </button>
         )}
       </div>
     );
@@ -69,7 +69,7 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
     return (
       <div className="operacion-datagrid operacion-datagrid--placeholder">
         <p>No hay registros que coincidan con los filtros actuales.</p>
-        <button type="button" onClick={() => onSelect([])}>
+        <button type="button" className="secondary" onClick={() => onSelect([])}>
           Limpiar selección
         </button>
       </div>

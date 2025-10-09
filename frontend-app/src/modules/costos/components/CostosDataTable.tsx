@@ -69,7 +69,7 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
     return (
       <div className="costos-empty-state" role="alert">
         <p>No se pudieron cargar los registros. Intenta nuevamente.</p>
-        <button type="button" onClick={onRetry}>
+        <button type="button" className="primary" onClick={onRetry}>
           Reintentar
         </button>
       </div>
@@ -93,7 +93,9 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
           <button
             key={action.id}
             type="button"
-            className={action.intent === 'primary' ? 'primary' : undefined}
+            className={
+              action.intent === 'primary' ? 'primary' : action.intent === 'secondary' ? 'secondary' : undefined
+            }
           >
             {action.label}
           </button>
