@@ -7,6 +7,7 @@ const state: FeatureFlagsState = {
   catalogoEmpleados: true,
   catalogoCentros: true,
   parametrosGenerales: false,
+  catalogoCentrosApoyo: true,
 };
 
 const listeners = new Set<(flags: FeatureFlagsState) => void>();
