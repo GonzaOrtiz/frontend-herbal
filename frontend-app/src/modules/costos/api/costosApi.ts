@@ -85,7 +85,7 @@ export async function fetchCostosList<K extends Exclude<CostosSubModulo, 'prorra
   let previousTotal: number | undefined;
   let totalAmount: number | undefined;
   let totalCount: number | undefined;
-  let currency = 'USD';
+  let currency = 'MXN';
   let history: { period: string; totalAmount: number }[] = [];
 
   if (Array.isArray(response)) {

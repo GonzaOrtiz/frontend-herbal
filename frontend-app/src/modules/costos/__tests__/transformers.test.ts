@@ -51,7 +51,7 @@ test('calculateBalanceSummary calcula variación porcentual', () => {
     difference: 50,
     previousTotal: 800,
     warning: null,
-    currency: 'USD',
+    currency: 'MXN',
     history: [],
   };
 

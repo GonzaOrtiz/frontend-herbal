@@ -6,7 +6,7 @@ export interface FormatCurrencyOptions {
 }
 
 export function formatCurrency(value: number, options: FormatCurrencyOptions = {}): string {
-  const { currency = 'USD', locale = 'es-MX', minimumFractionDigits = 2, maximumFractionDigits = 2 } = options;
+  const { currency = 'MXN', locale = 'es-MX', minimumFractionDigits = 2, maximumFractionDigits = 2 } = options;
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
