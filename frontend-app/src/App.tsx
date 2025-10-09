@@ -3,11 +3,14 @@ import ConfiguracionModule from './modules/configuracion';
 import OperacionModule from './modules/operacion';
 import CostosModule from './modules/costos';
 import ImportacionesModule from './modules/importaciones';
+import ReportesModule from './modules/reportes';
 import { buildOperacionRoutes } from './modules/operacion/routes';
 import { buildCostosRoutes } from './modules/costos/routes';
+import { buildReportesRoutes } from './modules/reportes/routes';
 import type { OperacionModulo } from './modules/operacion/types';
 import type { CostosSubModulo } from './modules/costos/types';
 import type { ImportacionesSection } from './modules/importaciones/types';
+import type { ReportCategory } from './modules/reportes/types';
 import './App.css';
 
 type NavItem = {
@@ -16,7 +19,7 @@ type NavItem = {
   description: string;
   icon: JSX.Element;
 };
-type DomainKey = 'configuracion' | 'operacion' | 'importaciones' | 'costos';
+type DomainKey = 'configuracion' | 'operacion' | 'importaciones' | 'costos' | 'reportes';
 
 type DomainAction = {
   label: string;
@@ -57,7 +60,10 @@ type SidebarIconName =
   | 'sueldos'
   | 'prorrateo'
   | 'importar'
-  | 'bitacoras';
+  | 'bitacoras'
+  | 'financieros'
+  | 'operativos-reportes'
+  | 'auditoria-reportes';
 
 const importacionesNavigation: { id: ImportacionesSection; label: string; description: string; icon: SidebarIconName }[] = [
   {
@@ -205,6 +211,27 @@ const domainConfigs: Record<DomainKey, DomainConfig> = {
     },
     shortcuts: ['Ver existencias', 'Ir a asientos', 'Descargar bitácora'],
   },
+  reportes: {
+    eyebrow: 'Suite Herbal ERP · Analítica',
+    title: 'Reportes y analítica',
+    subtitle:
+      'Explora indicadores financieros, operativos y de auditoría con filtros avanzados y exportaciones seguras.',
+    logo: '📊',
+    actions: [
+      { label: 'Descargar guía rápida' },
+      { label: 'Solicitar nuevo reporte', variant: 'primary' },
+    ],
+    overview: {
+      description:
+        'Comparte vistas filtradas, monitorea descargas recientes y asegura el cumplimiento de los indicadores clave.',
+      stats: [
+        { value: '7', label: 'Reportes disponibles' },
+        { value: '3', label: 'Descargas hoy' },
+        { value: 'AA', label: 'Nivel de accesibilidad' },
+      ],
+    },
+    shortcuts: ['Ver KPIs financieros', 'Explorar consumos', 'Auditar exportaciones'],
+  },
   importaciones: {
     eyebrow: 'Suite Herbal ERP · Importaciones',
     title: 'Importación de bases Access',
@@ -233,6 +260,7 @@ const domainEntries: { id: DomainKey; label: string }[] = [
   { id: 'operacion', label: 'Operación diaria' },
   { id: 'importaciones', label: 'Importaciones MDB' },
   { id: 'costos', label: 'Costos y consolidaciones' },
+  { id: 'reportes', label: 'Reportes y analítica' },
 ];
 
 function SidebarIcon({ name }: { name: SidebarIconName }) {
@@ -378,6 +406,33 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
           />
         </svg>
       );
+    case 'financieros':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M4 4h4v16H4zm6 6h4v10h-4zm6-4h4v14h-4z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'operativos-reportes':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M3 5h18v2H3zm0 6h12v2H3zm0 6h18v2H3zM19 9h2v2h-2zm-4 6h2v2h-2z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'auditoria-reportes':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-8-8v2l4-3-4-3v2zM9 11h2v5H9zm4 0h2v5h-2z"
+            fill="currentColor"
+          />
+        </svg>
+      );
     default:
       return null;
   }
@@ -393,9 +448,11 @@ function App() {
   const [operacionModulo, setOperacionModulo] = useState<OperacionModulo>('consumos');
   const [costosModulo, setCostosModulo] = useState<CostosSubModulo>('gastos');
   const [importacionesSection, setImportacionesSection] = useState<ImportacionesSection>('importar');
+  const [reportesCategory, setReportesCategory] = useState<ReportCategory>('financieros');
 
   const operacionRoutes = useMemo(() => buildOperacionRoutes(), []);
   const costosRoutes = useMemo(() => buildCostosRoutes(), []);
+  const reportesRoutes = useMemo(() => buildReportesRoutes(), []);
   const handleConfiguracionRouteChange = useCallback(
     (routeId: string) => {
       setConfiguracionRouteId(routeId);
@@ -437,6 +494,29 @@ function App() {
         isActive: route.id === costosModulo,
       }));
     }
+    if (activeDomain === 'reportes') {
+      return reportesRoutes.map((route) => {
+        const iconName: SidebarIconName =
+          route.id === 'financieros'
+            ? 'financieros'
+            : route.id === 'operativos'
+              ? 'operativos-reportes'
+              : 'auditoria-reportes';
+        return {
+          id: route.id,
+          label: route.title,
+          description: route.description,
+          icon: <SidebarIcon name={iconName} />,
+          onSelect: () => {
+            setReportesCategory(route.id);
+            if (isCompactViewport) {
+              setIsSidebarVisible(false);
+            }
+          },
+          isActive: route.id === reportesCategory,
+        };
+      });
+    }
     return buildConfiguracionNavigation({
       activeRouteId: configuracionRouteId,
       onSelectRoute: handleConfiguracionRouteChange,
@@ -448,6 +528,8 @@ function App() {
     operacionModulo,
     costosRoutes,
     costosModulo,
+    reportesRoutes,
+    reportesCategory,
     importacionesSection,
     isCompactViewport,
     setIsSidebarVisible,
@@ -694,6 +776,8 @@ function App() {
                 activeSection={importacionesSection}
                 onSectionChange={setImportacionesSection}
               />
+            ) : activeDomain === 'reportes' ? (
+              <ReportesModule activeCategory={reportesCategory} onCategoryChange={setReportesCategory} />
             ) : (
               <CostosModule initialSubmodule={costosModulo} />
             )}
