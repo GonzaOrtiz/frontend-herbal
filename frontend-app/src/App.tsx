@@ -1,4 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import CloseIcon from '@mui/icons-material/Close';
+import MenuIcon from '@mui/icons-material/Menu';
 import ConfiguracionModule from './modules/configuracion';
 import OperacionModule from './modules/operacion';
 import CostosModule from './modules/costos';
@@ -587,71 +595,210 @@ function App() {
 
   return (
     <div className="app-shell">
-      <header className="app-navbar">
-        <div className="app-navbar__content">
-          <div className="app-navbar__start">
+      <AppBar
+        position="sticky"
+        sx={{
+          backgroundImage: 'linear-gradient(135deg, #0b1727 0%, #111c2d 50%, #1d2b44 100%)',
+          backgroundColor: 'transparent',
+          color: '#e2e8f0',
+          boxShadow: 'inset 0 -1px 0 rgba(255, 255, 255, 0.05)',
+        }}
+      >
+        <Toolbar
+          disableGutters
+          sx={{
+            width: '100%',
+            px: { xs: 2, md: 3 },
+            py: { xs: 2, md: 2.5 },
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: { xs: 2, md: 3 },
+          }}
+        >
+          <Box
+            sx={{
+            display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 2,
+              flexGrow: 1,
+              minWidth: 0,
+            }}
+          >
             {isCompactViewport && (
-              <button
-                type="button"
-                className="app-navbar__toggle app-toggle-button"
+              <IconButton
+                edge="start"
+                color="inherit"
                 onClick={toggleSidebar}
                 aria-expanded={isSidebarOpen}
                 aria-controls="app-sidebar"
                 aria-label={toggleLabel}
                 title={toggleLabel}
-                data-open={isSidebarOpen}
+                sx={{
+                  borderRadius: 2,
+                  border: '1px solid rgba(226, 232, 240, 0.25)',
+                  backgroundColor: 'rgba(15, 23, 42, 0.35)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(96, 165, 250, 0.22)',
+                    borderColor: 'rgba(96, 165, 250, 0.6)',
+                  },
+                }}
               >
-                <span className="sr-only">{toggleLabel}</span>
-                <span className="app-toggle-button__icon" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                </span>
-              </button>
+                {isSidebarOpen ? <CloseIcon /> : <MenuIcon />}
+              </IconButton>
             )}
 
-            <div className="app-navbar__brand">
-              <div className="app-navbar__logo" aria-hidden="true">
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                flexWrap: 'wrap',
+                flexGrow: 1,
+                minWidth: 0,
+              }}
+            >
+              <Box
+                aria-hidden="true"
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 2,
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: '1.5rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#f8fafc',
+                }}
+              >
                 {domainConfig.logo}
-              </div>
-              <div className="app-navbar__headline">
-                <p className="app-navbar__eyebrow">{domainConfig.eyebrow}</p>
-                <h1 className="app-navbar__title">{domainConfig.title}</h1>
-                <p className="app-navbar__subtitle">{domainConfig.subtitle}</p>
-                <div className="app-navbar__domains" role="tablist" aria-label="Dominios principales">
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flexGrow: 1 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.12em',
+                    color: 'rgba(148, 163, 184, 0.85)',
+                    fontWeight: 600,
+                  }}
+                >
+                  {domainConfig.eyebrow}
+                </Typography>
+                <Typography
+                  component="h1"
+                  variant="h5"
+                  sx={{
+                    color: '#f8fafc',
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {domainConfig.title}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'rgba(203, 213, 225, 0.9)',
+                    maxWidth: { xs: '100%', md: 480 },
+                  }}
+                >
+                  {domainConfig.subtitle}
+                </Typography>
+                <Box
+                  role="tablist"
+                  aria-label="Dominios principales"
+                  sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}
+                >
                   {domainEntries.map((entry) => {
                     const isActive = entry.id === activeDomain;
                     return (
-                      <button
+                      <Button
                         key={entry.id}
                         type="button"
                         role="tab"
-                        className="app-navbar__domain-button"
                         aria-selected={isActive}
-                        data-active={isActive}
                         onClick={() => setActiveDomain(entry.id)}
+                        variant={isActive ? 'contained' : 'outlined'}
+                        color="inherit"
+                        sx={{
+                          textTransform: 'none',
+                          borderRadius: '999px',
+                          fontWeight: 600,
+                          fontSize: '0.85rem',
+                          px: 2,
+                          py: 0.75,
+                          borderColor: isActive
+                            ? 'rgba(255, 255, 255, 0.75)'
+                            : 'rgba(226, 232, 240, 0.25)',
+                          backgroundColor: isActive
+                            ? 'rgba(59, 130, 246, 0.35)'
+                            : 'rgba(15, 23, 42, 0.35)',
+                          color: '#f8fafc',
+                          '&:hover': {
+                            backgroundColor: isActive
+                              ? 'rgba(59, 130, 246, 0.45)'
+                              : 'rgba(96, 165, 250, 0.22)',
+                            borderColor: 'rgba(96, 165, 250, 0.6)',
+                          },
+                        }}
                       >
                         {entry.label}
-                      </button>
+                      </Button>
                     );
                   })}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="app-navbar__actions" aria-label="Acciones rápidas">
-            {domainConfig.actions.map((action) => (
-              <button
-                key={action.label}
-                type="button"
-                className={`app-navbar__action${action.variant === 'primary' ? ' app-navbar__action--primary' : ''}`}
-              >
-                {action.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+          <Box
+            aria-label="Acciones rápidas"
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'flex-end',
+              gap: 1.5,
+            }}
+          >
+            {domainConfig.actions.map((action) => {
+              const isPrimary = action.variant === 'primary';
+              return (
+                <Button
+                  key={action.label}
+                  type="button"
+                  variant={isPrimary ? 'contained' : 'outlined'}
+                  color="inherit"
+                  sx={{
+                    borderRadius: 2,
+                    fontWeight: 600,
+                    px: 2.5,
+                    py: 1,
+                    borderColor: isPrimary
+                      ? 'rgba(148, 197, 255, 0.8)'
+                      : 'rgba(226, 232, 240, 0.35)',
+                    backgroundColor: isPrimary
+                      ? 'rgba(59, 130, 246, 0.85)'
+                      : 'rgba(15, 23, 42, 0.35)',
+                    color: '#f8fafc',
+                    boxShadow: isPrimary ? '0 12px 24px rgba(20, 94, 168, 0.25)' : 'none',
+                    '&:hover': {
+                      backgroundColor: isPrimary
+                        ? 'rgba(37, 99, 235, 0.92)'
+                        : 'rgba(96, 165, 250, 0.22)',
+                      borderColor: 'rgba(96, 165, 250, 0.6)',
+                    },
+                  }}
+                >
+                  {action.label}
+                </Button>
+              );
+            })}
+          </Box>
+        </Toolbar>
+      </AppBar>
 
       <div className="app-shell__content">
         <div className="app-layout">
