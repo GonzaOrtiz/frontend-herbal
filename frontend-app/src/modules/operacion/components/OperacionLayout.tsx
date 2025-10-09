@@ -81,7 +81,7 @@ const OperacionLayout: React.FC = () => {
     <div className="operacion-module">
       <header className="operacion-header">
         <h1>Operación diaria</h1>
-        <button type="button" onClick={desbloquear} disabled={!resumen?.bloqueado}>
+        <button type="button" className="primary" onClick={desbloquear} disabled={!resumen?.bloqueado}>
           Desbloquear captura
         </button>
       </header>
@@ -135,7 +135,7 @@ const OperacionLayout: React.FC = () => {
             Importación masiva
           </button>
         </div>
-        <button type="button" onClick={reset}>
+        <button type="button" className="primary" onClick={reset}>
           Reiniciar importación
         </button>
       </div>

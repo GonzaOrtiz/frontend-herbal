@@ -30,20 +30,7 @@
 }
 
 .costos-actions button {
-  border: 1px solid var(--color-outline);
-  border-radius: 10px;
-  padding: 10px 16px;
-  background: var(--color-surface-alt);
-  color: var(--color-text-primary);
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.costos-actions button.primary {
-  background: var(--color-primary);
-  border-color: transparent;
-  color: #fff;
+  flex: 0 0 auto;
 }
 
 .costos-tabs {
@@ -341,10 +328,7 @@
 }
 
 .costos-dialog__footer button {
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-weight: 600;
-  cursor: pointer;
+  flex: 0 0 auto;
 }
 
 .costos-progress-bar {

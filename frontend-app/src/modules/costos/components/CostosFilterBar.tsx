@@ -109,6 +109,7 @@ const CostosFilterBar: React.FC = () => {
         </button>
         <button
           type="button"
+          className="ghost"
           onClick={() => {
             resetFilters();
           }}

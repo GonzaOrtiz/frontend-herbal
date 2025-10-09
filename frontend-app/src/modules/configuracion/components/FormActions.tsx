@@ -9,11 +9,11 @@ interface FormActionsProps {
 
 const FormActions: React.FC<FormActionsProps> = ({ onCancel, isSubmitting, submitLabel = 'Guardar' }) => (
   <div className="config-form-actions">
-    <button type="submit" className="config-button config-button--primary" disabled={isSubmitting}>
+    <button type="submit" className="primary" disabled={isSubmitting}>
       {submitLabel}
     </button>
     {onCancel && (
-      <button type="button" className="config-button config-button--ghost" onClick={onCancel}>
+      <button type="button" className="ghost" onClick={onCancel}>
         Cancelar
       </button>
     )}

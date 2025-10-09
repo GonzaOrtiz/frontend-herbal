@@ -221,7 +221,7 @@ const ParametrosGeneralesPage: React.FC = () => {
         {catalog.error && (
           <div className="config-alert" role="alert">
             <span>No pudimos cargar los parámetros. Intenta nuevamente.</span>
-            <button type="button" className="config-alert__action" onClick={() => catalog.refetch()}>
+            <button type="button" className="ghost config-alert__action" onClick={() => catalog.refetch()}>
               Reintentar
             </button>
           </div>

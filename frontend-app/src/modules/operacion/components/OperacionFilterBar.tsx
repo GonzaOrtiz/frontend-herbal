@@ -127,20 +127,20 @@ const OperacionFilterBar: React.FC<Props> = ({ config }) => {
               </option>
             ))}
         </select>
-        <button type="button" onClick={handleSaveView}>
+        <button type="button" className="primary" onClick={handleSaveView}>
           Guardar vista
         </button>
         {vistas.length > 0 && (
-          <button type="button" onClick={() => handleShare(vistas[0].id)}>
+          <button type="button" className="secondary" onClick={() => handleShare(vistas[0].id)}>
             Compartir primera vista
           </button>
         )}
         {vistas.length > 0 && (
-          <button type="button" onClick={() => deleteVista(vistas[0].id)}>
+          <button type="button" className="secondary" onClick={() => deleteVista(vistas[0].id)}>
             Eliminar primera vista
           </button>
         )}
-        <button type="button" onClick={resetFiltros}>
+        <button type="button" className="ghost" onClick={resetFiltros}>
           Restablecer filtros
         </button>
       </div>
