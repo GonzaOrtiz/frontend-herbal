@@ -1,4 +1,6 @@
 import React from 'react';
+import TablePagination from '@/components/TablePagination';
+import usePagination from '@/lib/usePagination';
 import type { BitacoraImportacion } from '../types';
 
 interface Props {
@@ -6,7 +8,13 @@ interface Props {
 }
 
 const ImportErrorLog: React.FC<Props> = ({ bitacora }) => {
-  if (!bitacora || bitacora.errores.length === 0) {
+  const errores = bitacora?.errores ?? [];
+  const pagination = usePagination(errores, {
+    initialPageSize: 10,
+    pageSizeOptions: [10, 25, 50],
+  });
+
+  if (!bitacora || errores.length === 0) {
     return null;
   }
 
@@ -14,9 +22,9 @@ const ImportErrorLog: React.FC<Props> = ({ bitacora }) => {
     const nombre = `${bitacora.modulo}-errores.${tipo}`;
     const contenido =
       tipo === 'json'
-        ? JSON.stringify(bitacora.errores, null, 2)
+        ? JSON.stringify(errores, null, 2)
         : ['fila,campo,mensaje,usuario,timestamp',
-            ...bitacora.errores.map((error) =>
+            ...errores.map((error) =>
               [error.row, error.field, error.message.replace(/,/g, ';'), error.usuario, error.timestamp].join(',')
             ),
           ].join('\n');
@@ -41,28 +49,42 @@ const ImportErrorLog: React.FC<Props> = ({ bitacora }) => {
           Descargar JSON
         </button>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Fila</th>
-            <th>Campo</th>
-            <th>Mensaje</th>
-            <th>Usuario</th>
-            <th>Fecha</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bitacora.errores.map((error) => (
-            <tr key={`${error.row}-${error.field}-${error.timestamp}`}>
-              <td>{error.row}</td>
-              <td>{error.field}</td>
-              <td>{error.message}</td>
-              <td>{error.usuario}</td>
-              <td>{new Date(error.timestamp).toLocaleString('es-MX')}</td>
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Fila</th>
+              <th>Campo</th>
+              <th>Mensaje</th>
+              <th>Usuario</th>
+              <th>Fecha</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pagination.items.map((error) => (
+              <tr key={`${error.row}-${error.field}-${error.timestamp}`}>
+                <td>{error.row}</td>
+                <td>{error.field}</td>
+                <td>{error.message}</td>
+                <td>{error.usuario}</td>
+                <td>{new Date(error.timestamp).toLocaleString('es-MX')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <TablePagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        from={pagination.from}
+        to={pagination.to}
+        totalItems={pagination.totalItems}
+        pageSize={pagination.pageSize}
+        pageSizeOptions={pagination.pageSizeOptions}
+        onPageChange={pagination.setPage}
+        onPageSizeChange={pagination.setPageSize}
+        label="Paginación de errores de importación"
+      />
     </div>
   );
 };

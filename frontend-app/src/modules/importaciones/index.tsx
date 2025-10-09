@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import TablePagination from '@/components/TablePagination';
+import usePagination from '@/lib/usePagination';
 import {
   ImportacionesApiError,
   computeTotals,
@@ -143,6 +145,16 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
   }, [results]);
 
   const totals = useMemo(() => computeTotals(results), [results]);
+
+  const resultsPagination = usePagination(orderedResults, {
+    initialPageSize: 8,
+    pageSizeOptions: [5, 10, 25, 50],
+  });
+
+  const historyPagination = usePagination(history, {
+    initialPageSize: 10,
+    pageSizeOptions: [10, 25, 50, 100],
+  });
 
   const sanitizedSearch = searchTerm.trim();
 
@@ -553,33 +565,47 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
                 </p>
               </header>
               <div className="importaciones-results__table-wrapper">
-                <table className="importaciones-table">
-                  <thead>
-                    <tr>
-                      <th>Tabla Access</th>
-                      <th>Colección destino</th>
-                      <th>Insertados</th>
-                      <th>Error</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orderedResults.map((result) => (
-                      <tr key={result.table}>
-                        <td>{result.table}</td>
-                        <td>{result.collection}</td>
-                        <td>{result.inserted}</td>
-                        <td>
-                          {result.error ? (
-                            <span className="importaciones-badge importaciones-badge--error">{result.error}</span>
-                          ) : (
-                            <span className="importaciones-badge importaciones-badge--success">Sin errores</span>
-                          )}
-                        </td>
+                <div className="table-container">
+                  <table className="importaciones-table">
+                    <thead>
+                      <tr>
+                        <th>Tabla Access</th>
+                        <th>Colección destino</th>
+                        <th>Insertados</th>
+                        <th>Error</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {resultsPagination.items.map((result) => (
+                        <tr key={result.table}>
+                          <td>{result.table}</td>
+                          <td>{result.collection}</td>
+                          <td>{result.inserted}</td>
+                          <td>
+                            {result.error ? (
+                              <span className="importaciones-badge importaciones-badge--error">{result.error}</span>
+                            ) : (
+                              <span className="importaciones-badge importaciones-badge--success">Sin errores</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+              <TablePagination
+                page={resultsPagination.page}
+                totalPages={resultsPagination.totalPages}
+                from={resultsPagination.from}
+                to={resultsPagination.to}
+                totalItems={resultsPagination.totalItems}
+                pageSize={resultsPagination.pageSize}
+                pageSizeOptions={resultsPagination.pageSizeOptions}
+                onPageChange={resultsPagination.setPage}
+                onPageSizeChange={resultsPagination.setPageSize}
+                label="Paginación del resumen de tablas"
+              />
             </div>
           )}
         </section>
@@ -633,46 +659,62 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
             {historyError && <p className="importaciones-alert importaciones-alert--error">{historyError}</p>}
 
             <div className="importaciones-history__table-wrapper">
-              <table className="importaciones-table importaciones-table--selectable">
-                <thead>
-                  <tr>
-                    <th>Archivo</th>
-                    <th>Fecha</th>
-                    <th>Procesados</th>
-                    <th>Duración</th>
-                    <th>Errores</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {historyLoading ? (
+              <div className="table-container">
+                <table className="importaciones-table importaciones-table--selectable">
+                  <thead>
                     <tr>
-                      <td colSpan={5}>Cargando historial…</td>
+                      <th>Archivo</th>
+                      <th>Fecha</th>
+                      <th>Procesados</th>
+                      <th>Duración</th>
+                      <th>Errores</th>
                     </tr>
-                  ) : history.length === 0 ? (
-                    <tr>
-                      <td colSpan={5}>Sin registros disponibles para los filtros seleccionados.</td>
-                    </tr>
-                  ) : (
-                    history.map((log) => {
-                      const errorCount = log.totalErrors ?? log.errorMessages?.length ?? 0;
-                      return (
-                        <tr
-                          key={log._id}
-                          data-selected={selectedLogId === log._id}
-                          onClick={() => handleSelectLog(log)}
-                        >
-                          <td>{log.fileName}</td>
-                          <td>{formatDate(log.importDate)}</td>
-                          <td>{log.recordsProcessed}</td>
-                          <td>{formatDuration(log.durationMs)}</td>
-                          <td>{errorCount}</td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {historyLoading ? (
+                      <tr>
+                        <td colSpan={5}>Cargando historial…</td>
+                      </tr>
+                    ) : history.length === 0 ? (
+                      <tr>
+                        <td colSpan={5}>Sin registros disponibles para los filtros seleccionados.</td>
+                      </tr>
+                    ) : (
+                      historyPagination.items.map((log) => {
+                        const errorCount = log.totalErrors ?? log.errorMessages?.length ?? 0;
+                        return (
+                          <tr
+                            key={log._id}
+                            data-selected={selectedLogId === log._id}
+                            onClick={() => handleSelectLog(log)}
+                          >
+                            <td>{log.fileName}</td>
+                            <td>{formatDate(log.importDate)}</td>
+                            <td>{log.recordsProcessed}</td>
+                            <td>{formatDuration(log.durationMs)}</td>
+                            <td>{errorCount}</td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
+            {!historyLoading && history.length > 0 && (
+              <TablePagination
+                page={historyPagination.page}
+                totalPages={historyPagination.totalPages}
+                from={historyPagination.from}
+                to={historyPagination.to}
+                totalItems={historyPagination.totalItems}
+                pageSize={historyPagination.pageSize}
+                pageSizeOptions={historyPagination.pageSizeOptions}
+                onPageChange={historyPagination.setPage}
+                onPageSizeChange={historyPagination.setPageSize}
+                label="Paginación del historial de importaciones"
+              />
+            )}
           </div>
 
           <aside className="importaciones-history__detail" aria-live="polite">
