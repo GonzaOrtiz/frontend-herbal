@@ -16,7 +16,7 @@ import type { BaseCostRecord, CostosRecordMap, CostosSubModulo } from '../types'
 import '../costos.css';
 
 const CostosLayout: React.FC = () => {
-  const { submodule } = useCostosContext();
+  const { submodule, lastSummary } = useCostosContext();
   const effectiveSubmodule = (submodule === 'prorrateo' ? 'gastos' : submodule) as Exclude<CostosSubModulo, 'prorrateo'>;
   const config = costosConfigs[effectiveSubmodule];
   const { query, summary, allocation, trend, formattedSummary } =
@@ -41,6 +41,9 @@ const CostosLayout: React.FC = () => {
   const headerDescription =
     'Calcula, distribuye y consolida costos operativos asegurando trazabilidad entre centros, existencias y asientos.';
 
+  const navigationDisabledMessage =
+    'Disponible cuando se habilite la navegación directa hacia Existencias y Asientos.';
+
   return (
     <div className="costos-module">
       <header className="costos-header">
@@ -52,8 +55,12 @@ const CostosLayout: React.FC = () => {
           <button type="button" className="primary" onClick={() => setDialogOpen(true)}>
             Seguimiento de consolidación
           </button>
-          <button type="button">Ver existencias</button>
-          <button type="button">Ir a asientos</button>
+          <button type="button" disabled title={navigationDisabledMessage}>
+            Ver existencias
+          </button>
+          <button type="button" disabled title={navigationDisabledMessage}>
+            Ir a asientos
+          </button>
         </div>
       </header>
 
@@ -123,7 +130,9 @@ const CostosLayout: React.FC = () => {
         onStart={() => start()}
         onCancel={() => cancel()}
         onRetry={() => retry()}
+        onRefresh={() => query.refetch()}
         process={processState}
+        latestSummary={lastSummary}
       />
     </div>
   );

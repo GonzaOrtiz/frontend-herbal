@@ -1,5 +1,5 @@
 import React from 'react';
-import type { CostosProcessState } from '../types';
+import type { BalanceSummaryData, CostosProcessState } from '../types';
 import '../costos.css';
 
 interface ProcessRunnerDialogProps {
@@ -8,7 +8,9 @@ interface ProcessRunnerDialogProps {
   onStart: () => void;
   onCancel: () => void;
   onRetry: () => void;
+  onRefresh: () => void;
   process: CostosProcessState;
+  latestSummary: BalanceSummaryData | null;
 }
 
 const statusLabel: Record<CostosProcessState['status'], string> = {
@@ -24,9 +26,21 @@ const ProcessRunnerDialog: React.FC<ProcessRunnerDialogProps> = ({
   onStart,
   onCancel,
   onRetry,
+  onRefresh,
   process,
+  latestSummary,
 }) => {
   if (!open) return null;
+
+  const simulatedResult =
+    process.result ??
+    (latestSummary
+      ? {
+          balance: latestSummary.balance,
+          difference: latestSummary.difference,
+          warning: latestSummary.warning ?? null,
+        }
+      : undefined);
 
   return (
     <div className="costos-dialog-backdrop" role="dialog" aria-modal="true" aria-label="Seguimiento de consolidación">
@@ -34,20 +48,20 @@ const ProcessRunnerDialog: React.FC<ProcessRunnerDialogProps> = ({
         <header>
           <h2>Consolidación de costos</h2>
           <p className="costos-metadata">
-            Monitorea el avance del prorrateo automático y consolida costos en caso de desbalances. Los resultados se reflejan en
-            los módulos de Existencias y Asientos.
+            El prorrateo real se ejecuta automáticamente tras importaciones o sincronizaciones. Usa esta simulación para revisar
+            cómo se actualizarían los balances y mantener visibilidad del flujo sin invocar servicios inexistentes.
           </p>
         </header>
         <div className="costos-dialog__body">
           <div>
             <strong>Estado: {statusLabel[process.status]}</strong>
-            {process.result && (
+            {simulatedResult && (
               <p className="costos-metadata">
-                Balance: {process.result.balance.toLocaleString('es-MX', { minimumFractionDigits: 2 })} · Diferencia:{' '}
-                {process.result.difference.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                Balance: {simulatedResult.balance.toLocaleString('es-MX', { minimumFractionDigits: 2 })} · Diferencia:{' '}
+                {simulatedResult.difference.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
               </p>
             )}
-            {process.result?.warning && <p className="costos-warning">{process.result.warning}</p>}
+            {simulatedResult?.warning && <p className="costos-warning">{simulatedResult.warning}</p>}
           </div>
 
           <div>
@@ -65,9 +79,12 @@ const ProcessRunnerDialog: React.FC<ProcessRunnerDialogProps> = ({
           <button type="button" className="ghost" onClick={onClose}>
             Cerrar
           </button>
+          <button type="button" className="secondary" onClick={onRefresh} disabled={process.status === 'running'}>
+            Refrescar balances
+          </button>
           {process.status === 'idle' && (
             <button type="button" className="primary" onClick={onStart}>
-              Ejecutar consolidación
+              Simular consolidación
             </button>
           )}
           {process.status === 'running' && (

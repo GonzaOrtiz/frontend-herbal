@@ -105,6 +105,9 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
             className={
               action.intent === 'primary' ? 'primary' : action.intent === 'secondary' ? 'secondary' : undefined
             }
+            disabled={action.disabled}
+            aria-disabled={action.disabled ? 'true' : undefined}
+            title={action.disabled ? action.description ?? 'Acción disponible próximamente.' : undefined}
           >
             {action.label}
           </button>
