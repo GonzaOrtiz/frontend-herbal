@@ -183,7 +183,7 @@ export function calculateBalanceSummary(
       balance: 0,
       variationPercentage: 0,
       warning: undefined,
-      currency: 'USD',
+      currency: 'MXN',
     };
   }
   const previous = response.previousTotal ?? 0;
