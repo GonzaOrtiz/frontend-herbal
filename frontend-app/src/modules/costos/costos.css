@@ -9,6 +9,7 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .costos-header h1 {
@@ -253,9 +254,6 @@
 .costos-table {
   width: 100%;
   border-collapse: collapse;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid var(--color-outline);
 }
 
 .costos-table thead {
@@ -292,6 +290,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .costos-audit-timeline {
@@ -330,6 +329,50 @@
 
 .costos-log-entry[data-level='error'] {
   border-color: #dc2626;
+}
+
+@media (max-width: 1024px) {
+  .costos-layout {
+    gap: 16px;
+  }
+
+  .costos-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .costos-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .costos-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .costos-actions button {
+    flex: 1 1 100%;
+  }
+
+  .costos-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .costos-toolbar > div {
+    width: 100%;
+  }
+
+  .costos-card {
+    padding: 14px;
+  }
+
+  .costos-table th,
+  .costos-table td {
+    padding: 10px 12px;
+  }
 }
 
 .costos-dialog-backdrop {

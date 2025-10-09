@@ -1,5 +1,7 @@
 import React from 'react';
 import { formatCurrency } from '@/lib/formatters';
+import TablePagination from '@/components/TablePagination';
+import usePagination from '@/lib/usePagination';
 import type {
   CostosRecordMap,
   CostosSubModulo,
@@ -61,6 +63,13 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
   onSelect,
   selectedId,
 }: CostosDataTableProps<K>) => {
+  const pagination = usePagination(records, {
+    initialPageSize: 10,
+    pageSizeOptions: [10, 25, 50],
+  });
+
+  const pageRecords = pagination.items;
+
   if (loading) {
     return <div className="costos-empty-state">Cargando registros de costos…</div>;
   }
@@ -101,32 +110,46 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
           </button>
         ))}
       </div>
-      <table className="costos-table">
-        <thead>
-          <tr>
-            {config.columns.map((column) => (
-              <th key={column.key} style={{ width: column.width }} scope="col">
-                {column.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {records.map((record) => (
-            <tr
-              key={record.id}
-              data-selected={record.id === selectedId}
-              onClick={() => onSelect(record)}
-            >
+      <div className="table-container">
+        <table className="costos-table">
+          <thead>
+            <tr>
               {config.columns.map((column) => (
-                <td key={column.key} style={{ textAlign: column.align ?? 'left' }}>
-                  {getCellValue(record, column, currency)}
-                </td>
+                <th key={column.key} style={{ width: column.width }} scope="col">
+                  {column.label}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pageRecords.map((record) => (
+              <tr
+                key={record.id}
+                data-selected={record.id === selectedId}
+                onClick={() => onSelect(record)}
+              >
+                {config.columns.map((column) => (
+                  <td key={column.key} style={{ textAlign: column.align ?? 'left' }}>
+                    {getCellValue(record, column, currency)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <TablePagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        from={pagination.from}
+        to={pagination.to}
+        totalItems={pagination.totalItems}
+        pageSize={pagination.pageSize}
+        pageSizeOptions={pagination.pageSizeOptions}
+        onPageChange={pagination.setPage}
+        onPageSizeChange={pagination.setPageSize}
+        label={`Paginación de ${config.title}`}
+      />
     </div>
   );
 };

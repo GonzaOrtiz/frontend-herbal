@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import TablePagination from '@/components/TablePagination';
+import usePagination from '@/lib/usePagination';
 import type { OperacionRegistro, VistaModuloConfig } from '../types';
 import { formatDate, formatNumber } from '../utils/format';
 import { groupBy } from '../utils/grouping';
@@ -14,7 +16,6 @@ interface Props {
 }
 
 const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loading, error, onRetry }) => {
-  const [visibleRows, setVisibleRows] = useState(50);
   const [selected, setSelected] = useState<string[]>([]);
 
   const agrupacion = config.agrupaciones?.[0];
@@ -24,10 +25,21 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
     return groupBy(registros, agrupacion);
   }, [registros, agrupacion]);
 
+  const flattenedRegistros = useMemo(
+    () =>
+      datos.flatMap((grupo) =>
+        grupo.registros.map((registro) => ({
+          registro,
+          grupoKey: grupo.key,
+        })),
+      ),
+    [datos],
+  );
 
-  useEffect(() => {
-    setVisibleRows(50);
-  }, [registros]);
+  const pagination = usePagination(flattenedRegistros, {
+    initialPageSize: 25,
+    pageSizeOptions: [25, 50, 100],
+  });
 
   useEffect(() => {
     setSelected((prev) => {
@@ -69,7 +81,14 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
     return (
       <div className="operacion-datagrid operacion-datagrid--placeholder">
         <p>No hay registros que coincidan con los filtros actuales.</p>
-        <button type="button" className="secondary" onClick={() => onSelect([])}>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => {
+            setSelected([]);
+            onSelect([]);
+          }}
+        >
           Limpiar selección
         </button>
       </div>
@@ -96,8 +115,9 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
     });
   };
 
-  const loadMore = () => {
-    setVisibleRows((prev) => prev + 50);
+  const handleClearSelection = () => {
+    setSelected([]);
+    onSelect([]);
   };
 
   return (
@@ -107,29 +127,30 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
           <strong>{config.titulo}</strong>
           <p>{config.descripcion}</p>
         </div>
-        <button type="button" className="secondary" onClick={() => onSelect([])}>
+        <button type="button" className="secondary" onClick={handleClearSelection}>
           Limpiar selección
         </button>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>
-              <span className="sr-only">Seleccionar</span>
-            </th>
-            {config.columnas.map((columna) => (
-              <th key={columna.key as string} title={columna.tooltip} style={{ width: columna.width }}>
-                {columna.label}
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>
+                <span className="sr-only">Seleccionar</span>
               </th>
-            ))}
-            <th>Trazabilidad</th>
-          </tr>
-        </thead>
-        <tbody>
-          {datos.flatMap((grupo) =>
-            grupo.registros.slice(0, visibleRows).map((registro, index) => (
-              <tr key={`${grupo.key}-${registro.id}`}
-                data-group={agrupacion ? `${agrupacion}:${grupo.key}` : undefined}
+              {config.columnas.map((columna) => (
+                <th key={columna.key as string} title={columna.tooltip} style={{ width: columna.width }}>
+                  {columna.label}
+                </th>
+              ))}
+              <th>Trazabilidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pagination.items.map(({ registro, grupoKey }) => (
+              <tr
+                key={`${grupoKey}-${registro.id}`}
+                data-group={agrupacion ? `${agrupacion}:${grupoKey}` : undefined}
               >
                 <td>
                   <input
@@ -148,15 +169,22 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
                   </SyncStatusBadge>
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-      {registros.length > visibleRows && (
-        <button type="button" onClick={loadMore} className="secondary" style={{ margin: '1rem auto' }}>
-          Cargar más ({visibleRows}/{registros.length})
-        </button>
-      )}
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <TablePagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        from={pagination.from}
+        to={pagination.to}
+        totalItems={pagination.totalItems}
+        pageSize={pagination.pageSize}
+        pageSizeOptions={pagination.pageSizeOptions}
+        onPageChange={pagination.setPage}
+        onPageSizeChange={pagination.setPageSize}
+        label={`Paginación de ${config.titulo}`}
+      />
     </div>
   );
 };
