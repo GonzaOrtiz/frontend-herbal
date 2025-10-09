@@ -291,6 +291,10 @@ textarea.config-input {
   overflow: auto;
 }
 
+.config-table tbody tr[data-selected='true'] {
+  background: rgba(20, 94, 168, 0.14);
+}
+
 .config-table {
   width: 100%;
   border-collapse: collapse;
@@ -605,4 +609,118 @@ textarea.config-input {
   .config-table__scroll {
     border-radius: 10px;
   }
+}
+
+.centros-apoyo {
+  gap: 24px;
+}
+
+.centros-apoyo__layout {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .centros-apoyo__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.centros-apoyo__gastos,
+.centros-apoyo__edicion {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.centros-apoyo__section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.centros-apoyo__section-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--color-text-primary);
+}
+
+.centros-apoyo__section-header p {
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.centros-apoyo__actions {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.centros-apoyo__filters {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.centros-apoyo__filters-actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.centros-apoyo__summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.centros-apoyo__summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 94, 168, 0.18);
+  background: rgba(227, 239, 255, 0.7);
+  box-shadow: var(--shadow-level-1);
+}
+
+.centros-apoyo__summary-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  font-weight: 650;
+  color: var(--color-primary-variant);
+  text-transform: uppercase;
+}
+
+.centros-apoyo__summary-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.centros-apoyo__chart {
+  width: 100%;
+  border: 1px solid var(--color-outline);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.centros-apoyo__warning {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  background: rgba(254, 240, 138, 0.4);
+  color: #854d0e;
+  font-weight: 600;
+}
+
+.centros-apoyo__cell-right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }

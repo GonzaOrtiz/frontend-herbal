@@ -48,7 +48,8 @@ export type FeatureFlagKey =
   | 'catalogoActividades'
   | 'catalogoEmpleados'
   | 'catalogoCentros'
-  | 'parametrosGenerales';
+  | 'parametrosGenerales'
+  | 'catalogoCentrosApoyo';
 
 export interface CatalogFilterState {
   search: string;

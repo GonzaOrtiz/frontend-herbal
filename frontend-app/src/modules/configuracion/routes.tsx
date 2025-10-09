@@ -3,6 +3,7 @@ import ActividadesPage from './pages/ActividadesPage';
 import CentrosPage from './pages/CentrosPage';
 import EmpleadosPage from './pages/EmpleadosPage';
 import ParametrosGeneralesPage from './pages/ParametrosGeneralesPage';
+import CentrosApoyoPage from './pages/CentrosApoyoPage';
 import type { ConfigRoute } from './types';
 
 export function buildConfigRoutes(): ConfigRoute[] {
@@ -62,6 +63,20 @@ export function buildConfigRoutes(): ConfigRoute[] {
         secondaryNavLabel: 'Parámetros',
       },
       element: <ParametrosGeneralesPage />,
+    },
+    {
+      id: 'centros-apoyo',
+      path: 'centros-apoyo',
+      meta: {
+        title: 'Centros de apoyo',
+        description: 'Consulta y administra los centros de apoyo y sus gastos consolidados por periodo.',
+        breadcrumb: ['Configuración', 'Costos', 'Centros de apoyo'],
+        permissions: { read: 'catalogos.read', write: 'catalogos.write' },
+        featureFlag: 'catalogoCentrosApoyo',
+        dependencies: ['costos', 'existencias'],
+        secondaryNavLabel: 'Centros de apoyo',
+      },
+      element: <CentrosApoyoPage />,
     },
   ];
 }
