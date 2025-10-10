@@ -21,6 +21,7 @@ interface CostosDataTableProps<K extends Exclude<CostosSubModulo, 'prorrateo'>> 
   onRetry: () => void;
   onSelect: (record: CostosRecordMap[K] | null) => void;
   selectedId: string | null;
+  onAction?: (actionId: string) => void;
 }
 
 function getCellValue(
@@ -62,6 +63,7 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
   onRetry,
   onSelect,
   selectedId,
+  onAction,
 }: CostosDataTableProps<K>) => {
   const pagination = usePagination(records, {
     initialPageSize: 10,
@@ -108,6 +110,12 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
             disabled={action.disabled}
             aria-disabled={action.disabled ? 'true' : undefined}
             title={action.disabled ? action.description ?? 'Acción disponible próximamente.' : undefined}
+            onClick={() => {
+              if (action.disabled) {
+                return;
+              }
+              onAction?.(action.id);
+            }}
           >
             {action.label}
           </button>
