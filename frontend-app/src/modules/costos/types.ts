@@ -43,6 +43,7 @@ export interface SueldoRecord extends BaseCostRecord {
   nroEmpleado: number;
   fechaSueldo: string;
   sueldoTotal: number;
+  empleadoNombre?: string;
 }
 
 export type CostosRecordMap = {

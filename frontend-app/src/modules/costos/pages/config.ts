@@ -99,12 +99,22 @@ export const costosConfigs: Record<Exclude<CostosSubModulo, 'prorrateo'>, Costos
     detailTitle: 'Detalle de sueldo',
     emptyState: 'No hay sueldos registrados con los filtros actuales.',
     columns: [
-      { key: 'fechaSueldo', label: 'Fecha de sueldo', width: '120px' },
-      { key: 'centro', label: 'Centro', width: '100px' },
-      { key: 'nroEmpleado', label: 'Empleado', width: '120px' },
-      { key: 'sueldoTotal', label: 'Sueldo total', width: '140px', align: 'right' },
-      { key: 'esGastoDelPeriodo', label: 'Del periodo', width: '120px', align: 'center' },
-      { key: 'accessId', label: 'AccessId', width: '160px' },
+      { key: 'fechaSueldo', label: 'FECHA', width: '120px' },
+      { key: 'centro', label: 'CENTRO', width: '120px' },
+      {
+        key: 'nroEmpleado',
+        label: 'COD EMPLEADO',
+        width: '140px',
+        render: (value) => {
+          if (value === undefined || value === null) {
+            return '—';
+          }
+          return String(value);
+        },
+      },
+      { key: 'empleadoNombre', label: 'EMPLEADO', width: '220px' },
+      { key: 'sueldoTotal', label: 'SUELDO TOTAL', width: '160px', align: 'right' },
+      { key: 'esGastoDelPeriodo', label: 'DEL PERIODO', width: '140px', align: 'center' },
     ],
     actions: [
       {
