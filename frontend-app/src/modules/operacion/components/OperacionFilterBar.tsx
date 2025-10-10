@@ -1,6 +1,5 @@
 import React from 'react';
 import { useOperacionFilters } from '../hooks/useOperacionFilters';
-import { useOperacionContext } from '../context/OperacionContext';
 import type { VistaModuloConfig } from '../types';
 
 interface Props {
@@ -8,8 +7,7 @@ interface Props {
 }
 
 const OperacionFilterBar: React.FC<Props> = ({ config }) => {
-  const { modulo, setModulo, filtros, updateFiltros, resetFiltros } = useOperacionFilters();
-  const { vistas, saveVista, deleteVista, shareVista } = useOperacionContext();
+  const { modulo, setModulo, filtros, updateFiltros } = useOperacionFilters();
 
   const handleChange = (field: keyof typeof filtros) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     updateFiltros({ [field]: event.target.value } as never);
@@ -17,29 +15,6 @@ const OperacionFilterBar: React.FC<Props> = ({ config }) => {
 
   const handleDate = (field: 'desde' | 'hasta') => (event: React.ChangeEvent<HTMLInputElement>) => {
     updateFiltros({ rango: { ...(filtros.rango ?? { desde: filtros.calculationDate, hasta: filtros.calculationDate }), [field]: event.target.value } });
-  };
-
-  const handleSaveView = () => {
-    const nombre = prompt('Nombre de la vista');
-    if (!nombre) return;
-    saveVista({
-      nombre,
-      modulo,
-      filtros,
-      owner: 'coordinador.01',
-      rolesVisibles: ['coordinador', 'analista'],
-    });
-  };
-
-  const handleShare = (id: string) => {
-    const enlace = shareVista(id);
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(enlace).catch(() => {
-        alert(`Enlace generado: ${enlace}`);
-      });
-    } else {
-      alert(`Enlace generado: ${enlace}`);
-    }
   };
 
   return (
@@ -106,44 +81,6 @@ const OperacionFilterBar: React.FC<Props> = ({ config }) => {
           <input type="date" value={filtros.rango.hasta} onChange={handleDate('hasta')} />
         </label>
       )}
-      <div className="saved-views">
-        <select
-          aria-label="Vistas guardadas"
-          onChange={(event) => {
-            const id = event.target.value;
-            if (!id) return;
-            const vista = vistas.find((item) => item.id === id);
-            if (!vista) return;
-            setModulo(vista.modulo);
-            updateFiltros(vista.filtros);
-          }}
-        >
-          <option value="">Vistas guardadas</option>
-          {vistas
-            .filter((vista) => vista.modulo === modulo)
-            .map((vista) => (
-              <option key={vista.id} value={vista.id}>
-                {vista.nombre}
-              </option>
-            ))}
-        </select>
-        <button type="button" className="primary" onClick={handleSaveView}>
-          Guardar vista
-        </button>
-        {vistas.length > 0 && (
-          <button type="button" className="secondary" onClick={() => handleShare(vistas[0].id)}>
-            Compartir primera vista
-          </button>
-        )}
-        {vistas.length > 0 && (
-          <button type="button" className="secondary" onClick={() => deleteVista(vistas[0].id)}>
-            Eliminar primera vista
-          </button>
-        )}
-        <button type="button" className="ghost" onClick={resetFiltros}>
-          Restablecer filtros
-        </button>
-      </div>
     </section>
   );
 };

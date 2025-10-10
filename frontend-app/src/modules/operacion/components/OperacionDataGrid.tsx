@@ -53,6 +53,100 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
     });
   }, [registros, onSelect]);
 
+  const renderCell = (registro: OperacionRegistro, key: string) => {
+    const value = (registro as Record<string, unknown>)[key];
+    if (value === null || value === undefined || value === '') {
+      return '—';
+    }
+    if (typeof value === 'number') {
+      return formatNumber(value);
+    }
+    const normalizedKey = key.toLowerCase();
+    if (normalizedKey.includes('fecha') || normalizedKey.includes('date')) {
+      return formatDate(String(value));
+    }
+    return value?.toString() ?? '—';
+  };
+
+  const toggleSelection = (id: string) => {
+    setSelected((prev) => {
+      const exists = prev.includes(id);
+      const next = exists ? prev.filter((item) => item !== id) : [...prev, id];
+      onSelect(next);
+      return next;
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelected([]);
+    onSelect([]);
+  };
+
+  const renderTable = () => (
+    <div className="operacion-datagrid__table-container">
+      <div className="operacion-datagrid__scroll">
+        <table className="operacion-datagrid__table">
+          <thead>
+            <tr>
+              <th className="operacion-datagrid__selection">
+                <span className="sr-only">Seleccionar</span>
+              </th>
+              {config.columnas.map((columna) => (
+                <th key={columna.key as string} title={columna.tooltip} style={{ width: columna.width }}>
+                  {columna.label}
+                </th>
+              ))}
+              <th>Trazabilidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pagination.items.map(({ registro, grupoKey }) => {
+              const isSelected = selected.includes(registro.id);
+              return (
+                <tr
+                  key={`${grupoKey}-${registro.id}`}
+                  data-group={agrupacion ? `${agrupacion}:${grupoKey}` : undefined}
+                  data-selected={isSelected ? 'true' : 'false'}
+                >
+                  <td className="operacion-datagrid__cell operacion-datagrid__cell--selection">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelection(registro.id)}
+                      aria-label={`Seleccionar registro ${registro.id}`}
+                    />
+                  </td>
+                  {config.columnas.map((columna) => (
+                    <td key={`${registro.id}-${String(columna.key)}`} className="operacion-datagrid__cell">
+                      {renderCell(registro, String(columna.key))}
+                    </td>
+                  ))}
+                  <td className="operacion-datagrid__cell operacion-datagrid__cell--nowrap">
+                    <SyncStatusBadge status={registro.syncStatus}>
+                      {registro.source} · {formatDate(registro.createdAt)}
+                    </SyncStatusBadge>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <TablePagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        from={pagination.from}
+        to={pagination.to}
+        totalItems={pagination.totalItems}
+        pageSize={pagination.pageSize}
+        pageSizeOptions={pagination.pageSizeOptions}
+        onPageChange={pagination.setPage}
+        onPageSizeChange={pagination.setPageSize}
+        label={`Paginación de ${config.titulo}`}
+      />
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="operacion-datagrid operacion-datagrid--placeholder" role="status" aria-live="polite">
@@ -69,9 +163,9 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
         <p>Ocurrió un problema al consultar los datos.</p>
         <small>{message}</small>
         {onRetry && (
-        <button type="button" className="primary" onClick={onRetry}>
-          Reintentar consulta
-        </button>
+          <button type="button" className="primary" onClick={onRetry}>
+            Reintentar consulta
+          </button>
         )}
       </div>
     );
@@ -95,97 +189,19 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
     );
   }
 
-  const renderCell = (registro: OperacionRegistro, key: string) => {
-    const value = (registro as Record<string, unknown>)[key];
-    if (typeof value === 'number') {
-      return formatNumber(value);
-    }
-    if (key.toLowerCase().includes('fecha')) {
-      return formatDate(String(value));
-    }
-    return value?.toString() ?? '—';
-  };
-
-  const toggleSelection = (id: string) => {
-    setSelected((prev) => {
-      const exists = prev.includes(id);
-      const next = exists ? prev.filter((item) => item !== id) : [...prev, id];
-      onSelect(next);
-      return next;
-    });
-  };
-
-  const handleClearSelection = () => {
-    setSelected([]);
-    onSelect([]);
-  };
-
   return (
-    <div className="operacion-datagrid">
-      <div className="operacion-toolbar">
-        <div>
-          <strong>{config.titulo}</strong>
+    <section className="operacion-datagrid" aria-label={`Listado de ${config.titulo.toLowerCase()}`}>
+      <header className="operacion-datagrid__header">
+        <div className="operacion-datagrid__header-text">
+          <h2>{config.titulo}</h2>
           <p>{config.descripcion}</p>
         </div>
         <button type="button" className="secondary" onClick={handleClearSelection}>
           Limpiar selección
         </button>
-      </div>
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>
-                <span className="sr-only">Seleccionar</span>
-              </th>
-              {config.columnas.map((columna) => (
-                <th key={columna.key as string} title={columna.tooltip} style={{ width: columna.width }}>
-                  {columna.label}
-                </th>
-              ))}
-              <th>Trazabilidad</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagination.items.map(({ registro, grupoKey }) => (
-              <tr
-                key={`${grupoKey}-${registro.id}`}
-                data-group={agrupacion ? `${agrupacion}:${grupoKey}` : undefined}
-              >
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(registro.id)}
-                    onChange={() => toggleSelection(registro.id)}
-                    aria-label={`Seleccionar registro ${registro.id}`}
-                  />
-                </td>
-                {config.columnas.map((columna) => (
-                  <td key={`${registro.id}-${String(columna.key)}`}>{renderCell(registro, String(columna.key))}</td>
-                ))}
-                <td>
-                  <SyncStatusBadge status={registro.syncStatus}>
-                    {registro.source} · {formatDate(registro.createdAt)}
-                  </SyncStatusBadge>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <TablePagination
-        page={pagination.page}
-        totalPages={pagination.totalPages}
-        from={pagination.from}
-        to={pagination.to}
-        totalItems={pagination.totalItems}
-        pageSize={pagination.pageSize}
-        pageSizeOptions={pagination.pageSizeOptions}
-        onPageChange={pagination.setPage}
-        onPageSizeChange={pagination.setPageSize}
-        label={`Paginación de ${config.titulo}`}
-      />
-    </div>
+      </header>
+      {renderTable()}
+    </section>
   );
 };
 
