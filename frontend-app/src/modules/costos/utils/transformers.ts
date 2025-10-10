@@ -139,13 +139,20 @@ export function mapDepreciacionRecord(raw: RawRecord): DepreciacionRecord {
 export function mapSueldoRecord(raw: RawRecord): SueldoRecord {
   const centro = ensureString(raw.centro ?? raw.Centro) ?? '0';
   const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.fechaCalculo ?? raw.FechaCalculo);
+  const rawEmployeeNumber = raw.nroEmpleado ?? raw.NroEmpleado ?? raw.empleado ?? 0;
+  const parsedEmployeeNumber =
+    typeof rawEmployeeNumber === 'number'
+      ? rawEmployeeNumber
+      : Number.parseInt(String(rawEmployeeNumber).replace(/[^0-9]/g, ''), 10);
+
   return {
     id: ensureId(raw),
     centro,
     calculationDate,
-    nroEmpleado: Number.parseInt(String(raw.nroEmpleado ?? raw.NroEmpleado ?? raw.empleado ?? 0), 10),
+    nroEmpleado: Number.isNaN(parsedEmployeeNumber) ? 0 : parsedEmployeeNumber,
     fechaSueldo: ensureIsoDate(raw.fechaSueldo ?? raw.FechaSueldo ?? raw.fecha),
     sueldoTotal: ensureNumber(raw.sueldoTotal ?? raw.SueldoTotal ?? raw.monto ?? raw.Monto),
+    empleadoNombre: ensureString(raw.nombre ?? raw.Nombre ?? raw.empleadoNombre ?? raw.EmpleadoNombre),
     createdAt: raw.createdAt ? ensureIsoDate(raw.createdAt) : undefined,
     createdBy: ensureString(raw.createdBy ?? raw.usuarioAlta),
     updatedAt: raw.updatedAt ? ensureIsoDate(raw.updatedAt) : undefined,
