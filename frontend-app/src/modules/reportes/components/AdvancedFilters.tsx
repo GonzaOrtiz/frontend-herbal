@@ -63,55 +63,66 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({ descriptors }) => {
 
   return (
     <aside className="reportes-module__filters">
-      <header>
+      <header className="reportes-filters__header">
         <h2>Filtros avanzados</h2>
         <p>Configura los criterios de consulta y comparte la vista con tu equipo.</p>
       </header>
 
-      <label>
-        <span>{descriptorMap.get('periodo')?.label ?? 'Periodo (mes)'}</span>
-        <input
-          type="month"
-          value={filters.periodo ? filters.periodo.slice(0, 7) : ''}
-          onChange={handlePeriodoChange}
-          aria-describedby="periodo-helper"
-        />
-        {descriptorMap.get('periodo')?.helper && (
-          <small id="periodo-helper">{descriptorMap.get('periodo')?.helper}</small>
-        )}
-      </label>
+      <div className="reportes-filter-fields" role="group" aria-label="Filtros principales">
+        <label className="reportes-filter-field">
+          <span className="reportes-filter-label">{descriptorMap.get('periodo')?.label ?? 'Periodo (mes)'}</span>
+          <input
+            className="reportes-filter-input"
+            type="month"
+            value={filters.periodo ? filters.periodo.slice(0, 7) : ''}
+            onChange={handlePeriodoChange}
+            aria-describedby="periodo-helper"
+          />
+          {descriptorMap.get('periodo')?.helper && (
+            <small id="periodo-helper" className="reportes-filter-helper">
+              {descriptorMap.get('periodo')?.helper}
+            </small>
+          )}
+        </label>
 
-      <label>
-        <span>{descriptorMap.get('producto')?.label ?? 'Producto'}</span>
-        <input
-          type="text"
-          value={filters.producto ?? ''}
-          onChange={handleProductoChange}
-          placeholder="Nombre o clave de producto"
-        />
-      </label>
+        <label className="reportes-filter-field">
+          <span className="reportes-filter-label">{descriptorMap.get('producto')?.label ?? 'Producto'}</span>
+          <input
+            className="reportes-filter-input"
+            type="text"
+            value={filters.producto ?? ''}
+            onChange={handleProductoChange}
+            placeholder="Nombre o clave de producto"
+          />
+        </label>
 
-      <label>
-        <span>{descriptorMap.get('centro')?.label ?? 'Centro'}</span>
-        <input
-          type="number"
-          min={0}
-          value={filters.centro ?? ''}
-          onChange={handleCentroChange}
-          placeholder="ID de centro"
-        />
-      </label>
+        <label className="reportes-filter-field">
+          <span className="reportes-filter-label">{descriptorMap.get('centro')?.label ?? 'Centro'}</span>
+          <input
+            className="reportes-filter-input"
+            type="number"
+            min={0}
+            value={filters.centro ?? ''}
+            onChange={handleCentroChange}
+            placeholder="ID de centro"
+          />
+        </label>
 
-      <label>
-        <span>Formato preferido</span>
-        <select value={filters.format ?? 'json'} onChange={handleFormatChange}>
-          {formatOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+        <label className="reportes-filter-field">
+          <span className="reportes-filter-label">Formato preferido</span>
+          <select
+            className="reportes-filter-input reportes-filter-select"
+            value={filters.format ?? 'json'}
+            onChange={handleFormatChange}
+          >
+            {formatOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       <div className="reportes-export-bar" role="group" aria-label="Acciones de filtros">
         <button type="button" onClick={resetFilters}>
@@ -128,14 +139,15 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({ descriptors }) => {
       </div>
 
       <section className="reportes-presets" aria-label="Presets guardados">
-        <header>
+        <header className="reportes-presets__header">
           <h3>Presets</h3>
           <p>Guarda combinaciones frecuentes para reutilizarlas.</p>
         </header>
-        <div>
-          <label>
-            <span>Nombre del preset</span>
+        <div className="reportes-presets__controls">
+          <label className="reportes-filter-field reportes-presets__field">
+            <span className="reportes-filter-label">Nombre del preset</span>
             <input
+              className="reportes-filter-input"
               type="text"
               value={presetName}
               onChange={(event) => setPresetName(event.target.value)}
