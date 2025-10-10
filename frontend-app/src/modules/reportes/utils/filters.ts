@@ -1,7 +1,7 @@
 import type { ReportFilters, ReportFormat } from '../types';
 
 const PERIOD_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
-const DATE_REGEX = /^\d{4}-(0[1-9]|1[0-2])-01$/;
+const DATE_REGEX = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
 export function normalizePeriodo(value?: string | null): string | undefined {
   if (!value) return undefined;
@@ -12,7 +12,8 @@ export function normalizePeriodo(value?: string | null): string | undefined {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return undefined;
   const month = String(parsed.getMonth() + 1).padStart(2, '0');
-  return `${parsed.getFullYear()}-${month}-01`;
+  const day = String(parsed.getDate()).padStart(2, '0');
+  return `${parsed.getFullYear()}-${month}-${day}`;
 }
 
 export function normalizeProducto(value?: string | null): string | undefined {
@@ -49,10 +50,17 @@ export function parseFiltersFromSearch(params: URLSearchParams): ReportFilters {
 
 export function serializeFiltersToSearch(filters: ReportFilters): URLSearchParams {
   const params = new URLSearchParams();
-  if (filters.periodo) params.set('periodo', filters.periodo);
-  if (filters.producto) params.set('producto', filters.producto);
-  if (filters.centro) params.set('centro', filters.centro);
-  if (filters.format) params.set('format', filters.format);
+  const periodo = normalizePeriodo(filters.periodo);
+  if (periodo) params.set('periodo', periodo);
+
+  const producto = normalizeProducto(filters.producto);
+  if (producto) params.set('producto', producto);
+
+  const centro = normalizeCentro(filters.centro);
+  if (centro) params.set('centro', centro);
+
+  const format = normalizeFormat(filters.format);
+  if (format) params.set('format', format);
   return params;
 }
 
@@ -74,4 +82,8 @@ export function buildShareableLink(filters: ReportFilters): string {
 
 export function compareFilters(a: ReportFilters, b: ReportFilters): boolean {
   return a.periodo === b.periodo && a.producto === b.producto && a.centro === b.centro && a.format === b.format;
+}
+
+export function normalizeFilters(filters: ReportFilters): ReportFilters {
+  return parseFiltersFromSearch(serializeFiltersToSearch(filters));
 }
