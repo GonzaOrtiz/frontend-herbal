@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ResumenContextual } from '../types';
+import { formatDate } from '../utils/format';
 import SyncStatusBadge from './SyncStatusBadge';
 import CloseDayBanner from './CloseDayBanner';
 
@@ -14,7 +15,9 @@ const ResumenContextualSection: React.FC<Props> = ({ resumen, totalRegistros, la
     <div className="operacion-resumen" role="status" aria-live="polite">
       <div>
         <strong>{resumen?.centro ?? 'Centro sin asignar'}</strong>
-        <div>Fecha cálculo: {resumen?.calculationDate ?? 'N/D'}</div>
+        <div>
+          Fecha cálculo: {resumen?.calculationDate ? formatDate(resumen.calculationDate) : 'N/D'}
+        </div>
         {resumen?.responsable && <div>Responsable: {resumen.responsable}</div>}
       </div>
       <div>
