@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import CostosTabs from './CostosTabs';
 import CostosFilterBar from './CostosFilterBar';
 import CostosDataTable from './CostosDataTable';
@@ -8,6 +8,7 @@ import TrendChart from './TrendChart';
 import AuditTimeline from './AuditTimeline';
 import ProcessLog from './ProcessLog';
 import ProcessRunnerDialog from './ProcessRunnerDialog';
+import RegisterSalaryDialog from './RegisterSalaryDialog';
 import { costosConfigs } from '../pages/config';
 import { useCostosContext } from '../context/CostosContext';
 import { useCostosData } from '../hooks/useCostosData';
@@ -24,6 +25,7 @@ const CostosLayout: React.FC = () => {
   const { processState, start, cancel, retry } = useProcessRunner();
   const [selected, setSelected] = useState<BaseCostRecord | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [registerDialogOpen, setRegisterDialogOpen] = useState(false);
 
   useEffect(() => {
     if (query.data && query.data.items.length > 0) {
@@ -32,6 +34,10 @@ const CostosLayout: React.FC = () => {
       setSelected(null);
     }
   }, [query.data, submodule]);
+
+  useEffect(() => {
+    setRegisterDialogOpen(false);
+  }, [effectiveSubmodule]);
 
   const records = useMemo(
     () => (query.data?.items ?? []) as CostosRecordMap[Exclude<CostosSubModulo, 'prorrateo'>][],
@@ -43,6 +49,15 @@ const CostosLayout: React.FC = () => {
 
   const navigationDisabledMessage =
     'Disponible cuando se habilite la navegación directa hacia Existencias y Asientos.';
+
+  const handleAction = useCallback(
+    (actionId: string) => {
+      if (effectiveSubmodule === 'sueldos' && actionId === 'registrar') {
+        setRegisterDialogOpen(true);
+      }
+    },
+    [effectiveSubmodule],
+  );
 
   return (
     <div className="costos-module">
@@ -105,6 +120,7 @@ const CostosLayout: React.FC = () => {
               onRetry={query.refetch}
               onSelect={(record) => setSelected(record as BaseCostRecord)}
               selectedId={selected?.id ?? null}
+              onAction={handleAction}
             />
           )}
         </div>
@@ -134,6 +150,16 @@ const CostosLayout: React.FC = () => {
         process={processState}
         latestSummary={lastSummary}
       />
+      {effectiveSubmodule === 'sueldos' && (
+        <RegisterSalaryDialog
+          open={registerDialogOpen}
+          onClose={() => setRegisterDialogOpen(false)}
+          onSuccess={async () => {
+            setRegisterDialogOpen(false);
+            await query.refetch();
+          }}
+        />
+      )}
     </div>
   );
 };
