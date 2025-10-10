@@ -60,9 +60,11 @@ async function requestJson<TResponse>(
 export async function uploadImport({
   file,
   fechaImportacion,
+  usuario,
 }: {
   file: File;
   fechaImportacion: string;
+  usuario?: string;
 }): Promise<ImportResponse> {
   const formData = new FormData();
   formData.append('mdbFile', file);
@@ -71,6 +73,7 @@ export async function uploadImport({
   const response = await fetch(`${baseUrl}/import`, {
     method: 'POST',
     body: formData,
+    headers: usuario ? { 'x-user': usuario } : undefined,
   });
 
   return handleResponse<ImportResponse>(response);
@@ -85,11 +88,11 @@ export async function listImportLogs(
   if (filters.search) {
     params.set('search', filters.search);
   }
-  if (filters.startDate) {
-    params.set('startDate', filters.startDate);
+  if (filters.desde) {
+    params.set('desde', filters.desde);
   }
-  if (filters.endDate) {
-    params.set('endDate', filters.endDate);
+  if (filters.hasta) {
+    params.set('hasta', filters.hasta);
   }
   if (typeof filters.page === 'number') {
     params.set('page', String(filters.page));
@@ -110,36 +113,44 @@ export async function getImportLog(id: string, options: { signal?: AbortSignal }
   });
 }
 
+interface MutationOptions {
+  signal?: AbortSignal;
+  usuario?: string;
+}
+
 export async function createImportLog(
   payload: CreateImportLogPayload,
-  options: { signal?: AbortSignal } = {},
+  options: MutationOptions = {},
 ): Promise<ImportLog> {
   return requestJson<ImportLog>('/api/importaciones', {
     method: 'POST',
     body: JSON.stringify(payload),
     signal: options.signal,
+    headers: options.usuario ? { 'x-user': options.usuario } : undefined,
   });
 }
 
 export async function updateImportLog(
   id: string,
   payload: UpdateImportLogPayload,
-  options: { signal?: AbortSignal } = {},
+  options: MutationOptions = {},
 ): Promise<ImportLog> {
   return requestJson<ImportLog>(`/api/importaciones/${id}`, {
     method: 'PUT',
     body: JSON.stringify(payload),
     signal: options.signal,
+    headers: options.usuario ? { 'x-user': options.usuario } : undefined,
   });
 }
 
 export async function deleteImportLog(
   id: string,
-  options: { signal?: AbortSignal } = {},
+  options: MutationOptions = {},
 ): Promise<{ message: string }> {
   return requestJson<{ message: string }>(`/api/importaciones/${id}`, {
     method: 'DELETE',
     signal: options.signal,
+    headers: options.usuario ? { 'x-user': options.usuario } : undefined,
   });
 }
 

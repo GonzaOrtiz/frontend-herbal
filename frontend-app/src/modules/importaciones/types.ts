@@ -31,8 +31,8 @@ export interface ImportLog {
 
 export interface ImportLogFilters {
   search?: string;
-  startDate?: string;
-  endDate?: string;
+  desde?: string;
+  hasta?: string;
   page?: number;
   pageSize?: number;
 }

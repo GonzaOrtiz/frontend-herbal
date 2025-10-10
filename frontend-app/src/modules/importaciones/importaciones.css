@@ -406,6 +406,16 @@
   color: #475569;
 }
 
+.importaciones-detail__helper {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.importaciones-detail__helper strong {
+  color: #0f172a;
+}
+
 .importaciones-detail--empty {
   justify-content: center;
   align-items: center;
