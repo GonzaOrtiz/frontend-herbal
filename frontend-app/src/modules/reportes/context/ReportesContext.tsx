@@ -4,6 +4,7 @@ import {
   buildShareableLink,
   compareFilters,
   isFilterCombinationValid,
+  normalizeFilters,
   parseFiltersFromSearch,
   serializeFiltersToSearch,
 } from '../utils/filters';
@@ -38,7 +39,7 @@ function loadPresets(): ReportPreset[] {
       .map((item) => ({
         id: String(item.id ?? crypto.randomUUID()),
         name: String(item.name ?? 'Preset sin nombre'),
-        filters: (item.filters ?? {}) as ReportFilters,
+        filters: normalizeFilters((item.filters ?? {}) as ReportFilters),
         createdAt: String(item.createdAt ?? new Date().toISOString()),
       }))
       .slice(0, 50);
@@ -92,7 +93,7 @@ export const ReportesProvider: React.FC<ProviderProps> = ({
     (partial: Partial<ReportFilters>) => {
       setFilters((current) => {
         const next = { ...current, ...partial };
-        const normalized = parseFiltersFromSearch(serializeFiltersToSearch(next));
+        const normalized = normalizeFilters(next);
         setSearchParams(serializeFiltersToSearch(normalized), { replace: true });
         lastFiltersRef.current = normalized;
         return normalized;
@@ -115,10 +116,11 @@ export const ReportesProvider: React.FC<ProviderProps> = ({
     (name: string) => {
       const trimmed = name.trim();
       if (!trimmed) return null;
+      const normalizedFilters = normalizeFilters(filters);
       const preset: ReportPreset = {
         id: crypto.randomUUID(),
         name: trimmed,
-        filters,
+        filters: normalizedFilters,
         createdAt: new Date().toISOString(),
       };
       setPresets((current) => {
@@ -136,10 +138,11 @@ export const ReportesProvider: React.FC<ProviderProps> = ({
       const preset = presets.find((item) => item.id === id);
       if (!preset) return;
       if (compareFilters(preset.filters, lastFiltersRef.current)) return;
-      const params = serializeFiltersToSearch(preset.filters);
+      const normalized = normalizeFilters(preset.filters);
+      const params = serializeFiltersToSearch(normalized);
       setSearchParams(params, { replace: true });
-      setFilters(preset.filters);
-      lastFiltersRef.current = preset.filters;
+      setFilters(normalized);
+      lastFiltersRef.current = normalized;
     },
     [presets, setSearchParams],
   );

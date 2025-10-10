@@ -4,6 +4,7 @@ import {
   buildShareableLink,
   compareFilters,
   normalizeCentro,
+  normalizeFilters,
   normalizePeriodo,
   normalizeProducto,
   parseFiltersFromSearch,
@@ -13,8 +14,18 @@ import {
 test('normalizePeriodo acepta YYYY-MM y lo convierte a primer día', () => {
   assert.equal(normalizePeriodo('2024-05'), '2024-05-01');
   assert.equal(normalizePeriodo('2024-05-01'), '2024-05-01');
-  assert.equal(typeof normalizePeriodo('2024-05-15'), 'string');
+  assert.equal(normalizePeriodo('2024-05-15'), '2024-05-15');
   assert.equal(normalizePeriodo('no-date'), undefined);
+});
+
+test('serializeFiltersToSearch siempre incluye el día cuando hay periodo', () => {
+  const params = serializeFiltersToSearch({ periodo: '2024-05' });
+  assert.equal(params.get('periodo'), '2024-05-01');
+});
+
+test('normalizeFilters homogeniza todas las propiedades', () => {
+  const filters = normalizeFilters({ periodo: '2024-05', producto: '  Crema  ', centro: ' 101 ' });
+  assert.deepEqual(filters, { periodo: '2024-05-01', producto: 'Crema', centro: '101' });
 });
 
 test('normalizeCentro filtra valores inválidos', () => {
