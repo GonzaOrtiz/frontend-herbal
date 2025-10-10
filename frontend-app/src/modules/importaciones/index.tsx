@@ -129,6 +129,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [usuario, setUsuario] = useState('analista.import');
   const [history, setHistory] = useState<ImportLog[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
@@ -168,8 +169,8 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
         const data = await listImportLogs(
           {
             search: sanitizedSearch || undefined,
-            startDate: startDate || undefined,
-            endDate: endDate || undefined,
+            desde: startDate || undefined,
+            hasta: endDate || undefined,
           },
           { signal: options.signal },
         );
@@ -273,6 +274,10 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
     if (!importDate) {
       errors.push('Define la fecha de importación.');
     }
+    const usuarioResponsable = usuario.trim();
+    if (!usuarioResponsable) {
+      errors.push('Indica el usuario responsable para registrar la importación.');
+    }
 
     if (errors.length > 0) {
       setFormErrors(errors);
@@ -287,6 +292,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
       const response = await uploadImport({
         file: selectedFile as File,
         fechaImportacion: importDate,
+        usuario: usuarioResponsable,
       });
 
       setUploadStatus('processing');
@@ -372,11 +378,16 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
     }
 
     const payload = parseDraftPayload(manualDraft);
+    const usuarioResponsable = usuario.trim();
+    if (!usuarioResponsable) {
+      setDetailError('Define el usuario responsable antes de guardar cambios.');
+      return;
+    }
 
     try {
       setDetailLoading(true);
       if (isCreatingManual) {
-        const created = await createImportLog(payload);
+        const created = await createImportLog(payload, { usuario: usuarioResponsable });
         setDetailSuccess('Bitácora creada correctamente.');
         setIsCreatingManual(false);
         setSelectedLog(created);
@@ -417,7 +428,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
           return;
         }
 
-        const updated = await updateImportLog(selectedLog._id, updates);
+        const updated = await updateImportLog(selectedLog._id, updates, { usuario: usuarioResponsable });
         setSelectedLog(updated);
         setDetailSuccess('Cambios guardados correctamente.');
       }
@@ -445,9 +456,15 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
       return;
     }
 
+    const usuarioResponsable = usuario.trim();
+    if (!usuarioResponsable) {
+      setDetailError('Define el usuario responsable antes de eliminar una bitácora.');
+      return;
+    }
+
     try {
       setDetailLoading(true);
-      await deleteImportLog(selectedLog._id);
+      await deleteImportLog(selectedLog._id, { usuario: usuarioResponsable });
       setSelectedLog(null);
       setSelectedLogId(null);
       setIsCreatingManual(false);
@@ -501,6 +518,16 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
             </div>
 
             <div className="importaciones-form__fields">
+              <label className="importaciones-field">
+                <span>Usuario responsable</span>
+                <input
+                  type="text"
+                  value={usuario}
+                  onChange={(event) => setUsuario(event.target.value)}
+                  placeholder="Ej. analista.import"
+                  required
+                />
+              </label>
               <label className="importaciones-field">
                 <span>Fecha de importación</span>
                 <input
@@ -724,6 +751,9 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
               <div className="importaciones-detail">
                 <h3>Nueva bitácora manual</h3>
                 <p>Completa los campos para registrar una bitácora manual asociada a la importación.</p>
+                <p className="importaciones-detail__helper">
+                  Las operaciones se registrarán a nombre de <strong>{usuario || '—'}</strong> (cabecera x-user).
+                </p>
                 <form className="importaciones-detail__form" onSubmit={handleSubmitManual}>
                   <label>
                     <span>Nombre de archivo</span>
@@ -832,6 +862,9 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
                   </div>
                 </dl>
 
+                <p className="importaciones-detail__helper">
+                  Las modificaciones se auditarán con <strong>{usuario || '—'}</strong> como responsable (x-user).
+                </p>
                 <form className="importaciones-detail__form" onSubmit={handleSubmitManual}>
                   <label>
                     <span>Nombre de archivo</span>
