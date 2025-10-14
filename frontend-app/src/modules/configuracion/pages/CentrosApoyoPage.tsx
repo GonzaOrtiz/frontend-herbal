@@ -84,10 +84,9 @@ function exportToCsv(records: CentroApoyoExpense[], centro?: CentroApoyo) {
   if (records.length === 0) {
     return;
   }
-  const header = ['Concepto', 'Categoría', 'Monto', 'Del periodo', 'Fecha cálculo'];
+  const header = ['Concepto', 'Monto', 'Del periodo', 'Fecha cálculo'];
   const rows = records.map((record) => [
     record.concepto,
-    record.categoria,
     record.monto.toString(),
     record.esGastoDelPeriodo ? 'Sí' : 'No',
     record.fechaCalculo ?? '',
@@ -499,7 +498,6 @@ const CentrosApoyoPage: React.FC = () => {
                   <thead>
                     <tr>
                       <th>Concepto</th>
-                      <th>Categoría</th>
                       <th>Monto</th>
                       <th>Del periodo</th>
                       <th>Fecha cálculo</th>
@@ -509,7 +507,6 @@ const CentrosApoyoPage: React.FC = () => {
                     {gastos.map((gasto) => (
                       <tr key={gasto.id}>
                         <td>{gasto.concepto}</td>
-                        <td>{gasto.categoria}</td>
                         <td className="centros-apoyo__cell-right">
                           {formatCurrency(gasto.monto, { currency: gastosCurrency })}
                         </td>
