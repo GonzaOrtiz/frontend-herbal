@@ -28,17 +28,19 @@ const sampleExpenses = [
 ];
 
 describe('buildCentrosApoyoSummary', () => {
-  it('calcula totales y porcentajes por categoría', () => {
+  it('calcula totales y porcentajes por concepto', () => {
     const summary = buildCentrosApoyoSummary(sampleExpenses);
     expect(summary.total).toBeCloseTo(28650.45, 2);
     expect(summary.periodTotal).toBeCloseTo(24450.45, 2);
     expect(summary.outOfPeriodTotal).toBeCloseTo(4200, 2);
-    expect(summary.categories).toHaveLength(2);
+    expect(summary.categories).toHaveLength(3);
     expect(summary.categories[0].category).toBe('Energía');
-    expect(summary.categories[0].amount).toBeCloseTo(22450.45, 2);
-    expect(summary.categories[0].percentage).toBeCloseTo(22450.45 / 28650.45, 5);
+    expect(summary.categories[0].amount).toBeCloseTo(18250.45, 2);
+    expect(summary.categories[0].percentage).toBeCloseTo(18250.45 / 28650.45, 5);
     expect(summary.categories[1].category).toBe('Caldera');
     expect(summary.categories[1].amount).toBeCloseTo(6200, 2);
+    expect(summary.categories[2].category).toBe('Refrigeración');
+    expect(summary.categories[2].amount).toBeCloseTo(4200, 2);
   });
 
   it('devuelve ceros cuando no hay gastos', () => {
