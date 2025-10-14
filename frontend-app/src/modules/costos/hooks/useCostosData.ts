@@ -43,10 +43,19 @@ interface UseCostosDataResult<K extends Exclude<CostosSubModulo, 'prorrateo'>> {
 export function useCostosData<K extends Exclude<CostosSubModulo, 'prorrateo'>>(): UseCostosDataResult<K> {
   const { submodule, filters, setLastSummary } = useCostosContext();
   const effectiveSubmodule = (submodule === 'prorrateo' ? 'gastos' : submodule) as K;
+  const effectiveFilters = useMemo(() => {
+    if (submodule === 'prorrateo') {
+      return {
+        ...filters,
+        esGastoDelPeriodo: filters.esGastoDelPeriodo ?? true,
+      };
+    }
+    return filters;
+  }, [filters, submodule]);
 
   const query = useQuery<CostosListResponse<CostosRecordMap[K]>>({
-    queryKey: ['costos', effectiveSubmodule, filters],
-    queryFn: () => fetchCostosList(effectiveSubmodule, filters),
+    queryKey: ['costos', effectiveSubmodule, effectiveFilters],
+    queryFn: () => fetchCostosList(effectiveSubmodule, effectiveFilters),
   });
 
   const summary = useMemo(() => calculateBalanceSummary(query.data), [query.data]);
