@@ -70,11 +70,11 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({ descriptors }) => {
 
       <div className="reportes-filter-fields" role="group" aria-label="Filtros principales">
         <label className="reportes-filter-field">
-          <span className="reportes-filter-label">{descriptorMap.get('periodo')?.label ?? 'Periodo (mes)'}</span>
+          <span className="reportes-filter-label">{descriptorMap.get('periodo')?.label ?? 'Periodo (fecha)'}</span>
           <input
             className="reportes-filter-input"
-            type="month"
-            value={filters.periodo ? filters.periodo.slice(0, 7) : ''}
+            type="date"
+            value={filters.periodo ?? ''}
             onChange={handlePeriodoChange}
             aria-describedby="periodo-helper"
           />
