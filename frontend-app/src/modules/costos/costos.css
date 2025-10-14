@@ -276,6 +276,63 @@
   min-width: 140px;
 }
 
+.costos-datagrid__actions-cell {
+  text-align: left;
+}
+
+.costos-row-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.costos-row-actions__edit,
+.costos-row-actions__delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.costos-row-actions__edit {
+  background: rgba(20, 94, 168, 0.12);
+  color: var(--color-primary-variant);
+}
+
+.costos-row-actions__edit:hover,
+.costos-row-actions__edit:focus-visible {
+  background: rgba(20, 94, 168, 0.18);
+  box-shadow: 0 0 0 3px rgba(20, 94, 168, 0.16);
+}
+
+.costos-row-actions__delete {
+  background: rgba(248, 113, 113, 0.12);
+  color: #b91c1c;
+}
+
+.costos-row-actions__delete:hover,
+.costos-row-actions__delete:focus-visible {
+  background: rgba(248, 113, 113, 0.2);
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+}
+
+.costos-row-actions__delete:focus-visible,
+.costos-row-actions__edit:focus-visible {
+  outline: none;
+}
+
+.costos-row-actions__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .costos-datagrid__trace {
   display: inline-flex;
   align-items: center;
