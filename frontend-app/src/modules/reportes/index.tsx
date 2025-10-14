@@ -15,7 +15,7 @@ const categoryComponentMap: Record<ReportCategory, React.ComponentType> = {
 };
 
 const filterDescriptors: Array<{ id: keyof ReportFilters; label: string; helper?: string }> = [
-  { id: 'periodo', label: 'Periodo (mes)', helper: 'Selecciona el mes de análisis (formato AAAA-MM).' },
+  { id: 'periodo', label: 'Periodo (fecha)', helper: 'Selecciona la fecha de análisis (formato AAAA-MM-DD).' },
   { id: 'producto', label: 'Producto', helper: 'Filtra por nombre o clave de producto.' },
   { id: 'centro', label: 'Centro de costos', helper: 'Requiere seleccionar un periodo para habilitarse.' },
   { id: 'format', label: 'Formato preferido' },
