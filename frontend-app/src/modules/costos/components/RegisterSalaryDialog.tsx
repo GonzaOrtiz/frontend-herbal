@@ -1,24 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@/lib/query/QueryClient';
 import apiClient from '@/lib/http/apiClient';
+import { useCentros } from '../../configuracion/hooks/useCentros';
+import { useEmpleados } from '../../configuracion/hooks/useEmpleados';
 import '../costos.css';
 
 interface RegisterSalaryDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => Promise<void> | void;
-}
-
-interface CentroOption {
-  id: string;
-  nombre: string;
-  nroCentro: number;
-}
-
-interface EmpleadoOption {
-  id: string;
-  nombre: string;
-  nroEmpleado: number;
 }
 
 interface SalaryFormState {
@@ -37,72 +26,23 @@ const initialState: SalaryFormState = {
   sueldoTotal: '',
 };
 
-function normalizeCollection(response: unknown): unknown[] {
-  if (Array.isArray(response)) {
-    return response;
-  }
-
-  if (response && typeof response === 'object') {
-    const data = response as Record<string, unknown>;
-    const possibleArrays = [data.items, data.data, data.results, data.result, data.centros, data.empleados];
-    const collection = possibleArrays.find((value): value is unknown[] => Array.isArray(value));
-    if (collection) {
-      return collection;
-    }
-  }
-
-  return [];
-}
-
-function mapCentro(entity: any): CentroOption {
-  return {
-    id: entity?._id ? String(entity._id) : String(entity?.id ?? entity?.nroCentro ?? ''),
-    nombre: entity?.nombre ?? entity?.descripcion ?? 'Sin nombre',
-    nroCentro: Number(entity?.nroCentro ?? entity?.nro ?? 0),
-  };
-}
-
-function mapEmpleado(entity: any): EmpleadoOption {
-  const nroEmpleado = Number(entity?.Nroem ?? entity?.nroEmpleado ?? entity?.empleadoId ?? 0);
-  return {
-    id: entity?._id ? String(entity._id) : String(entity?.id ?? nroEmpleado ?? ''),
-    nombre: entity?.nombre ?? entity?.Nombre ?? 'Sin nombre',
-    nroEmpleado,
-  };
-}
-
-async function fetchCentros(): Promise<CentroOption[]> {
-  const response = await apiClient.get<unknown>('/ceapi/centros-produccion');
-  return normalizeCollection(response)
-    .map(mapCentro)
-    .filter((centro) => Number.isFinite(centro.nroCentro));
-}
-
-async function fetchEmpleados(): Promise<EmpleadoOption[]> {
-  const response = await apiClient.get<unknown>('/api/empleados');
-  return normalizeCollection(response)
-    .map(mapEmpleado)
-    .filter((empleado) => Number.isFinite(empleado.nroEmpleado));
-}
-
 const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClose, onSuccess }) => {
   const [formState, setFormState] = useState<SalaryFormState>(initialState);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const centrosQuery = useQuery<CentroOption[]>({
-    queryKey: ['costos', 'centros-produccion'],
-    queryFn: fetchCentros,
-    enabled: open,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const empleadosQuery = useQuery<EmpleadoOption[]>({
-    queryKey: ['costos', 'empleados'],
-    queryFn: fetchEmpleados,
-    enabled: open,
-    staleTime: 5 * 60 * 1000,
-  });
+  const {
+    items: centrosItems,
+    refetch: refetchCentros,
+    isLoading: isLoadingCentros,
+    error: centrosError,
+  } = useCentros();
+  const {
+    items: empleadosItems,
+    refetch: refetchEmpleados,
+    isLoading: isLoadingEmpleados,
+    error: empleadosError,
+  } = useEmpleados();
 
   useEffect(() => {
     if (open) {
@@ -112,8 +52,42 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
     }
   }, [open]);
 
-  const isLoading = centrosQuery.status === 'loading' || empleadosQuery.status === 'loading';
-  const hasError = centrosQuery.status === 'error' || empleadosQuery.status === 'error';
+  useEffect(() => {
+    if (open) {
+      refetchCentros();
+      refetchEmpleados();
+    }
+  }, [open, refetchCentros, refetchEmpleados]);
+
+  const centros = useMemo(
+    () =>
+      centrosItems
+        .filter((centro) => Number.isFinite(centro.nroCentro))
+        .map((centro) => ({
+          id: centro.id,
+          nombre: centro.nombre || 'Sin nombre',
+          nroCentro: centro.nroCentro,
+        }))
+        .sort((a, b) => a.nroCentro - b.nroCentro),
+    [centrosItems],
+  );
+
+  const empleados = useMemo(
+    () =>
+      empleadosItems
+        .filter((empleado) => Number.isFinite(empleado.nroEmpleado))
+        .map((empleado) => ({
+          id: empleado.id,
+          nombre: empleado.nombre || 'Sin nombre',
+          nroEmpleado: empleado.nroEmpleado,
+        }))
+        .sort((a, b) => a.nroEmpleado - b.nroEmpleado),
+    [empleadosItems],
+  );
+
+  const isLoading =
+    (isLoadingCentros && centros.length === 0) || (isLoadingEmpleados && empleados.length === 0);
+  const hasError = Boolean(centrosError || empleadosError);
 
   const canSubmit = useMemo(() => {
     if (isLoading || hasError) {
@@ -141,13 +115,8 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
       return;
     }
 
-    const centros = centrosQuery.data ?? [];
-    const empleados = empleadosQuery.data ?? [];
-
     const centro = centros.find((item) => String(item.nroCentro) === formState.centro || item.id === formState.centro);
-    const empleado = empleados.find(
-      (item) => String(item.nroEmpleado) === formState.empleado || item.id === formState.empleado,
-    );
+    const empleado = empleados.find((item) => String(item.nroEmpleado) === formState.empleado || item.id === formState.empleado);
 
     if (!centro || !empleado) {
       setSubmitError('No se pudo identificar el centro o empleado seleccionado.');
@@ -209,13 +178,13 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
               name="centro"
               value={formState.centro}
               onChange={handleChange}
-              disabled={isLoading || hasError || centrosQuery.data?.length === 0}
+              disabled={isLoading || hasError || centros.length === 0}
               required
             >
               <option value="" disabled>
                 Selecciona un centro
               </option>
-              {(centrosQuery.data ?? []).map((centro) => (
+              {centros.map((centro) => (
                 <option key={`${centro.id}-${centro.nroCentro}`} value={String(centro.nroCentro)}>
                   {centro.nroCentro.toString().padStart(3, '0')} · {centro.nombre}
                 </option>
@@ -228,13 +197,13 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
               name="empleado"
               value={formState.empleado}
               onChange={handleChange}
-              disabled={isLoading || hasError || empleadosQuery.data?.length === 0}
+              disabled={isLoading || hasError || empleados.length === 0}
               required
             >
               <option value="" disabled>
                 Selecciona un empleado
               </option>
-              {(empleadosQuery.data ?? []).map((empleado) => (
+              {empleados.map((empleado) => (
                 <option key={`${empleado.id}-${empleado.nroEmpleado}`} value={String(empleado.nroEmpleado)}>
                   {empleado.nroEmpleado.toString().padStart(3, '0')} · {empleado.nombre}
                 </option>
@@ -288,8 +257,8 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
             type="button"
             className="secondary"
             onClick={() => {
-              void centrosQuery.refetch();
-              void empleadosQuery.refetch();
+              void refetchCentros();
+              void refetchEmpleados();
             }}
             disabled={isLoading}
           >
