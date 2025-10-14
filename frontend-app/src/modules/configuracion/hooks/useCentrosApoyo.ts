@@ -51,7 +51,10 @@ function mapCentroApoyo(raw: any): CentroApoyo {
 }
 
 function mapExpense(raw: any): CentroApoyoExpense {
-  const id = raw?._id ?? raw?.id ?? `${raw?.concepto ?? 'gasto'}-${raw?.fechaCalculo ?? raw?.fecha ?? Date.now()}`;
+  const id =
+    raw?._id ??
+    raw?.id ??
+    `${raw?.tablaOrigen ?? raw?.concepto ?? 'gasto'}-${raw?.fechaCalculo ?? raw?.fecha ?? Date.now()}`;
   const rawMonto = raw?.monto ?? raw?.amount ?? raw?.total ?? 0;
   const categoria = raw?.categoria ?? raw?.tipo ?? raw?.conceptoTipo ?? 'Sin categoría';
   const rawPeriodo = raw?.esGastoDelPeriodo ?? raw?.delPeriodo ?? raw?.periodoActual;
@@ -64,7 +67,12 @@ function mapExpense(raw: any): CentroApoyoExpense {
 
   return {
     id: String(id),
-    concepto: typeof raw?.concepto === 'string' ? raw.concepto : raw?.descripcion ?? 'Sin concepto',
+    concepto:
+      typeof raw?.tablaOrigen === 'string'
+        ? raw.tablaOrigen
+        : typeof raw?.concepto === 'string'
+          ? raw.concepto
+          : raw?.descripcion ?? 'Sin concepto',
     categoria: String(categoria || 'Sin categoría'),
     monto: Number.isFinite(rawMonto) ? Number(rawMonto) : 0,
     esGastoDelPeriodo: Boolean(esDelPeriodo),
