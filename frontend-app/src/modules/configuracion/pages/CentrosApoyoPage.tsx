@@ -589,9 +589,9 @@ const CentrosApoyoPage: React.FC = () => {
             </>
           )}
         </section>
-      </section>
-    </div>
-  );
-};
+      </div>
+    );
+  };
+
 
 export default CentrosApoyoPage;
