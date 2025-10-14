@@ -17,7 +17,7 @@ export function buildCentrosApoyoSummary(expenses: CentroApoyoExpense[]): Centro
   let total = 0;
   let periodTotal = 0;
   let outOfPeriodTotal = 0;
-  const categoryTotals = new Map<string, number>();
+  const conceptTotals = new Map<string, number>();
 
   for (const expense of expenses) {
     const amount = Number.isFinite(expense.monto) ? expense.monto : 0;
@@ -27,11 +27,11 @@ export function buildCentrosApoyoSummary(expenses: CentroApoyoExpense[]): Centro
     } else {
       outOfPeriodTotal += amount;
     }
-    const key = expense.categoria || 'Sin categoría';
-    categoryTotals.set(key, (categoryTotals.get(key) ?? 0) + amount);
+    const key = expense.concepto || 'Sin concepto';
+    conceptTotals.set(key, (conceptTotals.get(key) ?? 0) + amount);
   }
 
-  const categories: CentroApoyoCategoryBreakdown[] = Array.from(categoryTotals.entries())
+  const categories: CentroApoyoCategoryBreakdown[] = Array.from(conceptTotals.entries())
     .map(([category, amount]) => ({
       category,
       amount,
