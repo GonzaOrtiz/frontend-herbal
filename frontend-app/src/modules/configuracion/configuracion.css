@@ -311,6 +311,7 @@ textarea.config-input {
   font-weight: 700;
   padding: 14px 16px;
   border-bottom: 1px solid var(--color-outline);
+  text-align: left;
 }
 
 .config-table tbody tr {
@@ -325,6 +326,7 @@ textarea.config-input {
   padding: 14px 16px;
   border-bottom: 1px solid var(--color-outline);
   color: var(--color-text-primary);
+  text-align: left;
 }
 
 .config-table__pagination {
