@@ -18,6 +18,7 @@ test('mapGastoRecord normaliza montos y fechas', () => {
     concepto: 'Reparación de caldera',
     tipo: 'Mantenimiento',
     esGastoDelPeriodo: 'true',
+    tablaOrigen: 'GastosDeAdministracion',
   });
 
   assert.equal(record.id, '123');
@@ -25,6 +26,7 @@ test('mapGastoRecord normaliza montos y fechas', () => {
   assert.equal(record.monto, 8420.75);
   assert.equal(new Date(record.fecha).toISOString().startsWith('2024-05-10'), true);
   assert.equal(record.esGastoDelPeriodo, true);
+  assert.equal(record.concepto, 'GastosDeAdministracion');
 });
 
 test('mapDepreciacionRecord asigna valores por defecto', () => {
