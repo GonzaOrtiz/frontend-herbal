@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import apiClient from '@/lib/http/apiClient';
 import CostosTabs from './CostosTabs';
 import CostosFilterBar from './CostosFilterBar';
 import CostosDataTable from './CostosDataTable';
@@ -9,11 +10,12 @@ import AuditTimeline from './AuditTimeline';
 import ProcessLog from './ProcessLog';
 import ProcessRunnerDialog from './ProcessRunnerDialog';
 import RegisterSalaryDialog from './RegisterSalaryDialog';
+import ConfirmDialog from '../../configuracion/components/ConfirmDialog';
 import { costosConfigs } from '../pages/config';
 import { useCostosContext } from '../context/CostosContext';
 import { useCostosData } from '../hooks/useCostosData';
 import { useProcessRunner } from '../hooks/useProcessRunner';
-import type { BaseCostRecord, CostosRecordMap, CostosSubModulo } from '../types';
+import type { BaseCostRecord, CostosRecordMap, CostosSubModulo, SueldoRecord } from '../types';
 import '../costos.css';
 
 const CostosLayout: React.FC = () => {
@@ -26,6 +28,11 @@ const CostosLayout: React.FC = () => {
   const [selected, setSelected] = useState<BaseCostRecord | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [registerDialogOpen, setRegisterDialogOpen] = useState(false);
+  const [registerDialogMode, setRegisterDialogMode] = useState<'create' | 'edit'>('create');
+  const [editingSalary, setEditingSalary] = useState<SueldoRecord | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<SueldoRecord | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (query.data && query.data.items.length > 0) {
@@ -37,6 +44,11 @@ const CostosLayout: React.FC = () => {
 
   useEffect(() => {
     setRegisterDialogOpen(false);
+    setRegisterDialogMode('create');
+    setEditingSalary(null);
+    setPendingDelete(null);
+    setDeleteError(null);
+    setIsDeleting(false);
   }, [effectiveSubmodule]);
 
   const records = useMemo(
@@ -53,11 +65,45 @@ const CostosLayout: React.FC = () => {
   const handleAction = useCallback(
     (actionId: string) => {
       if (effectiveSubmodule === 'sueldos' && actionId === 'registrar') {
+        setRegisterDialogMode('create');
+        setEditingSalary(null);
         setRegisterDialogOpen(true);
       }
     },
     [effectiveSubmodule],
   );
+
+  const handleEditSalary = useCallback((salary: SueldoRecord) => {
+    setRegisterDialogMode('edit');
+    setEditingSalary(salary);
+    setRegisterDialogOpen(true);
+  }, []);
+
+  const handleDeleteSalary = useCallback((salary: SueldoRecord) => {
+    setPendingDelete(salary);
+    setDeleteError(null);
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete || isDeleting) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      await apiClient.delete(`/api/costos/sueldo/${pendingDelete.id}`);
+      if (selected?.id === pendingDelete.id) {
+        setSelected(null);
+      }
+      await query.refetch();
+      setPendingDelete(null);
+    } catch (error) {
+      setDeleteError('No se pudo eliminar el sueldo. Intenta nuevamente.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [isDeleting, pendingDelete, query, selected]);
 
   return (
     <div className="costos-module">
@@ -121,6 +167,41 @@ const CostosLayout: React.FC = () => {
               onSelect={(record) => setSelected(record as BaseCostRecord)}
               selectedId={selected?.id ?? null}
               onAction={handleAction}
+              rowActions={
+                effectiveSubmodule === 'sueldos'
+                  ? {
+                      header: 'Acciones',
+                      width: '180px',
+                      render: (record) => {
+                        const sueldoRecord = record as SueldoRecord;
+                        return (
+                          <div className="costos-row-actions">
+                            <button
+                              type="button"
+                              className="costos-row-actions__edit"
+                              onClick={() => handleEditSalary(sueldoRecord)}
+                            >
+                              <span className="costos-row-actions__icon" aria-hidden="true">
+                                ✏️
+                              </span>
+                              <span>Editar</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="costos-row-actions__delete"
+                              onClick={() => handleDeleteSalary(sueldoRecord)}
+                            >
+                              <span className="costos-row-actions__icon" aria-hidden="true">
+                                🗑️
+                              </span>
+                              <span>Eliminar</span>
+                            </button>
+                          </div>
+                        );
+                      },
+                    }
+                  : undefined
+              }
             />
           )}
         </div>
@@ -153,10 +234,37 @@ const CostosLayout: React.FC = () => {
       {effectiveSubmodule === 'sueldos' && (
         <RegisterSalaryDialog
           open={registerDialogOpen}
-          onClose={() => setRegisterDialogOpen(false)}
+          onClose={() => {
+            setRegisterDialogOpen(false);
+            setRegisterDialogMode('create');
+            setEditingSalary(null);
+          }}
           onSuccess={async () => {
             setRegisterDialogOpen(false);
+            setRegisterDialogMode('create');
+            setEditingSalary(null);
             await query.refetch();
+          }}
+          mode={registerDialogMode}
+          salary={editingSalary}
+        />
+      )}
+      {pendingDelete && (
+        <ConfirmDialog
+          open
+          title="Eliminar sueldo"
+          description={`${deleteError ? `${deleteError} ` : ''}¿Deseas eliminar el sueldo del empleado ${pendingDelete.empleadoNombre ?? pendingDelete.nroEmpleado}?`}
+          confirmLabel={isDeleting ? 'Eliminando…' : 'Eliminar'}
+          cancelLabel="Cancelar"
+          onCancel={() => {
+            if (isDeleting) {
+              return;
+            }
+            setPendingDelete(null);
+            setDeleteError(null);
+          }}
+          onConfirm={() => {
+            void confirmDelete();
           }}
         />
       )}

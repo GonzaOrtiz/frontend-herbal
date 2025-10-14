@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/http/apiClient';
+import type { SueldoRecord } from '../types';
 import { useCentros } from '../../configuracion/hooks/useCentros';
 import { useEmpleados } from '../../configuracion/hooks/useEmpleados';
 import '../costos.css';
@@ -8,6 +9,8 @@ interface RegisterSalaryDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => Promise<void> | void;
+  mode?: 'create' | 'edit';
+  salary?: SueldoRecord | null;
 }
 
 interface SalaryFormState {
@@ -16,6 +19,7 @@ interface SalaryFormState {
   fechaSueldo: string;
   fechaCalculo: string;
   sueldoTotal: string;
+  esGastoDelPeriodo: 'true' | 'false';
 }
 
 const initialState: SalaryFormState = {
@@ -24,9 +28,16 @@ const initialState: SalaryFormState = {
   fechaSueldo: '',
   fechaCalculo: '',
   sueldoTotal: '',
+  esGastoDelPeriodo: 'true',
 };
 
-const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClose, onSuccess }) => {
+const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({
+  open,
+  onClose,
+  onSuccess,
+  mode = 'create',
+  salary,
+}) => {
   const [formState, setFormState] = useState<SalaryFormState>(initialState);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,12 +56,26 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
   } = useEmpleados();
 
   useEffect(() => {
-    if (open) {
-      setFormState(initialState);
-      setSubmitError(null);
-      setIsSubmitting(false);
+    if (!open) {
+      return;
     }
-  }, [open]);
+
+    if (mode === 'edit' && salary) {
+      setFormState({
+        centro: salary.centro ?? '',
+        empleado: salary.nroEmpleado ? String(salary.nroEmpleado) : '',
+        fechaSueldo: salary.fechaSueldo ?? '',
+        fechaCalculo: salary.calculationDate ?? salary.fechaSueldo ?? '',
+        sueldoTotal: salary.sueldoTotal ? String(salary.sueldoTotal) : '',
+        esGastoDelPeriodo: salary.esGastoDelPeriodo ? 'true' : 'false',
+      });
+    } else {
+      setFormState(initialState);
+    }
+
+    setSubmitError(null);
+    setIsSubmitting(false);
+  }, [open, mode, salary]);
 
   useEffect(() => {
     if (open) {
@@ -100,7 +125,8 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
       formState.fechaSueldo !== '' &&
       formState.fechaCalculo !== '' &&
       formState.sueldoTotal !== '' &&
-      Number(formState.sueldoTotal) > 0
+      Number(formState.sueldoTotal) > 0 &&
+      formState.esGastoDelPeriodo !== ''
     );
   }, [formState, hasError, isLoading]);
 
@@ -116,9 +142,14 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
     }
 
     const centro = centros.find((item) => String(item.nroCentro) === formState.centro || item.id === formState.centro);
-    const empleado = empleados.find((item) => String(item.nroEmpleado) === formState.empleado || item.id === formState.empleado);
+    const empleado = empleados.find(
+      (item) => String(item.nroEmpleado) === formState.empleado || item.id === formState.empleado,
+    );
 
-    if (!centro || !empleado) {
+    const centroNumero = centro?.nroCentro ?? Number.parseInt(formState.centro, 10);
+    const empleadoNumero = empleado?.nroEmpleado ?? Number.parseInt(formState.empleado, 10);
+
+    if (!Number.isFinite(centroNumero) || !Number.isFinite(empleadoNumero)) {
       setSubmitError('No se pudo identificar el centro o empleado seleccionado.');
       return;
     }
@@ -127,18 +158,29 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
     setSubmitError(null);
 
     try {
-      await apiClient.post('/api/costos/sueldo', {
-        centro: centro.nroCentro,
-        nroEmpleado: empleado.nroEmpleado,
-        nombre: empleado.nombre,
+      const payload = {
+        centro: centroNumero,
+        nroEmpleado: empleadoNumero,
+        nombre: empleado?.nombre ?? salary?.empleadoNombre,
         fechaSueldo: formState.fechaSueldo,
         sueldoTotal: Number(formState.sueldoTotal),
         fechaCalculo: formState.fechaCalculo,
-      });
+        esGastoDelPeriodo: formState.esGastoDelPeriodo === 'true',
+      };
+
+      if (mode === 'edit' && salary) {
+        await apiClient.put(`/api/costos/sueldo/${salary.id}`, payload);
+      } else {
+        await apiClient.post('/api/costos/sueldo', payload);
+      }
 
       await Promise.resolve(onSuccess());
     } catch (error) {
-      setSubmitError('No se pudo registrar el sueldo. Intenta nuevamente.');
+      setSubmitError(
+        mode === 'edit'
+          ? 'No se pudo actualizar el sueldo. Intenta nuevamente.'
+          : 'No se pudo registrar el sueldo. Intenta nuevamente.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -148,14 +190,20 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
     return null;
   }
 
+  const dialogTitle = mode === 'edit' ? 'Editar sueldo' : 'Registrar sueldo';
+  const dialogDescription =
+    mode === 'edit'
+      ? 'Modifica los datos necesarios para actualizar el sueldo del centro y empleado seleccionados.'
+      : 'Completa los datos necesarios para crear un nuevo sueldo asociado a un centro de producción y un empleado.';
+
+  const submitLabel = isSubmitting ? 'Guardando…' : mode === 'edit' ? 'Guardar cambios' : 'Registrar';
+
   return (
-    <div className="costos-dialog-backdrop" role="dialog" aria-modal="true" aria-label="Registrar sueldo">
+    <div className="costos-dialog-backdrop" role="dialog" aria-modal="true" aria-label={dialogTitle}>
       <div className="costos-dialog">
         <header>
-          <h2>Registrar sueldo</h2>
-          <p className="costos-metadata">
-            Completa los datos necesarios para crear un nuevo sueldo asociado a un centro de producción y un empleado.
-          </p>
+          <h2>{dialogTitle}</h2>
+          <p className="costos-metadata">{dialogDescription}</p>
         </header>
         <form
           id="register-salary-form"
@@ -243,6 +291,18 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
               required
             />
           </label>
+          <label className="costos-field">
+            <span>¿Es gasto del periodo?</span>
+            <select
+              name="esGastoDelPeriodo"
+              value={formState.esGastoDelPeriodo}
+              onChange={handleChange}
+              required
+            >
+              <option value="true">Sí</option>
+              <option value="false">No</option>
+            </select>
+          </label>
           {submitError && (
             <p className="costos-error" role="alert">
               {submitError}
@@ -270,7 +330,7 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({ open, onClo
             form="register-salary-form"
             disabled={!canSubmit || isSubmitting}
           >
-            {isSubmitting ? 'Guardando…' : 'Registrar'}
+            {submitLabel}
           </button>
         </div>
       </div>
