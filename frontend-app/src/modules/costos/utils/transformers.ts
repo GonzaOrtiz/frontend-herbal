@@ -93,15 +93,17 @@ export function mapGastoRecord(raw: RawRecord): GastoRecord {
   const monto = ensureNumber(raw.monto ?? raw.Monto ?? raw.importe ?? raw.Importe);
   const centro = ensureString(raw.centro ?? raw.Centro) ?? '0';
   const calculationDate = ensureIsoDate(raw.calculationDate ?? raw.fechaCalculo ?? raw.FechaCalculo);
+  const tablaOrigen = ensureString(raw.tablaOrigen ?? raw.origen);
+  const concepto = tablaOrigen ?? ensureString(raw.concepto ?? raw.Concepto ?? raw.descripcion);
   return {
     id: ensureId(raw),
     centro,
     calculationDate,
     fecha: ensureIsoDate(raw.fecha ?? raw.Fecha ?? raw.fechaGasto),
-    concepto: ensureString(raw.concepto ?? raw.Concepto ?? raw.descripcion),
+    concepto,
     monto,
     tipo: ensureString(raw.tipo ?? raw.Tipo ?? raw.clasificacion) ?? undefined,
-    tablaOrigen: ensureString(raw.tablaOrigen ?? raw.origen),
+    tablaOrigen,
     detalle: (raw.detalle && typeof raw.detalle === 'object') ? (raw.detalle as Record<string, unknown>) : null,
     createdAt: raw.createdAt ? ensureIsoDate(raw.createdAt) : undefined,
     createdBy: ensureString(raw.createdBy ?? raw.usuarioAlta),
