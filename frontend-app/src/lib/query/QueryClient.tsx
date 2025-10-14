@@ -43,6 +43,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
   const enabled = options.enabled ?? true;
   const staleTime = options.staleTime ?? client.getConfig().staleTime ?? 0;
   const serializedKey = useMemo(() => JSON.stringify(options.queryKey), [options.queryKey]);
+  const parsedKey = useMemo(() => JSON.parse(serializedKey) as QueryKey, [serializedKey]);
   const queryFnRef = useRef(options.queryFn);
 
   useEffect(() => {
@@ -50,8 +51,8 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
   }, [options.queryFn]);
 
   const fetchLatest = useCallback(
-    () => client.fetchQuery(serializedKey, () => queryFnRef.current()),
-    [client, serializedKey],
+    () => client.fetchQuery(parsedKey, () => queryFnRef.current()),
+    [client, parsedKey],
   );
 
   const [state, setState] = useState<UseQueryResult<TData>>({
@@ -65,7 +66,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
   useEffect(() => {
     if (!enabled) return;
 
-    const unsubscribe = client.subscribe(serializedKey, {
+    const unsubscribe = client.subscribe(parsedKey, {
       setState: (state) => {
         setState((prev) => ({
           ...prev,
@@ -76,7 +77,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
       },
     });
 
-    const record = client.getQuery<TData>(serializedKey);
+    const record = client.getQuery<TData>(parsedKey);
 
     if (record && record.status === 'success' && Date.now() - record.updatedAt < staleTime) {
       setState({
@@ -117,13 +118,20 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
       isMounted = false;
       unsubscribe();
     };
-  }, [client, serializedKey, enabled, staleTime, fetchLatest]);
+  }, [client, parsedKey, enabled, staleTime, fetchLatest]);
 
   const refetchRef = useRef(fetchLatest);
 
   useEffect(() => {
     refetchRef.current = fetchLatest;
   }, [fetchLatest]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    if ((state.status === 'success' || state.status === 'error') && state.updatedAt === 0) {
+      void fetchLatest();
+    }
+  }, [enabled, state.status, state.updatedAt, fetchLatest]);
 
   return { ...state, refetch: () => refetchRef.current() };
 }

@@ -38,8 +38,22 @@ const defaultFilters: Record<CostosSubModulo, CostosFilters> = {
   },
   prorrateo: {
     calculationDate: new Date().toISOString().slice(0, 10),
+    esGastoDelPeriodo: true,
   },
 };
+
+function resolveFilterSubmodule(submodule: CostosSubModulo): Exclude<CostosSubModulo, 'prorrateo'> {
+  return submodule === 'prorrateo' ? 'gastos' : submodule;
+}
+
+function getDefaultFilters(submodule: CostosSubModulo): CostosFilters {
+  const resolved = resolveFilterSubmodule(submodule);
+  const base = defaultFilters[resolved];
+  return {
+    ...base,
+    esGastoDelPeriodo: base.esGastoDelPeriodo ?? (submodule === 'prorrateo' ? true : undefined),
+  };
+}
 
 interface CostosProviderProps {
   initialSubmodule?: CostosSubModulo;
@@ -54,9 +68,13 @@ const defaultProcessState: CostosProcessState = {
 
 export const CostosProvider: React.FC<CostosProviderProps> = ({ initialSubmodule, children }) => {
   const [submodule, setSubmodule] = useState<CostosSubModulo>(initialSubmodule ?? DEFAULT_SUBMODULE);
-  const [filters, setFilters] = useState<CostosFilters>(() =>
-    getLocalStorageItem(`${FILTER_KEY_PREFIX}${initialSubmodule ?? DEFAULT_SUBMODULE}`, defaultFilters[initialSubmodule ?? DEFAULT_SUBMODULE])
-  );
+  const [filters, setFilters] = useState<CostosFilters>(() => {
+    const targetSubmodule = resolveFilterSubmodule(initialSubmodule ?? DEFAULT_SUBMODULE);
+    return getLocalStorageItem(
+      `${FILTER_KEY_PREFIX}${targetSubmodule}`,
+      getDefaultFilters(initialSubmodule ?? DEFAULT_SUBMODULE),
+    );
+  });
   const [lastSummary, setLastSummary] = useState<BalanceSummaryData | null>(null);
   const [processState, setProcessState] = useState<CostosProcessState>(defaultProcessState);
 
@@ -68,11 +86,13 @@ export const CostosProvider: React.FC<CostosProviderProps> = ({ initialSubmodule
   }, [initialSubmodule]);
 
   useEffect(() => {
-    setFilters(getLocalStorageItem(`${FILTER_KEY_PREFIX}${submodule}`, defaultFilters[submodule]));
+    const targetSubmodule = resolveFilterSubmodule(submodule);
+    setFilters(getLocalStorageItem(`${FILTER_KEY_PREFIX}${targetSubmodule}`, getDefaultFilters(submodule)));
   }, [submodule]);
 
   useEffect(() => {
-    setLocalStorageItem(`${FILTER_KEY_PREFIX}${submodule}`, filters);
+    const targetSubmodule = resolveFilterSubmodule(submodule);
+    setLocalStorageItem(`${FILTER_KEY_PREFIX}${targetSubmodule}`, filters);
   }, [submodule, filters]);
 
   const value = useMemo<CostosContextValue>(
@@ -84,8 +104,12 @@ export const CostosProvider: React.FC<CostosProviderProps> = ({ initialSubmodule
         setFilters((current) => ({
           ...current,
           ...partial,
+          ...(submodule === 'prorrateo' &&
+          (partial.esGastoDelPeriodo === undefined || partial.esGastoDelPeriodo === null)
+            ? { esGastoDelPeriodo: current.esGastoDelPeriodo ?? true }
+            : {}),
         })),
-      resetFilters: () => setFilters(defaultFilters[submodule]),
+      resetFilters: () => setFilters(getDefaultFilters(submodule)),
       lastSummary,
       setLastSummary,
       processState,

@@ -24,6 +24,11 @@ interface CostosDataTableProps<K extends Exclude<CostosSubModulo, 'prorrateo'>> 
   onSelect: (record: CostosRecordMap[K] | null) => void;
   selectedId: string | null;
   onAction?: (actionId: string) => void;
+  rowActions?: {
+    header: string;
+    width?: string;
+    render: (record: CostosRecordMap[K]) => React.ReactNode;
+  };
 }
 
 function formatDate(value: string | undefined | null): string {
@@ -96,6 +101,7 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
   onSelect,
   selectedId,
   onAction,
+  rowActions,
 }: CostosDataTableProps<K>) => {
   const pagination = usePagination(records, {
     initialPageSize: 25,
@@ -188,6 +194,11 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
                     {column.label}
                   </th>
                 ))}
+                {rowActions && (
+                  <th scope="col" style={{ width: rowActions.width }}>
+                    {rowActions.header}
+                  </th>
+                )}
                 <th scope="col">Trazabilidad</th>
               </tr>
             </thead>
@@ -209,6 +220,14 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
                         {getCellValue(record, column, currency)}
                       </td>
                     ))}
+                    {rowActions && (
+                      <td
+                        className="operacion-datagrid__cell operacion-datagrid__cell--nowrap costos-datagrid__actions-cell"
+                        style={{ width: rowActions.width }}
+                      >
+                        {rowActions.render(record)}
+                      </td>
+                    )}
                     <td className="operacion-datagrid__cell operacion-datagrid__cell--nowrap">
                       <span className="costos-datagrid__trace operacion-chip sync">{buildTraceLabel(record)}</span>
                     </td>
