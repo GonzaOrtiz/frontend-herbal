@@ -152,8 +152,10 @@ const CentrosApoyoPage: React.FC = () => {
   }, [filters]);
 
   const fetchGastos = useCallback(
-    async (options: { signal?: AbortSignal; silent?: boolean } = {}) => {
-      if (!selectedCentroId) {
+    async (options: { signal?: AbortSignal; silent?: boolean } = {}, centroId?: string | null) => {
+      const targetCentroId = centroId ?? selectedCentroId;
+
+      if (!targetCentroId) {
         setGastos([]);
         setGastosSummary(buildCentrosApoyoSummary([]));
         setGastosCount(0);
@@ -176,7 +178,7 @@ const CentrosApoyoPage: React.FC = () => {
       setGastosError(null);
 
       try {
-        const response = await listCentroApoyoGastos(selectedCentroId, filters, { signal: options.signal });
+        const response = await listCentroApoyoGastos(targetCentroId, filters, { signal: options.signal });
         if (options.signal?.aborted) {
           return;
         }
@@ -210,8 +212,9 @@ const CentrosApoyoPage: React.FC = () => {
       setIsEditing(false);
       setEditingCentro(null);
       form.reset();
+      void fetchGastos({}, centro.id);
     },
-    [form],
+    [fetchGastos, form],
   );
 
   const handleEditCentro = useCallback(
@@ -367,35 +370,97 @@ const CentrosApoyoPage: React.FC = () => {
             </div>
           )}
 
-          <CatalogTable
-            rows={catalog.items}
-            columns={columns}
-            loading={catalog.isLoading}
-            emptyMessage="No hay centros de apoyo registrados."
-          />
+          {isEditing ? (
+            <div className="centros-apoyo__edicion">
+              <header className="centros-apoyo__section-header">
+                <div>
+                  <h3>Editar centro</h3>
+                  <p>Actualiza únicamente el nombre del centro de apoyo seleccionado.</p>
+                </div>
+              </header>
+
+              {loadingDetalle ? (
+                <div className="table-empty">Cargando detalles…</div>
+              ) : (
+                <form onSubmit={handleSubmit} noValidate className="config-form">
+                  <FormSection title="Datos del centro">
+                    <div className="config-form-field">
+                      <label htmlFor="centro-apoyo-nro" className="config-field-label">
+                        Número de centro
+                      </label>
+                      <input
+                        id="centro-apoyo-nro"
+                        className="config-input"
+                        {...form.register('nroCentro')}
+                        readOnly
+                        disabled
+                      />
+                      {form.formState.errors.nroCentro && (
+                        <p className="config-field-error">{form.formState.errors.nroCentro}</p>
+                      )}
+                    </div>
+                    <div className="config-form-field">
+                      <label htmlFor="centro-apoyo-nombre" className="config-field-label">
+                        Nombre del centro
+                      </label>
+                      <input
+                        id="centro-apoyo-nombre"
+                        className="config-input"
+                        placeholder="Ingresa el nombre"
+                        {...form.register('nombre')}
+                      />
+                      {form.formState.errors.nombre && (
+                        <p className="config-field-error">{form.formState.errors.nombre}</p>
+                      )}
+                    </div>
+                  </FormSection>
+
+                  <div className="config-form-actions">
+                    <button type="button" className="ghost" onClick={handleCancelEdit}>
+                      Cancelar
+                    </button>
+                    <ProtectedRoute
+                      permissions={[activeRoute?.meta.permissions.write ?? 'catalogos.write']}
+                      fallback={null}
+                    >
+                      <button type="submit" className="primary" disabled={isSaveDisabled || form.formState.isSubmitting}>
+                        {form.formState.isSubmitting ? 'Guardando…' : 'Guardar cambios'}
+                      </button>
+                    </ProtectedRoute>
+                  </div>
+                </form>
+              )}
+            </div>
+          ) : (
+            <CatalogTable
+              rows={catalog.items}
+              columns={columns}
+              loading={catalog.isLoading}
+              emptyMessage="No hay centros de apoyo registrados."
+            />
+          )}
         </div>
       </section>
 
-      <div className="centros-apoyo__layout">
-        <section className="catalog-card centros-apoyo__gastos">
-          <header className="centros-apoyo__section-header">
-            <div>
-              <h3>Gastos consolidados</h3>
-              <p>
-                {selectedCentro
-                  ? `Mostrando información de ${selectedCentro.nombre} (centro ${selectedCentro.nroCentro.toString().padStart(3, '0')}).`
-                  : 'Selecciona un centro para visualizar sus gastos asociados.'}
-              </p>
-            </div>
-            <div className="centros-apoyo__actions">
-              <button type="button" className="secondary" onClick={() => fetchGastos()} disabled={gastosLoading}>
-                Refrescar
-              </button>
-              <button type="button" className="secondary" onClick={handleExport}>
-                Exportar CSV
-              </button>
-            </div>
-          </header>
+      <section className="catalog-card centros-apoyo__gastos">
+        <header className="centros-apoyo__section-header">
+          <div>
+            <h3>Gastos consolidados</h3>
+            <p>
+              {selectedCentro
+                ? `Mostrando información de ${selectedCentro.nombre} (centro ${selectedCentro.nroCentro.toString().padStart(3, '0')}).`
+                : 'Selecciona un centro para visualizar sus gastos asociados.'}
+            </p>
+          </div>
+          <div className="centros-apoyo__actions">
+            <button type="button" className="secondary" onClick={() => fetchGastos()} disabled={gastosLoading}>
+              Refrescar
+            </button>
+            <button type="button" className="secondary" onClick={handleExport}>
+              Exportar CSV
+            </button>
+          </div>
+        </header>
 
           <div className="centros-apoyo__filters">
             <label className="config-form-field">
@@ -524,74 +589,7 @@ const CentrosApoyoPage: React.FC = () => {
             </>
           )}
         </section>
-
-        <section className="catalog-card centros-apoyo__edicion">
-          <header className="centros-apoyo__section-header">
-            <div>
-              <h3>Editar centro</h3>
-              <p>Actualiza únicamente el nombre del centro de apoyo seleccionado.</p>
-            </div>
-          </header>
-
-          {!isEditing ? (
-            <div className="table-empty">
-              {selectedCentro
-                ? 'Selecciona “Editar” desde el listado para modificar el nombre del centro.'
-                : 'Elige un centro del listado para habilitar la edición.'}
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} noValidate className="config-form">
-              <FormSection title="Datos del centro">
-                <div className="config-form-field">
-                  <label htmlFor="centro-apoyo-nro" className="config-field-label">
-                    Número de centro
-                  </label>
-                  <input
-                    id="centro-apoyo-nro"
-                    className="config-input"
-                    {...form.register('nroCentro')}
-                    readOnly
-                    disabled
-                  />
-                  {form.formState.errors.nroCentro && (
-                    <p className="config-field-error">{form.formState.errors.nroCentro}</p>
-                  )}
-                </div>
-                <div className="config-form-field">
-                  <label htmlFor="centro-apoyo-nombre" className="config-field-label">
-                    Nombre del centro
-                  </label>
-                  <input
-                    id="centro-apoyo-nombre"
-                    className="config-input"
-                    placeholder="Ingresa el nombre"
-                    {...form.register('nombre')}
-                  />
-                  {form.formState.errors.nombre && (
-                    <p className="config-field-error">{form.formState.errors.nombre}</p>
-                  )}
-                </div>
-              </FormSection>
-
-              <div className="config-form-actions">
-                <button type="button" className="ghost" onClick={handleCancelEdit}>
-                  Cancelar
-                </button>
-                <ProtectedRoute
-                  permissions={[activeRoute?.meta.permissions.write ?? 'catalogos.write']}
-                  fallback={null}
-                >
-                  <button type="submit" className="primary" disabled={isSaveDisabled || form.formState.isSubmitting}>
-                    {form.formState.isSubmitting ? 'Guardando…' : 'Guardar cambios'}
-                  </button>
-                </ProtectedRoute>
-              </div>
-            </form>
-          )}
-
-          {loadingDetalle && <div className="table-empty">Cargando detalles…</div>}
-        </section>
-      </div>
+      </section>
     </div>
   );
 };
