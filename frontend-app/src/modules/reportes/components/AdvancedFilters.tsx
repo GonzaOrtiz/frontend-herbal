@@ -14,9 +14,7 @@ const formatOptions = [
 ];
 
 const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({ descriptors }) => {
-  const { filters, updateFilters, resetFilters, isValidCombination, shareableLink, presets, savePreset, applyPreset, deletePreset } =
-    useReportesContext();
-  const [presetName, setPresetName] = useState('');
+  const { filters, updateFilters, resetFilters, isValidCombination, shareableLink } = useReportesContext();
   const [copied, setCopied] = useState(false);
 
   const descriptorMap = useMemo(() => {
@@ -53,12 +51,6 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({ descriptors }) => {
     } catch (error) {
       console.error('No fue posible copiar el enlace', error);
     }
-  };
-
-  const handleSavePreset = () => {
-    if (!presetName.trim()) return;
-    savePreset(presetName.trim());
-    setPresetName('');
   };
 
   return (
@@ -138,49 +130,6 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({ descriptors }) => {
         )}
       </div>
 
-      <section className="reportes-presets" aria-label="Presets guardados">
-        <header className="reportes-presets__header">
-          <h3>Presets</h3>
-          <p>Guarda combinaciones frecuentes para reutilizarlas.</p>
-        </header>
-        <div className="reportes-presets__controls">
-          <label className="reportes-filter-field reportes-presets__field">
-            <span className="reportes-filter-label">Nombre del preset</span>
-            <input
-              className="reportes-filter-input"
-              type="text"
-              value={presetName}
-              onChange={(event) => setPresetName(event.target.value)}
-              placeholder="Ej. Cierre mensual"
-            />
-          </label>
-          <button type="button" onClick={handleSavePreset} disabled={!presetName.trim()}>
-            Guardar preset
-          </button>
-        </div>
-
-        <div className="reportes-presets__list" role="list">
-          {presets.map((preset) => (
-            <div key={preset.id} className="reportes-presets__item" role="listitem">
-              <div>
-                <span className="reportes-presets__name">{preset.name}</span>
-                <div className="reportes-presets__meta">
-                  Guardado el {new Date(preset.createdAt).toLocaleDateString('es-MX')}
-                </div>
-              </div>
-              <div>
-                <button type="button" onClick={() => applyPreset(preset.id)}>
-                  Aplicar
-                </button>
-                <button type="button" onClick={() => deletePreset(preset.id)} aria-label={`Eliminar ${preset.name}`}>
-                  ✕
-                </button>
-              </div>
-            </div>
-          ))}
-          {presets.length === 0 && <p>No hay presets guardados aún.</p>}
-        </div>
-      </section>
     </aside>
   );
 };
