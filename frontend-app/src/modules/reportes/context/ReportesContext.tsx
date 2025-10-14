@@ -1,14 +1,13 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from '@/lib/router/useSearchParams';
 import {
   buildShareableLink,
-  compareFilters,
   isFilterCombinationValid,
   normalizeFilters,
   parseFiltersFromSearch,
   serializeFiltersToSearch,
 } from '../utils/filters';
-import type { ReportCategory, ReportFilters, ReportPreset } from '../types';
+import type { ReportCategory, ReportFilters } from '../types';
 
 interface ReportesContextValue {
   category: ReportCategory;
@@ -18,41 +17,9 @@ interface ReportesContextValue {
   resetFilters: () => void;
   isValidCombination: boolean;
   shareableLink: string;
-  presets: ReportPreset[];
-  savePreset: (name: string) => ReportPreset | null;
-  applyPreset: (id: string) => void;
-  deletePreset: (id: string) => void;
 }
 
 const ReportesContext = createContext<ReportesContextValue | undefined>(undefined);
-
-const PRESETS_KEY = 'reportes:presets';
-
-function loadPresets(): ReportPreset[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(PRESETS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((item) => ({
-        id: String(item.id ?? crypto.randomUUID()),
-        name: String(item.name ?? 'Preset sin nombre'),
-        filters: normalizeFilters((item.filters ?? {}) as ReportFilters),
-        createdAt: String(item.createdAt ?? new Date().toISOString()),
-      }))
-      .slice(0, 50);
-  } catch (error) {
-    console.error('No se pudieron cargar los presets de reportes', error);
-    return [];
-  }
-}
-
-function persistPresets(presets: ReportPreset[]) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
-}
 
 interface ProviderProps {
   initialCategory?: ReportCategory;
@@ -70,8 +37,6 @@ export const ReportesProvider: React.FC<ProviderProps> = ({
   const [category, setCategoryState] = useState<ReportCategory>(initialCategory);
   const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState<ReportFilters>(() => parseFiltersFromSearch(searchParams));
-  const [presets, setPresets] = useState<ReportPreset[]>(() => loadPresets());
-  const lastFiltersRef = useRef<ReportFilters>(filters);
 
   useEffect(() => {
     setCategoryState(initialCategory);
@@ -95,7 +60,6 @@ export const ReportesProvider: React.FC<ProviderProps> = ({
         const next = { ...current, ...partial };
         const normalized = normalizeFilters(next);
         setSearchParams(serializeFiltersToSearch(normalized), { replace: true });
-        lastFiltersRef.current = normalized;
         return normalized;
       });
     },
@@ -105,55 +69,11 @@ export const ReportesProvider: React.FC<ProviderProps> = ({
   const resetFilters = useCallback(() => {
     setFilters(defaultFilters);
     setSearchParams(new URLSearchParams(), { replace: true });
-    lastFiltersRef.current = defaultFilters;
   }, [setSearchParams]);
 
   const isValidCombination = useMemo(() => isFilterCombinationValid(filters), [filters]);
 
   const shareableLink = useMemo(() => buildShareableLink(filters), [filters]);
-
-  const savePreset = useCallback(
-    (name: string) => {
-      const trimmed = name.trim();
-      if (!trimmed) return null;
-      const normalizedFilters = normalizeFilters(filters);
-      const preset: ReportPreset = {
-        id: crypto.randomUUID(),
-        name: trimmed,
-        filters: normalizedFilters,
-        createdAt: new Date().toISOString(),
-      };
-      setPresets((current) => {
-        const next = [preset, ...current].slice(0, 50);
-        persistPresets(next);
-        return next;
-      });
-      return preset;
-    },
-    [filters],
-  );
-
-  const applyPreset = useCallback(
-    (id: string) => {
-      const preset = presets.find((item) => item.id === id);
-      if (!preset) return;
-      if (compareFilters(preset.filters, lastFiltersRef.current)) return;
-      const normalized = normalizeFilters(preset.filters);
-      const params = serializeFiltersToSearch(normalized);
-      setSearchParams(params, { replace: true });
-      setFilters(normalized);
-      lastFiltersRef.current = normalized;
-    },
-    [presets, setSearchParams],
-  );
-
-  const deletePreset = useCallback((id: string) => {
-    setPresets((current) => {
-      const next = current.filter((item) => item.id !== id);
-      persistPresets(next);
-      return next;
-    });
-  }, []);
 
   const value = useMemo<ReportesContextValue>(
     () => ({
@@ -164,10 +84,6 @@ export const ReportesProvider: React.FC<ProviderProps> = ({
       resetFilters,
       isValidCombination,
       shareableLink,
-      presets,
-      savePreset,
-      applyPreset,
-      deletePreset,
     }),
     [
       category,
@@ -177,10 +93,6 @@ export const ReportesProvider: React.FC<ProviderProps> = ({
       resetFilters,
       isValidCombination,
       shareableLink,
-      presets,
-      savePreset,
-      applyPreset,
-      deletePreset,
     ],
   );
 

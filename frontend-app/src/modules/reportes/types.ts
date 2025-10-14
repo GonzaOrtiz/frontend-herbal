@@ -18,13 +18,6 @@ export type ReportId =
   | 'mano-obra'
   | 'descargas';
 
-export interface ReportPreset {
-  id: string;
-  name: string;
-  filters: ReportFilters;
-  createdAt: string;
-}
-
 export interface ReportRoute {
   id: ReportCategory;
   path: string;
