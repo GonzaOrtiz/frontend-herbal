@@ -619,19 +619,6 @@ textarea.config-input {
   gap: 24px;
 }
 
-.centros-apoyo__layout {
-  display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  align-items: start;
-}
-
-@media (max-width: 1100px) {
-  .centros-apoyo__layout {
-    grid-template-columns: 1fr;
-  }
-}
-
 .centros-apoyo__gastos,
 .centros-apoyo__edicion {
   display: flex;
