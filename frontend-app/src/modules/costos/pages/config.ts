@@ -35,7 +35,6 @@ export const costosConfigs: Record<Exclude<CostosSubModulo, 'prorrateo'>, Costos
       { key: 'fecha', label: 'Fecha', width: '120px' },
       { key: 'centro', label: 'Centro', width: '100px' },
       { key: 'concepto', label: 'Concepto', width: '220px' },
-      { key: 'tipo', label: 'Tipo', width: '160px' },
       { key: 'monto', label: 'Monto', width: '140px', align: 'right' },
       { key: 'esGastoDelPeriodo', label: 'Del periodo', width: '120px', align: 'center' },
     ],
