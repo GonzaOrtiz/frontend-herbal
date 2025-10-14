@@ -38,7 +38,6 @@ export const costosConfigs: Record<Exclude<CostosSubModulo, 'prorrateo'>, Costos
       { key: 'tipo', label: 'Tipo', width: '160px' },
       { key: 'monto', label: 'Monto', width: '140px', align: 'right' },
       { key: 'esGastoDelPeriodo', label: 'Del periodo', width: '120px', align: 'center' },
-      { key: 'accessId', label: 'AccessId', width: '160px' },
     ],
     actions: [
       {
@@ -75,7 +74,6 @@ export const costosConfigs: Record<Exclude<CostosSubModulo, 'prorrateo'>, Costos
       { key: 'depreMensual', label: 'Depreciación mensual', width: '160px', align: 'right' },
       { key: 'vidaUtil', label: 'Vida útil', width: '120px', align: 'right' },
       { key: 'valorUso', label: 'Valor en uso', width: '140px', align: 'right' },
-      { key: 'accessId', label: 'AccessId', width: '160px' },
     ],
     actions: [
       {
