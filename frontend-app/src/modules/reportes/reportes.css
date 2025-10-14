@@ -211,38 +211,101 @@
   color: rgba(248, 250, 252, 0.9);
 }
 
+.reportes-table-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-outline);
+  border-radius: 16px;
+  box-shadow: var(--shadow-level-1);
+}
+
+.reportes-table-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--color-outline);
+  padding-bottom: 0.75rem;
+}
+
+.reportes-table-card__header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text-primary);
+}
+
+.reportes-table-card__header p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.reportes-table-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .reportes-table-wrapper {
-  overflow-x: auto;
+  border: 1px solid var(--color-outline);
+  border-radius: 12px;
+  overflow: auto;
 }
 
 .reportes-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
   font-size: 0.95rem;
 }
 
-.reportes-table thead {
-  background: #f1f5f9;
-  text-align: left;
+.reportes-table thead th {
+  background: rgba(20, 94, 168, 0.08);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-outline);
 }
 
-.reportes-table th,
-.reportes-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #e2e8f0;
+.reportes-table tbody tr {
+  transition: background-color 0.2s ease;
 }
 
-.reportes-table tbody tr:last-of-type td {
+.reportes-table tbody tr:hover {
+  background: rgba(20, 94, 168, 0.06);
+}
+
+.reportes-table__cell {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-outline);
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+
+.reportes-table tbody tr:last-of-type .reportes-table__cell {
   border-bottom: none;
 }
 
-.reportes-table tfoot td {
-  background: #e2e8f0;
+.reportes-table tfoot .reportes-table__cell {
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
   font-weight: 600;
+  border-top: 1px solid var(--color-outline);
 }
 
-.reportes-table__numeric {
-  text-align: right;
+.reportes-table-card--empty .reportes-table-card__body {
+  align-items: stretch;
+}
+
+.reportes-table-card--empty .reportes-empty-state {
+  border: 1px dashed var(--color-outline);
+  background: rgba(241, 245, 249, 0.6);
 }
 
 .reportes-empty-state {
