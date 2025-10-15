@@ -418,61 +418,6 @@ button.small {
   outline-offset: 2px;
 }
 
-.app-navbar__actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.app-navbar__action {
-  border: 1px solid rgba(226, 232, 240, 0.25);
-  border-radius: 12px;
-  padding: 10px 18px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  color: var(--color-navbar-text);
-  background: rgba(15, 23, 42, 0.35);
-  backdrop-filter: blur(8px);
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.app-navbar__action:hover {
-  background: rgba(99, 102, 241, 0.18);
-  border-color: rgba(96, 165, 250, 0.6);
-  color: var(--color-navbar-accent);
-  transform: translateY(-1px);
-}
-
-.app-navbar__action[disabled],
-.app-navbar__action[disabled]:hover {
-  cursor: not-allowed;
-  background: rgba(15, 23, 42, 0.18);
-  border-color: rgba(148, 163, 184, 0.35);
-  color: rgba(226, 232, 240, 0.75);
-  transform: none;
-}
-
-.app-navbar__action--primary {
-  background: rgba(59, 130, 246, 0.85);
-  border-color: rgba(96, 165, 250, 0.9);
-  color: #f8fafc;
-}
-
-.app-navbar__action--primary:hover {
-  background: rgba(37, 99, 235, 0.92);
-  border-color: rgba(59, 130, 246, 0.95);
-  color: #f8fafc;
-}
-
-.app-navbar__action--primary[disabled],
-.app-navbar__action--primary[disabled]:hover {
-  background: rgba(59, 130, 246, 0.5);
-  border-color: rgba(96, 165, 250, 0.45);
-  color: rgba(248, 250, 252, 0.8);
-}
-
 .app-shell__content {
   flex: 1;
   width: 100%;
@@ -837,15 +782,6 @@ button.small {
     width: 100%;
   }
 
-  .app-navbar__actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .app-navbar__action {
-    flex: 1 1 auto;
-    text-align: center;
-  }
 }
 
 @media (max-width: 640px) {
