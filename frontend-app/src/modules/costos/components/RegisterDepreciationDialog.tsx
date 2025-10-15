@@ -225,15 +225,7 @@ const RegisterDepreciationDialog: React.FC<RegisterDepreciationDialogProps> = ({
           </label>
           <label className="costos-field">
             <span>Periodo</span>
-            <input
-              type="text"
-              name="periodo"
-              value={formState.periodo}
-              onChange={handleChange}
-              placeholder="AAAA-MM"
-              pattern="\\d{4}-\\d{2}"
-              required
-            />
+            <input type="date" name="periodo" value={formState.periodo} onChange={handleChange} required />
           </label>
           {submitError && (
             <p className="costos-error" role="alert">
