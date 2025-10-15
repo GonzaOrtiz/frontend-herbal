@@ -114,7 +114,7 @@ const CuadrosComparativos: React.FC<CuadrosComparativosProps> = ({ cards }) => {
                 id="cuadros-comparativos-search"
                 type="search"
                 className="reportes-cuadros-filter-bar__input"
-                placeholder="Buscar por producto o periodo"
+                placeholder="Buscar por producto"
                 value={searchTerm}
                 onChange={handleSearchChange}
               />

@@ -294,7 +294,7 @@
 }
 
 .reportes-table tbody tr.reportes-cuadros-row--danger .reportes-table__cell {
-  background: rgba(249, 115, 22, 0.08);
+  background: rgba(255, 255, 255, 0.919);
 }
 
 .reportes-table tbody tr.reportes-cuadros-row--success:hover .reportes-table__cell,
