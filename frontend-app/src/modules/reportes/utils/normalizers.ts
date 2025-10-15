@@ -2,6 +2,7 @@ import { formatCurrency, formatPercentage } from '@/lib/formatters';
 import type {
   ComparisonInsight,
   ComparisonPoint,
+  ReportCuadroCard,
   ReportDownloadLog,
   ReportFilters,
   ReportSummaryCard,
@@ -52,6 +53,15 @@ interface ManoObraResponseItem {
   descripcion?: string;
   horas?: number;
   monto?: number;
+}
+
+interface CuadroResponseItem {
+  id?: string;
+  producto?: string;
+  periodo?: string;
+  costoDirecto?: number;
+  costoIndirecto?: number;
+  tendencia?: string;
 }
 
 export function normalizeCostosResponse(response: unknown): Required<CostosResponse> {
@@ -292,4 +302,43 @@ export function normalizeDownloadLog(response: unknown): ReportDownloadLog[] {
     requestedAt: String(item.requestedAt ?? item.createdAt ?? new Date().toISOString()),
     completedAt: item.completedAt ? String(item.completedAt) : undefined,
   }));
+}
+
+export function normalizeCuadrosResponse(response: unknown): ReportCuadroCard[] {
+  const items = Array.isArray(response)
+    ? response
+    : Array.isArray((response as { data?: unknown[] }).data)
+      ? (response as { data?: unknown[] }).data ?? []
+      : [];
+
+  return (items as CuadroResponseItem[]).map((item, index) => {
+    const producto = String(item.producto ?? '—');
+    const periodo = item.periodo ? String(item.periodo).slice(0, 7) : undefined;
+    const costoDirecto = Number(item.costoDirecto ?? 0);
+    const costoIndirecto = Number(item.costoIndirecto ?? 0);
+    const diferencia = costoIndirecto - costoDirecto;
+    const base = Math.max(Math.abs(costoDirecto), Math.abs(costoIndirecto), 1);
+    const diferenciaPorcentaje = diferencia / base;
+
+    let tone: ReportCuadroCard['tone'] = 'default';
+    if (Math.abs(diferenciaPorcentaje) <= 0.05) {
+      tone = 'success';
+    } else if (diferencia > 0) {
+      tone = 'warning';
+    } else if (diferencia < 0) {
+      tone = 'danger';
+    }
+
+    return {
+      id: String(item.id ?? `cuadro-${index}`),
+      producto,
+      periodoLabel: periodo,
+      costoDirecto: formatCurrency(costoDirecto),
+      costoIndirecto: formatCurrency(costoIndirecto),
+      diferencia: formatCurrency(diferencia),
+      diferenciaPorcentaje: formatPercentage(diferenciaPorcentaje),
+      tone,
+      tendenciaLabel: item.tendencia ? String(item.tendencia) : undefined,
+    };
+  });
 }

@@ -5,12 +5,14 @@ import ReportTable from '../components/ReportTable';
 import ExportToolbar from '../components/ExportToolbar';
 import ReportSkeleton from '../components/ReportSkeleton';
 import ComparisonChart from '../components/ComparisonChart';
+import CuadrosComparativos from '../components/CuadrosComparativos';
 import { useReportQuery } from '../hooks/useReportQuery';
-import { fetchComparativoReport, fetchCostosReport } from '../api/reportesApi';
+import { fetchComparativoReport, fetchCostosReport, fetchCuadrosReport } from '../api/reportesApi';
 
 const FinancierosPage: React.FC = () => {
   const costosQuery = useReportQuery({ reportId: 'costos', fetcher: fetchCostosReport });
   const comparativoQuery = useReportQuery({ reportId: 'comparativo', fetcher: fetchComparativoReport });
+  const cuadrosQuery = useReportQuery({ reportId: 'cuadros', fetcher: fetchCuadrosReport });
 
   const isLoading = costosQuery.status === 'loading';
   const hasError = costosQuery.status === 'error';
@@ -36,6 +38,27 @@ const FinancierosPage: React.FC = () => {
               <ReportTable key={table.id} descriptor={table} />
             ))}
           </>
+        )}
+      </ReportSection>
+
+      <ReportSection
+        title="Cuadros comparativos"
+        description="Contrasta costos directos e indirectos por producto para identificar desviaciones."
+        actions={<ExportToolbar reportId="cuadros" disabled={cuadrosQuery.status === 'error'} />}
+      >
+        {cuadrosQuery.status === 'loading' && <ReportSkeleton />}
+        {cuadrosQuery.status === 'error' && (
+          <div role="alert" className="reportes-empty-state">
+            <h4>No fue posible recuperar los cuadros comparativos</h4>
+            <p>Vuelve a intentarlo más tarde o ajusta los filtros de consulta.</p>
+          </div>
+        )}
+        {cuadrosQuery.data && cuadrosQuery.data.length > 0 && <CuadrosComparativos cards={cuadrosQuery.data} />}
+        {cuadrosQuery.data && cuadrosQuery.data.length === 0 && cuadrosQuery.status !== 'error' && (
+          <div role="status" className="reportes-empty-state">
+            <h4>Sin datos disponibles</h4>
+            <p>No se encontraron registros de costos directos o indirectos con los filtros actuales.</p>
+          </div>
         )}
       </ReportSection>
 
