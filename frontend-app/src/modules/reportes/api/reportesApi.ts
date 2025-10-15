@@ -7,12 +7,14 @@ import type {
   ReportFilters,
   ReportFormat,
   ReportId,
+  ReportCuadroCard,
   ReportSummaryCard,
   ReportTableDescriptor,
 } from '../types';
 import {
   buildComparisonInsight,
   buildCostosSummaryCards,
+  normalizeCuadrosResponse,
   normalizeAsignacionesResponse,
   normalizeComparativoResponse,
   normalizeConsumosResponse,
@@ -30,6 +32,7 @@ const endpointMap: Record<ReportId, string> = {
   consumos: '/api/reportes/consumos',
   asignaciones: '/api/reportes/asignaciones',
   'mano-obra': '/api/reportes/mano-obra',
+  cuadros: '/api/reportes/cuadros',
   descargas: '/api/reportes/descargas',
 };
 
@@ -93,6 +96,12 @@ export async function fetchComparativoReport(
     points: normalizeComparativoResponse(response),
     insight: buildComparisonInsight(response),
   };
+}
+
+export async function fetchCuadrosReport(filters: ReportFilters): Promise<ReportCuadroCard[]> {
+  const query = serializeFiltersToSearch(filters);
+  const response = await apiClient.get<unknown>(buildUrl('cuadros', query));
+  return normalizeCuadrosResponse(response);
 }
 
 export async function fetchConsumosReport(filters: ReportFilters): Promise<ReportTableDescriptor> {

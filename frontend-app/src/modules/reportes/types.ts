@@ -16,6 +16,7 @@ export type ReportId =
   | 'consumos'
   | 'asignaciones'
   | 'mano-obra'
+  | 'cuadros'
   | 'descargas';
 
 export interface ReportRoute {
@@ -71,6 +72,18 @@ export interface ReportSummaryCard {
   value: string;
   helpText?: string;
   tone?: 'default' | 'success' | 'warning' | 'danger';
+}
+
+export interface ReportCuadroCard {
+  id: string;
+  producto: string;
+  periodoLabel?: string;
+  costoDirecto: string;
+  costoIndirecto: string;
+  diferencia: string;
+  diferenciaPorcentaje?: string;
+  tone: 'default' | 'success' | 'warning' | 'danger';
+  tendenciaLabel?: string;
 }
 
 export interface ComparisonPoint {
