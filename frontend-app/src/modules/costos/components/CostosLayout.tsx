@@ -16,7 +16,13 @@ import { costosConfigs } from '../pages/config';
 import { useCostosContext } from '../context/CostosContext';
 import { useCostosData } from '../hooks/useCostosData';
 import { useProcessRunner } from '../hooks/useProcessRunner';
-import type { BaseCostRecord, CostosRecordMap, CostosSubModulo, SueldoRecord } from '../types';
+import type {
+  BaseCostRecord,
+  CostosRecordMap,
+  CostosSubModulo,
+  DepreciacionRecord,
+  SueldoRecord,
+} from '../types';
 import '../costos.css';
 
 const CostosLayout: React.FC = () => {
@@ -32,7 +38,10 @@ const CostosLayout: React.FC = () => {
   const [registerDialogMode, setRegisterDialogMode] = useState<'create' | 'edit'>('create');
   const [editingSalary, setEditingSalary] = useState<SueldoRecord | null>(null);
   const [registerDepreciationOpen, setRegisterDepreciationOpen] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<SueldoRecord | null>(null);
+  const [registerDepreciationMode, setRegisterDepreciationMode] = useState<'create' | 'edit'>('create');
+  const [editingDepreciation, setEditingDepreciation] = useState<DepreciacionRecord | null>(null);
+  const [pendingSalaryDelete, setPendingSalaryDelete] = useState<SueldoRecord | null>(null);
+  const [pendingDepreciationDelete, setPendingDepreciationDelete] = useState<DepreciacionRecord | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -49,7 +58,10 @@ const CostosLayout: React.FC = () => {
     setRegisterDialogMode('create');
     setEditingSalary(null);
     setRegisterDepreciationOpen(false);
-    setPendingDelete(null);
+    setRegisterDepreciationMode('create');
+    setEditingDepreciation(null);
+    setPendingSalaryDelete(null);
+    setPendingDepreciationDelete(null);
     setDeleteError(null);
     setIsDeleting(false);
   }, [effectiveSubmodule]);
@@ -73,6 +85,8 @@ const CostosLayout: React.FC = () => {
         setRegisterDialogOpen(true);
       }
       if (effectiveSubmodule === 'depreciaciones' && actionId === 'registrar') {
+        setRegisterDepreciationMode('create');
+        setEditingDepreciation(null);
         setRegisterDepreciationOpen(true);
       }
     },
@@ -86,30 +100,64 @@ const CostosLayout: React.FC = () => {
   }, []);
 
   const handleDeleteSalary = useCallback((salary: SueldoRecord) => {
-    setPendingDelete(salary);
+    setPendingDepreciationDelete(null);
+    setPendingSalaryDelete(salary);
     setDeleteError(null);
   }, []);
 
-  const confirmDelete = useCallback(async () => {
-    if (!pendingDelete || isDeleting) {
+  const handleEditDepreciation = useCallback((depreciation: DepreciacionRecord) => {
+    setRegisterDepreciationMode('edit');
+    setEditingDepreciation(depreciation);
+    setRegisterDepreciationOpen(true);
+  }, []);
+
+  const handleDeleteDepreciation = useCallback((depreciation: DepreciacionRecord) => {
+    setPendingSalaryDelete(null);
+    setPendingDepreciationDelete(depreciation);
+    setDeleteError(null);
+  }, []);
+
+  const confirmDeleteSalary = useCallback(async () => {
+    if (!pendingSalaryDelete || isDeleting) {
       return;
     }
 
     try {
       setIsDeleting(true);
       setDeleteError(null);
-      await apiClient.delete(`/api/costos/sueldo/${pendingDelete.id}`);
-      if (selected?.id === pendingDelete.id) {
+      await apiClient.delete(`/api/costos/sueldo/${pendingSalaryDelete.id}`);
+      if (selected?.id === pendingSalaryDelete.id) {
         setSelected(null);
       }
       await query.refetch();
-      setPendingDelete(null);
+      setPendingSalaryDelete(null);
     } catch (error) {
       setDeleteError('No se pudo eliminar el sueldo. Intenta nuevamente.');
     } finally {
       setIsDeleting(false);
     }
-  }, [isDeleting, pendingDelete, query, selected]);
+  }, [isDeleting, pendingSalaryDelete, query, selected]);
+
+  const confirmDeleteDepreciation = useCallback(async () => {
+    if (!pendingDepreciationDelete || isDeleting) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      await apiClient.delete(`/api/costos/depreciacion/${pendingDepreciationDelete.id}`);
+      if (selected?.id === pendingDepreciationDelete.id) {
+        setSelected(null);
+      }
+      await query.refetch();
+      setPendingDepreciationDelete(null);
+    } catch (error) {
+      setDeleteError('No se pudo eliminar la depreciación. Intenta nuevamente.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [isDeleting, pendingDepreciationDelete, query, selected]);
 
   return (
     <div className="costos-module">
@@ -173,41 +221,77 @@ const CostosLayout: React.FC = () => {
               onSelect={(record) => setSelected(record as BaseCostRecord)}
               selectedId={selected?.id ?? null}
               onAction={handleAction}
-              rowActions={
-                effectiveSubmodule === 'sueldos'
-                  ? {
-                      header: 'Acciones',
-                      width: '180px',
-                      render: (record) => {
-                        const sueldoRecord = record as SueldoRecord;
-                        return (
-                          <div className="costos-row-actions">
-                            <button
-                              type="button"
-                              className="costos-row-actions__edit"
-                              onClick={() => handleEditSalary(sueldoRecord)}
-                            >
-                              <span className="costos-row-actions__icon" aria-hidden="true">
-                                ✏️
-                              </span>
-                              <span>Editar</span>
-                            </button>
-                            <button
-                              type="button"
-                              className="costos-row-actions__delete"
-                              onClick={() => handleDeleteSalary(sueldoRecord)}
-                            >
-                              <span className="costos-row-actions__icon" aria-hidden="true">
-                                🗑️
-                              </span>
-                              <span>Eliminar</span>
-                            </button>
-                          </div>
-                        );
-                      },
-                    }
-                  : undefined
-              }
+              rowActions={(() => {
+                if (effectiveSubmodule === 'sueldos') {
+                  return {
+                    header: 'Acciones',
+                    width: '180px',
+                    render: (record: CostosRecordMap['sueldos']) => {
+                      const sueldoRecord = record as SueldoRecord;
+                      return (
+                        <div className="costos-row-actions">
+                          <button
+                            type="button"
+                            className="costos-row-actions__edit"
+                            onClick={() => handleEditSalary(sueldoRecord)}
+                          >
+                            <span className="costos-row-actions__icon" aria-hidden="true">
+                              ✏️
+                            </span>
+                            <span>Editar</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="costos-row-actions__delete"
+                            onClick={() => handleDeleteSalary(sueldoRecord)}
+                          >
+                            <span className="costos-row-actions__icon" aria-hidden="true">
+                              🗑️
+                            </span>
+                            <span>Eliminar</span>
+                          </button>
+                        </div>
+                      );
+                    },
+                  };
+                }
+
+                if (effectiveSubmodule === 'depreciaciones') {
+                  return {
+                    header: 'Acciones',
+                    width: '180px',
+                    render: (record: CostosRecordMap['depreciaciones']) => {
+                      const depreciationRecord = record as DepreciacionRecord;
+                      return (
+                        <div className="costos-row-actions">
+                          <button
+                            type="button"
+                            className="costos-row-actions__edit"
+                            onClick={() => handleEditDepreciation(depreciationRecord)}
+                          >
+                            <span className="costos-row-actions__icon" aria-hidden="true">
+                              ✏️
+                            </span>
+                            <span>Editar</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="costos-row-actions__delete"
+                            onClick={() => handleDeleteDepreciation(depreciationRecord)}
+                          >
+                            <span className="costos-row-actions__icon" aria-hidden="true">
+                              🗑️
+                            </span>
+                            <span>Eliminar</span>
+                          </button>
+                        </div>
+                      );
+                    },
+                  };
+                }
+
+                return undefined;
+              })()}
             />
           )}
         </div>
@@ -260,29 +344,56 @@ const CostosLayout: React.FC = () => {
           open={registerDepreciationOpen}
           onClose={() => {
             setRegisterDepreciationOpen(false);
+            setRegisterDepreciationMode('create');
+            setEditingDepreciation(null);
           }}
           onSuccess={async () => {
             setRegisterDepreciationOpen(false);
+            setRegisterDepreciationMode('create');
+            setEditingDepreciation(null);
             await query.refetch();
           }}
+          mode={registerDepreciationMode}
+          depreciation={editingDepreciation}
         />
       )}
-      {pendingDelete && (
+      {pendingSalaryDelete && (
         <ConfirmDialog
           open
           title="Eliminar sueldo"
-          description={`${deleteError ? `${deleteError} ` : ''}¿Deseas eliminar el sueldo del empleado ${pendingDelete.empleadoNombre ?? pendingDelete.nroEmpleado}?`}
+          description={`${deleteError ? `${deleteError} ` : ''}¿Deseas eliminar el sueldo del empleado ${pendingSalaryDelete.empleadoNombre ?? pendingSalaryDelete.nroEmpleado}?`}
           confirmLabel={isDeleting ? 'Eliminando…' : 'Eliminar'}
           cancelLabel="Cancelar"
           onCancel={() => {
             if (isDeleting) {
               return;
             }
-            setPendingDelete(null);
+            setPendingSalaryDelete(null);
             setDeleteError(null);
           }}
           onConfirm={() => {
-            void confirmDelete();
+            void confirmDeleteSalary();
+          }}
+        />
+      )}
+      {pendingDepreciationDelete && (
+        <ConfirmDialog
+          open
+          title="Eliminar depreciación"
+          description={`${
+            deleteError ? `${deleteError} ` : ''
+          }¿Deseas eliminar la depreciación de la máquina ${pendingDepreciationDelete.maquina}?`}
+          confirmLabel={isDeleting ? 'Eliminando…' : 'Eliminar'}
+          cancelLabel="Cancelar"
+          onCancel={() => {
+            if (isDeleting) {
+              return;
+            }
+            setPendingDepreciationDelete(null);
+            setDeleteError(null);
+          }}
+          onConfirm={() => {
+            void confirmDeleteDepreciation();
           }}
         />
       )}

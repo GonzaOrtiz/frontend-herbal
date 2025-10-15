@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/http/apiClient';
+import type { DepreciacionRecord } from '../types';
 import { useCentros } from '../../configuracion/hooks/useCentros';
 import '../costos.css';
 
@@ -7,6 +8,8 @@ interface RegisterDepreciationDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => Promise<void> | void;
+  mode?: 'create' | 'edit';
+  depreciation?: DepreciacionRecord | null;
 }
 
 interface DepreciationFormState {
@@ -33,6 +36,8 @@ const RegisterDepreciationDialog: React.FC<RegisterDepreciationDialogProps> = ({
   open,
   onClose,
   onSuccess,
+  mode = 'create',
+  depreciation,
 }) => {
   const [formState, setFormState] = useState<DepreciationFormState>(initialState);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -41,12 +46,36 @@ const RegisterDepreciationDialog: React.FC<RegisterDepreciationDialogProps> = ({
   const { items: centrosItems, refetch: refetchCentros, isLoading, error } = useCentros();
 
   useEffect(() => {
-    if (open) {
-      setFormState(initialState);
-      setSubmitError(null);
-      setIsSubmitting(false);
+    if (!open) {
+      return;
     }
-  }, [open]);
+
+    if (mode === 'edit' && depreciation) {
+      setFormState({
+        centro: depreciation.centro ?? '',
+        fechaCalculo: depreciation.fechaCalculo ? depreciation.fechaCalculo.slice(0, 10) : '',
+        maquina: depreciation.maquina ?? '',
+        depreMensual:
+          depreciation.depreMensual !== undefined && depreciation.depreMensual !== null
+            ? String(depreciation.depreMensual)
+            : '',
+        vidaUtil:
+          depreciation.vidaUtil !== undefined && depreciation.vidaUtil !== null
+            ? String(depreciation.vidaUtil)
+            : '',
+        valorUso:
+          depreciation.valorUso !== undefined && depreciation.valorUso !== null
+            ? String(depreciation.valorUso)
+            : '',
+        periodo: depreciation.periodo ? depreciation.periodo.slice(0, 10) : '',
+      });
+    } else {
+      setFormState(initialState);
+    }
+
+    setSubmitError(null);
+    setIsSubmitting(false);
+  }, [open, mode, depreciation]);
 
   useEffect(() => {
     if (open) {
@@ -117,11 +146,19 @@ const RegisterDepreciationDialog: React.FC<RegisterDepreciationDialogProps> = ({
         periodo: formState.periodo.trim(),
       };
 
-      await apiClient.post('/api/costos/depreciacion', payload);
+      if (mode === 'edit' && depreciation) {
+        await apiClient.put(`/api/costos/depreciacion/${depreciation.id}`, payload);
+      } else {
+        await apiClient.post('/api/costos/depreciacion', payload);
+      }
 
       await Promise.resolve(onSuccess());
     } catch (error) {
-      setSubmitError('No se pudo registrar la depreciación. Intenta nuevamente.');
+      setSubmitError(
+        mode === 'edit'
+          ? 'No se pudo actualizar la depreciación. Intenta nuevamente.'
+          : 'No se pudo registrar la depreciación. Intenta nuevamente.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -131,16 +168,20 @@ const RegisterDepreciationDialog: React.FC<RegisterDepreciationDialogProps> = ({
     return null;
   }
 
-  const submitLabel = isSubmitting ? 'Guardando…' : 'Registrar';
+  const dialogTitle = mode === 'edit' ? 'Editar depreciación' : 'Registrar depreciación';
+  const dialogDescription =
+    mode === 'edit'
+      ? 'Modifica los datos necesarios para actualizar la depreciación del centro y la máquina seleccionados.'
+      : 'Completa los datos necesarios para crear una nueva depreciación asociada a un centro de producción.';
+
+  const submitLabel = isSubmitting ? 'Guardando…' : mode === 'edit' ? 'Guardar cambios' : 'Registrar';
 
   return (
-    <div className="costos-dialog-backdrop" role="dialog" aria-modal="true" aria-label="Registrar depreciación">
+    <div className="costos-dialog-backdrop" role="dialog" aria-modal="true" aria-label={dialogTitle}>
       <div className="costos-dialog">
         <header>
-          <h2>Registrar depreciación</h2>
-          <p className="costos-metadata">
-            Completa los datos necesarios para crear una nueva depreciación asociada a un centro de producción.
-          </p>
+          <h2>{dialogTitle}</h2>
+          <p className="costos-metadata">{dialogDescription}</p>
         </header>
         <form
           id="register-depreciation-form"
