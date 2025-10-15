@@ -234,27 +234,21 @@
 }
 
 .reportes-table tbody tr.reportes-cuadros-row--success .reportes-table__cell {
-  background: rgba(13, 148, 136, 0.08);
+  box-shadow: inset 4px 0 rgba(13, 148, 136, 0.6);
 }
 
 .reportes-table tbody tr.reportes-cuadros-row--warning .reportes-table__cell {
-  background: rgba(234, 179, 8, 0.1);
+  box-shadow: inset 4px 0 rgba(234, 179, 8, 0.75);
 }
 
 .reportes-table tbody tr.reportes-cuadros-row--danger .reportes-table__cell {
-  background: rgba(249, 115, 22, 0.1);
+  box-shadow: inset 4px 0 rgba(249, 115, 22, 0.75);
 }
 
-.reportes-table tbody tr.reportes-cuadros-row--success:hover .reportes-table__cell {
-  background: rgba(13, 148, 136, 0.14);
-}
-
-.reportes-table tbody tr.reportes-cuadros-row--warning:hover .reportes-table__cell {
-  background: rgba(234, 179, 8, 0.16);
-}
-
+.reportes-table tbody tr.reportes-cuadros-row--success:hover .reportes-table__cell,
+.reportes-table tbody tr.reportes-cuadros-row--warning:hover .reportes-table__cell,
 .reportes-table tbody tr.reportes-cuadros-row--danger:hover .reportes-table__cell {
-  background: rgba(249, 115, 22, 0.18);
+  background: rgba(20, 94, 168, 0.06);
 }
 
 .reportes-table-card {
@@ -324,7 +318,7 @@
   transition: background-color 0.2s ease;
 }
 
-.reportes-table tbody tr:hover {
+.reportes-table tbody tr:hover .reportes-table__cell {
   background: rgba(20, 94, 168, 0.06);
 }
 
@@ -333,6 +327,8 @@
   border-bottom: 1px solid var(--color-outline);
   color: var(--color-text-primary);
   vertical-align: middle;
+  background: var(--color-surface-alt);
+  transition: background-color 0.2s ease;
 }
 
 .reportes-table tbody tr:last-of-type .reportes-table__cell {
