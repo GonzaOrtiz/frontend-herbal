@@ -10,6 +10,7 @@ import AuditTimeline from './AuditTimeline';
 import ProcessLog from './ProcessLog';
 import ProcessRunnerDialog from './ProcessRunnerDialog';
 import RegisterSalaryDialog from './RegisterSalaryDialog';
+import RegisterDepreciationDialog from './RegisterDepreciationDialog';
 import ConfirmDialog from '../../configuracion/components/ConfirmDialog';
 import { costosConfigs } from '../pages/config';
 import { useCostosContext } from '../context/CostosContext';
@@ -30,6 +31,7 @@ const CostosLayout: React.FC = () => {
   const [registerDialogOpen, setRegisterDialogOpen] = useState(false);
   const [registerDialogMode, setRegisterDialogMode] = useState<'create' | 'edit'>('create');
   const [editingSalary, setEditingSalary] = useState<SueldoRecord | null>(null);
+  const [registerDepreciationOpen, setRegisterDepreciationOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<SueldoRecord | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -46,6 +48,7 @@ const CostosLayout: React.FC = () => {
     setRegisterDialogOpen(false);
     setRegisterDialogMode('create');
     setEditingSalary(null);
+    setRegisterDepreciationOpen(false);
     setPendingDelete(null);
     setDeleteError(null);
     setIsDeleting(false);
@@ -68,6 +71,9 @@ const CostosLayout: React.FC = () => {
         setRegisterDialogMode('create');
         setEditingSalary(null);
         setRegisterDialogOpen(true);
+      }
+      if (effectiveSubmodule === 'depreciaciones' && actionId === 'registrar') {
+        setRegisterDepreciationOpen(true);
       }
     },
     [effectiveSubmodule],
@@ -247,6 +253,18 @@ const CostosLayout: React.FC = () => {
           }}
           mode={registerDialogMode}
           salary={editingSalary}
+        />
+      )}
+      {effectiveSubmodule === 'depreciaciones' && (
+        <RegisterDepreciationDialog
+          open={registerDepreciationOpen}
+          onClose={() => {
+            setRegisterDepreciationOpen(false);
+          }}
+          onSuccess={async () => {
+            setRegisterDepreciationOpen(false);
+            await query.refetch();
+          }}
         />
       )}
       {pendingDelete && (

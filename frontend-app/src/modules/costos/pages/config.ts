@@ -79,8 +79,6 @@ export const costosConfigs: Record<Exclude<CostosSubModulo, 'prorrateo'>, Costos
         id: 'registrar',
         label: 'Registrar depreciación',
         intent: 'primary',
-        disabled: true,
-        description: 'Pendiente de habilitar junto con el formulario de depreciaciones.',
       },
       {
         id: 'carga-masiva',
