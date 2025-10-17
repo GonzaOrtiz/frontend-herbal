@@ -424,10 +424,6 @@ const CifModule: React.FC<CifModuleProps> = ({ activeSection, onSectionChange })
               <span>Base de prorrateo</span>
               <input type="number" name="base" value={totalForm.base} onChange={handleTotalChange} required min="0" step="0.01" />
             </label>
-            <label className="cif-field">
-              <span>Access ID (opcional)</span>
-              <input type="text" name="accessId" value={totalForm.accessId} onChange={handleTotalChange} />
-            </label>
             <button type="submit" className="primary" disabled={totalStatus.state === 'saving'}>
               {totalStatus.state === 'saving' ? 'Guardando…' : 'Registrar CIF total'}
             </button>
@@ -478,10 +474,6 @@ const CifModule: React.FC<CifModuleProps> = ({ activeSection, onSectionChange })
                 min="0"
                 step="0.01"
               />
-            </label>
-            <label className="cif-field">
-              <span>Access ID (opcional)</span>
-              <input type="text" name="accessId" value={unitarioForm.accessId} onChange={handleUnitarioChange} />
             </label>
             <button type="submit" className="primary" disabled={unitarioStatus.state === 'saving'}>
               {unitarioStatus.state === 'saving' ? 'Calculando…' : 'Calcular CIF unitario'}
