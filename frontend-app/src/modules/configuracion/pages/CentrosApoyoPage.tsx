@@ -116,7 +116,7 @@ const CentrosApoyoPage: React.FC = () => {
   const [gastosSummary, setGastosSummary] = useState<CentroApoyoExpenseSummary>(() =>
     buildCentrosApoyoSummary([]),
   );
-  const [gastosCurrency, setGastosCurrency] = useState('MXN');
+  const [gastosCurrency, setGastosCurrency] = useState('ARS');
   const [gastosLoading, setGastosLoading] = useState(false);
   const [gastosError, setGastosError] = useState<string | null>(null);
   const [gastosWarning, setGastosWarning] = useState<string | null>(null);

@@ -219,7 +219,7 @@ const domainConfigs: Record<DomainKey, DomainConfig> = {
       stats: [
         { value: '3', label: 'Formularios activos' },
         { value: '0', label: 'Procesos pendientes' },
-        { value: 'MXN', label: 'Moneda base' },
+        { value: 'ARS', label: 'Moneda base' },
       ],
     },
     shortcuts: ['Validar costos totales', 'Comparar unitarios', 'Exportar historial'],

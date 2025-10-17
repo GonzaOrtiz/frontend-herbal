@@ -57,7 +57,7 @@ export async function fetchCostosReport(filters: ReportFilters): Promise<FetchCo
     ],
     rows: normalized.costos.map((item) => ({
       centro: item.centro,
-      monto: new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(item.monto),
+      monto: new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'ARS' }).format(item.monto),
     })),
     emptyMessage: 'Sin registros de costos para el periodo solicitado.',
   };

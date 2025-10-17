@@ -23,10 +23,10 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ data, insight }) => (
         <BarChart data={data} barGap={12} role="img" aria-label="Gráfico comparativo de egresos e insumos">
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
-          <YAxis tickFormatter={(value) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)} />
+          <YAxis tickFormatter={(value) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'ARS' }).format(value)} />
           <Tooltip
             formatter={(value: number) =>
-              new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)
+              new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'ARS' }).format(value)
             }
             contentStyle={{ backgroundColor: '#0f172a', color: '#f8fafc', borderRadius: 12 }}
           />

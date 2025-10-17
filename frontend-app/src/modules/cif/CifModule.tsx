@@ -59,7 +59,7 @@ interface CifModuleProps {
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('es-MX', {
     style: 'currency',
-    currency: 'MXN',
+    currency: 'ARS',
     maximumFractionDigits: 2,
   }).format(Number.isFinite(value) ? value : 0);
 }
@@ -417,7 +417,7 @@ const CifModule: React.FC<CifModuleProps> = ({ activeSection, onSectionChange })
               />
             </label>
             <label className="cif-field">
-              <span>Monto total (MXN)</span>
+              <span>Monto total (ARS)</span>
               <input type="number" name="monto" value={totalForm.monto} onChange={handleTotalChange} required min="0" step="0.01" />
             </label>
             <label className="cif-field">

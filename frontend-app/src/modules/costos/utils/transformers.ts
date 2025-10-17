@@ -192,7 +192,7 @@ export function calculateBalanceSummary(
       balance: 0,
       variationPercentage: 0,
       warning: undefined,
-      currency: 'MXN',
+      currency: 'ARS',
     };
   }
   const previous = response.previousTotal ?? 0;
