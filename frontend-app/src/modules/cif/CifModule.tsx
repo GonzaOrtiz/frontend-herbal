@@ -13,6 +13,8 @@ import type {
   CreateCifTotalPayload,
   CreateCifUnitarioPayload,
 } from './types';
+import { useCuadrosProducts } from '../costos/hooks/useCuadrosProducts';
+import { SearchableSelect } from './components/SearchableSelect';
 import './cif.css';
 
 type CifSection = 'panel' | 'totales' | 'unitarios' | 'recalculo';
@@ -98,6 +100,12 @@ const CifModule: React.FC<CifModuleProps> = ({ activeSection, onSectionChange })
   const [totalStatus, setTotalStatus] = useState<FormStatus>({ state: 'idle', message: null });
   const [unitarioStatus, setUnitarioStatus] = useState<FormStatus>({ state: 'idle', message: null });
   const [recalculoStatus, setRecalculoStatus] = useState<FormStatus>({ state: 'idle', message: null });
+  const {
+    products: productOptions,
+    isLoading: areProductsLoading,
+    status: productsStatus,
+  } = useCuadrosProducts();
+  const showProductsError = productsStatus === 'error';
 
   const handleApplyFilters = useCallback(
     (event?: React.FormEvent<HTMLFormElement>) => {
@@ -151,6 +159,14 @@ const CifModule: React.FC<CifModuleProps> = ({ activeSection, onSectionChange })
   const handleUnitarioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setUnitarioForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTotalProductChange = (value: string) => {
+    setTotalForm((prev) => ({ ...prev, producto: value }));
+  };
+
+  const handleUnitarioProductChange = (value: string) => {
+    setUnitarioForm((prev) => ({ ...prev, producto: value }));
   };
 
   const handleRecalculoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -398,14 +414,21 @@ const CifModule: React.FC<CifModuleProps> = ({ activeSection, onSectionChange })
           <form className="cif-form" onSubmit={handleSubmitTotal}>
             <label className="cif-field">
               <span>Producto</span>
-              <input
-                type="text"
+              <SearchableSelect
                 name="producto"
                 value={totalForm.producto}
-                onChange={handleTotalChange}
+                onChange={handleTotalProductChange}
+                options={productOptions}
+                placeholder="Selecciona un producto"
                 required
+                loading={areProductsLoading}
               />
             </label>
+            {showProductsError && (
+              <p className="cif-status cif-status--error" role="alert">
+                No se pudieron cargar los productos. Intenta recargar la página.
+              </p>
+            )}
             <label className="cif-field">
               <span>Periodo</span>
               <input
@@ -449,12 +472,14 @@ const CifModule: React.FC<CifModuleProps> = ({ activeSection, onSectionChange })
           <form className="cif-form" onSubmit={handleSubmitUnitario}>
             <label className="cif-field">
               <span>Producto</span>
-              <input
-                type="text"
+              <SearchableSelect
                 name="producto"
                 value={unitarioForm.producto}
-                onChange={handleUnitarioChange}
+                onChange={handleUnitarioProductChange}
+                options={productOptions}
+                placeholder="Selecciona un producto"
                 required
+                loading={areProductsLoading}
               />
             </label>
             <label className="cif-field">
