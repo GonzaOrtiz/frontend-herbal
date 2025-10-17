@@ -15,6 +15,16 @@ export function formatCurrency(value: number, options: FormatCurrencyOptions = {
   }).format(Number.isFinite(value) ? value : 0);
 }
 
+export function getCurrencySymbol(currency: string, locale = 'es-AR'): string {
+  try {
+    const formatter = new Intl.NumberFormat(locale, { style: 'currency', currency });
+    const symbol = formatter.formatToParts(0).find((part) => part.type === 'currency');
+    return symbol?.value ?? currency;
+  } catch {
+    return currency;
+  }
+}
+
 export interface FormatPercentageOptions {
   locale?: string;
   minimumFractionDigits?: number;

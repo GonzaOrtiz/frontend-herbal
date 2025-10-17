@@ -120,136 +120,136 @@ const CuadrosComparativos: React.FC<CuadrosComparativosProps> = ({ cards }) => {
               />
             </div>
           </div>
+        </div>
 
-          {hasResults ? (
-            <>
-              <div className="reportes-table-wrapper">
-                <table
-                  className="reportes-table"
-                  role="grid"
-                  aria-label="Detalle de cuadros comparativos por producto"
-                  aria-describedby={descriptionId}
-                >
-                  <thead>
-                    <tr>
+        {hasResults ? (
+          <>
+            <div className="reportes-table-wrapper">
+              <table
+                className="reportes-table"
+                role="grid"
+                aria-label="Detalle de cuadros comparativos por producto"
+                aria-describedby={descriptionId}
+              >
+                <thead>
+                  <tr>
+                    <th scope="col" style={{ textAlign: 'left' }}>
+                      Producto
+                    </th>
+                    {hasPeriodoColumn && (
                       <th scope="col" style={{ textAlign: 'left' }}>
-                        Producto
+                        Periodo
+                      </th>
+                    )}
+                    <th scope="col" style={{ textAlign: 'right' }}>
+                      Costo directo
+                    </th>
+                    <th scope="col" style={{ textAlign: 'right' }}>
+                      Costo indirecto
+                    </th>
+                    <th scope="col" style={{ textAlign: 'right' }}>
+                      Diferencia
+                    </th>
+                    {hasTendenciaColumn && (
+                      <th scope="col" style={{ textAlign: 'left' }}>
+                        Tendencia
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedCards.map((card) => (
+                    <tr key={card.id} className={toneRowClassMap[card.tone]}>
+                      <th scope="row" className="reportes-table__cell reportes-table__cell--row-header">
+                        {card.producto}
                       </th>
                       {hasPeriodoColumn && (
-                        <th scope="col" style={{ textAlign: 'left' }}>
-                          Periodo
-                        </th>
+                        <td className="reportes-table__cell" data-column="Periodo">
+                          {card.periodoLabel ?? '—'}
+                        </td>
                       )}
-                      <th scope="col" style={{ textAlign: 'right' }}>
-                        Costo directo
-                      </th>
-                      <th scope="col" style={{ textAlign: 'right' }}>
-                        Costo indirecto
-                      </th>
-                      <th scope="col" style={{ textAlign: 'right' }}>
-                        Diferencia
-                      </th>
+                      <td
+                        className="reportes-table__cell"
+                        data-column="Costo directo"
+                        style={{ textAlign: 'right' }}
+                      >
+                        {card.costoDirecto}
+                      </td>
+                      <td
+                        className="reportes-table__cell"
+                        data-column="Costo indirecto"
+                        style={{ textAlign: 'right' }}
+                      >
+                        {card.costoIndirecto}
+                      </td>
+                      <td
+                        className="reportes-table__cell"
+                        data-column="Diferencia"
+                        style={{ textAlign: 'right' }}
+                      >
+                        <div className="reportes-cuadros-difference">
+                          <span className="reportes-cuadros-difference__value">{card.diferencia}</span>
+                          {card.diferenciaPorcentaje && (
+                            <span className="reportes-cuadros-difference__percentage">
+                              {card.diferenciaPorcentaje}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       {hasTendenciaColumn && (
-                        <th scope="col" style={{ textAlign: 'left' }}>
-                          Tendencia
-                        </th>
+                        <td className="reportes-table__cell" data-column="Tendencia">
+                          {card.tendenciaLabel ?? '—'}
+                        </td>
                       )}
                     </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedCards.map((card) => (
-                      <tr key={card.id} className={toneRowClassMap[card.tone]}>
-                        <th scope="row" className="reportes-table__cell reportes-table__cell--row-header">
-                          {card.producto}
-                        </th>
-                        {hasPeriodoColumn && (
-                          <td className="reportes-table__cell" data-column="Periodo">
-                            {card.periodoLabel ?? '—'}
-                          </td>
-                        )}
-                        <td
-                          className="reportes-table__cell"
-                          data-column="Costo directo"
-                          style={{ textAlign: 'right' }}
-                        >
-                          {card.costoDirecto}
-                        </td>
-                        <td
-                          className="reportes-table__cell"
-                          data-column="Costo indirecto"
-                          style={{ textAlign: 'right' }}
-                        >
-                          {card.costoIndirecto}
-                        </td>
-                        <td
-                          className="reportes-table__cell"
-                          data-column="Diferencia"
-                          style={{ textAlign: 'right' }}
-                        >
-                          <div className="reportes-cuadros-difference">
-                            <span className="reportes-cuadros-difference__value">{card.diferencia}</span>
-                            {card.diferenciaPorcentaje && (
-                              <span className="reportes-cuadros-difference__percentage">
-                                {card.diferenciaPorcentaje}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        {hasTendenciaColumn && (
-                          <td className="reportes-table__cell" data-column="Tendencia">
-                            {card.tendenciaLabel ?? '—'}
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="reportes-cuadros-pagination" aria-label="Paginación de detalle por producto">
-                <span className="reportes-cuadros-pagination__info">
-                  Mostrando {from.toLocaleString()}-{to.toLocaleString()} de {filteredCards.length.toLocaleString()}
-                </span>
-                <div className="reportes-cuadros-pagination__actions">
-                  <label className="reportes-cuadros-pagination__page-size">
-                    Mostrar
-                    <select value={pageSize} onChange={handlePageSizeChange}>
-                      {normalizedPageSizeOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                    registros
-                  </label>
-                  <button
-                    type="button"
-                    className="secondary small"
-                    onClick={handlePreviousPage}
-                    disabled={page === 1}
-                  >
-                    Anterior
-                  </button>
-                  <span className="reportes-cuadros-pagination__page">
-                    Página {displayPage} de {displayTotalPages}
-                  </span>
-                  <button
-                    type="button"
-                    className="secondary small"
-                    onClick={handleNextPage}
-                    disabled={page === totalPages}
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="reportes-empty-state" role="status">
-              <p>No se encontraron productos que coincidan con la búsqueda.</p>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
+
+            <div className="reportes-cuadros-pagination" aria-label="Paginación de detalle por producto">
+              <span className="reportes-cuadros-pagination__info">
+                Mostrando {from.toLocaleString()}-{to.toLocaleString()} de {filteredCards.length.toLocaleString()}
+              </span>
+              <div className="reportes-cuadros-pagination__actions">
+                <label className="reportes-cuadros-pagination__page-size">
+                  Mostrar
+                  <select value={pageSize} onChange={handlePageSizeChange}>
+                    {normalizedPageSizeOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  registros
+                </label>
+                <button
+                  type="button"
+                  className="secondary small"
+                  onClick={handlePreviousPage}
+                  disabled={page === 1}
+                >
+                  Anterior
+                </button>
+                <span className="reportes-cuadros-pagination__page">
+                  Página {displayPage} de {displayTotalPages}
+                </span>
+                <button
+                  type="button"
+                  className="secondary small"
+                  onClick={handleNextPage}
+                  disabled={page === totalPages}
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="reportes-empty-state" role="status">
+            <p>No se encontraron productos que coincidan con la búsqueda.</p>
+          </div>
+        )}
       </div>
     </section>
   );

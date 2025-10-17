@@ -1,12 +1,15 @@
 import React, { useMemo } from 'react';
+import { formatCurrency } from '@/lib/formatters';
 import type { TrendPoint } from '../types';
 import '../costos.css';
 
 interface TrendChartProps {
   points: TrendPoint[];
+  currency: string;
 }
 
-const TrendChart: React.FC<TrendChartProps> = ({ points }) => {
+const TrendChart: React.FC<TrendChartProps> = ({ points, currency }) => {
+  const resolvedCurrency = currency || 'ARS';
   const { path, min, max } = useMemo(() => {
     if (points.length === 0) {
       return { path: '', min: 0, max: 0 };

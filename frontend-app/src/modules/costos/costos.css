@@ -24,6 +24,35 @@
   max-width: 720px;
 }
 
+.costos-base-currency {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(20, 94, 168, 0.12);
+  color: var(--color-primary-variant);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.costos-base-currency__label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  color: rgba(20, 94, 168, 0.72);
+}
+
+.costos-base-currency__symbol {
+  font-size: 1rem;
+}
+
+.costos-base-currency__code {
+  font-size: 0.78rem;
+  color: rgba(20, 94, 168, 0.72);
+}
+
 .costos-actions {
   display: flex;
   flex-wrap: wrap;

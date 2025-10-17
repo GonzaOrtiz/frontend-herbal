@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatCurrency } from '@/lib/formatters';
 import type { BalanceSummaryData, CostosProcessState } from '../types';
 import '../costos.css';
 
@@ -31,6 +32,9 @@ const ProcessRunnerDialog: React.FC<ProcessRunnerDialogProps> = ({
   latestSummary,
 }) => {
   if (!open) return null;
+
+  const currency = latestSummary?.currency ?? 'ARS';
+  const formatProcessAmount = (value: number) => formatCurrency(value, { currency });
 
   const simulatedResult =
     process.result ??

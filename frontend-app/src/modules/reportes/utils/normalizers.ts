@@ -180,6 +180,12 @@ export function normalizeCifResponse(response: unknown): ReportTableDescriptor<{
     ],
     rows,
     emptyMessage: 'No hay datos de CIF para los filtros aplicados.',
+    enableSearch: true,
+    searchPlaceholder: 'Buscar producto o periodo…',
+    searchEmptyMessage: 'No se encontraron coincidencias para la búsqueda aplicada.',
+    enablePagination: true,
+    pageSizeOptions: [5, 10, 25, 50],
+    defaultPageSize: 10,
   };
 }
 
