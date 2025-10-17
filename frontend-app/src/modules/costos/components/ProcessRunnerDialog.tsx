@@ -57,8 +57,8 @@ const ProcessRunnerDialog: React.FC<ProcessRunnerDialogProps> = ({
             <strong>Estado: {statusLabel[process.status]}</strong>
             {simulatedResult && (
               <p className="costos-metadata">
-                Balance: {simulatedResult.balance.toLocaleString('es-MX', { minimumFractionDigits: 2 })} · Diferencia:{' '}
-                {simulatedResult.difference.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                Balance: {simulatedResult.balance.toLocaleString('es-AR', { minimumFractionDigits: 2 })} · Diferencia:{' '}
+                {simulatedResult.difference.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
               </p>
             )}
             {simulatedResult?.warning && <p className="costos-warning">{simulatedResult.warning}</p>}
@@ -69,9 +69,9 @@ const ProcessRunnerDialog: React.FC<ProcessRunnerDialogProps> = ({
             <div className="costos-progress-bar" aria-valuenow={process.progress} aria-valuemin={0} aria-valuemax={100}>
               <span style={{ width: `${process.progress}%` }} />
             </div>
-            {process.startedAt && <p className="costos-metadata">Iniciado: {new Date(process.startedAt).toLocaleString('es-MX')}</p>}
+            {process.startedAt && <p className="costos-metadata">Iniciado: {new Date(process.startedAt).toLocaleString('es-AR')}</p>}
             {process.finishedAt && (
-              <p className="costos-metadata">Finalizado: {new Date(process.finishedAt).toLocaleString('es-MX')}</p>
+              <p className="costos-metadata">Finalizado: {new Date(process.finishedAt).toLocaleString('es-AR')}</p>
             )}
           </div>
         </div>

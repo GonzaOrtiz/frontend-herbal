@@ -47,8 +47,8 @@ const TrendChart: React.FC<TrendChartProps> = ({ points }) => {
             })}
           </svg>
           <div className="costos-metadata">
-            <span>Valor mínimo: {min.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-            <span>Valor máximo: {max.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+            <span>Valor mínimo: {min.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+            <span>Valor máximo: {max.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
           </div>
         </div>
       )}

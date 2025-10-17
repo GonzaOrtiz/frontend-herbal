@@ -67,8 +67,8 @@ const BalanceSummary: React.FC<BalanceSummaryProps> = ({ summary, formatted, onR
     )}
 
     <footer className="costos-metadata">
-      <span>Balance: {summary.balance.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-      <span>Diferencia: {summary.difference.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+      <span>Balance: {summary.balance.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+      <span>Diferencia: {summary.difference.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
     </footer>
   </section>
 );

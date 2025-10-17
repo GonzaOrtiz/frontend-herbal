@@ -57,7 +57,7 @@ interface CifModuleProps {
 }
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
     maximumFractionDigits: 2,
@@ -328,7 +328,7 @@ const CifModule: React.FC<CifModuleProps> = ({ activeSection, onSectionChange })
               </div>
               <div>
                 <dt>Cantidad</dt>
-                <dd>{latestUnitario ? latestUnitario.cantidad.toLocaleString('es-MX') : '—'}</dd>
+                <dd>{latestUnitario ? latestUnitario.cantidad.toLocaleString('es-AR') : '—'}</dd>
               </div>
             </dl>
           </article>
@@ -542,7 +542,7 @@ const CifModule: React.FC<CifModuleProps> = ({ activeSection, onSectionChange })
                       <td>{formatDate(item.periodo)}</td>
                       <td>{formatCurrency(item.monto)}</td>
                       <td>{formatCurrency(item.base)}</td>
-                      <td>{item.cantidad ? item.cantidad.toLocaleString('es-MX') : '—'}</td>
+                      <td>{item.cantidad ? item.cantidad.toLocaleString('es-AR') : '—'}</td>
                       <td>{formatCurrency(item.costoUnitario)}</td>
                     </tr>
                   ))}
@@ -617,7 +617,7 @@ const CifModule: React.FC<CifModuleProps> = ({ activeSection, onSectionChange })
                     <tr key={`${unitario.producto}-${unitario.periodo}-${unitario.id ?? ''}`}>
                       <td>{unitario.producto}</td>
                       <td>{formatDate(unitario.periodo)}</td>
-                      <td>{unitario.cantidad.toLocaleString('es-MX')}</td>
+                      <td>{unitario.cantidad.toLocaleString('es-AR')}</td>
                       <td>{formatCurrency(unitario.costoUnitario)}</td>
                       <td>{unitario.accessId ?? '—'}</td>
                       <td>{formatDate(unitario.updatedAt ?? unitario.createdAt)}</td>

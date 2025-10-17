@@ -6,7 +6,7 @@ export interface FormatCurrencyOptions {
 }
 
 export function formatCurrency(value: number, options: FormatCurrencyOptions = {}): string {
-  const { currency = 'ARS', locale = 'es-MX', minimumFractionDigits = 2, maximumFractionDigits = 2 } = options;
+  const { currency = 'ARS', locale = 'es-AR', minimumFractionDigits = 2, maximumFractionDigits = 2 } = options;
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -22,7 +22,7 @@ export interface FormatPercentageOptions {
 }
 
 export function formatPercentage(value: number, options: FormatPercentageOptions = {}): string {
-  const { locale = 'es-MX', minimumFractionDigits = 1, maximumFractionDigits = 1 } = options;
+  const { locale = 'es-AR', minimumFractionDigits = 1, maximumFractionDigits = 1 } = options;
   return new Intl.NumberFormat(locale, {
     style: 'percent',
     minimumFractionDigits,

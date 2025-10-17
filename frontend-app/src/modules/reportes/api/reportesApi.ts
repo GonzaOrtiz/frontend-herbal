@@ -57,7 +57,7 @@ export async function fetchCostosReport(filters: ReportFilters): Promise<FetchCo
     ],
     rows: normalized.costos.map((item) => ({
       centro: item.centro,
-      monto: new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'ARS' }).format(item.monto),
+      monto: new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(item.monto),
     })),
     emptyMessage: 'Sin registros de costos para el periodo solicitado.',
   };
@@ -72,7 +72,7 @@ export async function fetchCostosReport(filters: ReportFilters): Promise<FetchCo
     ],
     rows: normalized.consumos.map((item) => ({
       producto: item.producto,
-      cantidad: new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+      cantidad: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
         item.cantidad,
       ),
     })),
@@ -163,7 +163,7 @@ export async function exportReport(
     return {
       status: 'error',
       percentage: 100,
-      error: `La exportación excede el máximo permitido de ${MAX_EXPORT_ROWS.toLocaleString('es-MX')} filas. Ajusta los filtros y vuelve a intentar.`,
+      error: `La exportación excede el máximo permitido de ${MAX_EXPORT_ROWS.toLocaleString('es-AR')} filas. Ajusta los filtros y vuelve a intentar.`,
     };
   }
 

@@ -14,7 +14,7 @@ const CloseDayBanner: React.FC<Props> = ({ closeReason, expectedUnlockAt, respon
     if (Number.isNaN(baseDate.getTime())) {
       unlockText = expectedUnlockAt;
     } else {
-      const time = baseDate.toLocaleTimeString('es-MX', {
+      const time = baseDate.toLocaleTimeString('es-AR', {
         hour: '2-digit',
         minute: '2-digit',
       });
