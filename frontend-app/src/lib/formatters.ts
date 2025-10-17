@@ -6,7 +6,7 @@ export interface FormatCurrencyOptions {
 }
 
 export function formatCurrency(value: number, options: FormatCurrencyOptions = {}): string {
-  const { currency = 'MXN', locale = 'es-MX', minimumFractionDigits = 2, maximumFractionDigits = 2 } = options;
+  const { currency = 'ARS', locale = 'es-AR', minimumFractionDigits = 2, maximumFractionDigits = 2 } = options;
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -15,7 +15,7 @@ export function formatCurrency(value: number, options: FormatCurrencyOptions = {
   }).format(Number.isFinite(value) ? value : 0);
 }
 
-export function getCurrencySymbol(currency: string, locale = 'es-MX'): string {
+export function getCurrencySymbol(currency: string, locale = 'es-AR'): string {
   try {
     const formatter = new Intl.NumberFormat(locale, { style: 'currency', currency });
     const symbol = formatter.formatToParts(0).find((part) => part.type === 'currency');

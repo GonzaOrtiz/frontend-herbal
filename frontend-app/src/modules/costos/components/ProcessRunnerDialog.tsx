@@ -33,7 +33,7 @@ const ProcessRunnerDialog: React.FC<ProcessRunnerDialogProps> = ({
 }) => {
   if (!open) return null;
 
-  const currency = latestSummary?.currency ?? 'MXN';
+  const currency = latestSummary?.currency ?? 'ARS';
   const formatProcessAmount = (value: number) => formatCurrency(value, { currency });
 
   const simulatedResult =

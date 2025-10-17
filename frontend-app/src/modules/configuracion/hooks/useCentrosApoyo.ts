@@ -141,7 +141,7 @@ export async function listCentroApoyoGastos(
   let items: unknown[] = [];
   let total = 0;
   let count = 0;
-  let currency = 'MXN';
+  let currency = 'ARS';
 
   if (Array.isArray(response)) {
     items = response;
