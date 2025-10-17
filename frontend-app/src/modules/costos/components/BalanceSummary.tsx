@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatCurrency } from '@/lib/formatters';
 import type { BalanceSummaryData } from '../types';
 import '../costos.css';
 
@@ -67,8 +68,8 @@ const BalanceSummary: React.FC<BalanceSummaryProps> = ({ summary, formatted, onR
     )}
 
     <footer className="costos-metadata">
-      <span>Balance: {summary.balance.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-      <span>Diferencia: {summary.difference.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+      <span>Balance: {formatCurrency(summary.balance, { currency: summary.currency })}</span>
+      <span>Diferencia: {formatCurrency(summary.difference, { currency: summary.currency })}</span>
     </footer>
   </section>
 );

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/http/apiClient';
+import { getCurrencySymbol } from '@/lib/formatters';
 import CostosTabs from './CostosTabs';
 import CostosFilterBar from './CostosFilterBar';
 import CostosDataTable from './CostosDataTable';
@@ -73,6 +74,7 @@ const CostosLayout: React.FC = () => {
 
   const headerDescription =
     'Calcula, distribuye y consolida costos operativos asegurando trazabilidad entre centros, existencias y asientos.';
+  const baseCurrencySymbol = useMemo(() => getCurrencySymbol(summary.currency), [summary.currency]);
 
   const navigationDisabledMessage =
     'Disponible cuando se habilite la navegación directa hacia Existencias y Asientos.';
@@ -165,6 +167,13 @@ const CostosLayout: React.FC = () => {
         <div>
           <h1>Costos y consolidaciones</h1>
           <p>{headerDescription}</p>
+          <div className="costos-base-currency" aria-live="polite">
+            <span className="costos-base-currency__label">Moneda base</span>
+            <span className="costos-base-currency__symbol" aria-hidden="true">
+              {baseCurrencySymbol}
+            </span>
+            <span className="costos-base-currency__code">{summary.currency}</span>
+          </div>
         </div>
         <div className="costos-actions">
           <button type="button" className="primary" onClick={() => setDialogOpen(true)}>
@@ -305,7 +314,7 @@ const CostosLayout: React.FC = () => {
             isLoading={query.status === 'loading'}
           />
           <AllocationBreakdown items={allocation} currency={summary.currency} />
-          <TrendChart points={trend} />
+          <TrendChart points={trend} currency={summary.currency} />
           <AuditTimeline record={selected} />
           <ProcessLog logs={processState.logs} />
         </div>
