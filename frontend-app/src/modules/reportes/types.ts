@@ -64,6 +64,12 @@ export interface ReportTableDescriptor<Row extends BaseTableRow = BaseTableRow> 
   subtotalBy?: keyof Row;
   totalRow?: Partial<Row> & { label?: string };
   emptyMessage?: string;
+  enableSearch?: boolean;
+  searchPlaceholder?: string;
+  searchEmptyMessage?: string;
+  enablePagination?: boolean;
+  pageSizeOptions?: number[];
+  defaultPageSize?: number;
 }
 
 export interface ReportSummaryCard {
