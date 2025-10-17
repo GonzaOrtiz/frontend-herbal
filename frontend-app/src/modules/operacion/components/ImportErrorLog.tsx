@@ -67,7 +67,7 @@ const ImportErrorLog: React.FC<Props> = ({ bitacora }) => {
                 <td>{error.field}</td>
                 <td>{error.message}</td>
                 <td>{error.usuario}</td>
-                <td>{new Date(error.timestamp).toLocaleString('es-MX')}</td>
+                <td>{new Date(error.timestamp).toLocaleString('es-AR')}</td>
               </tr>
             ))}
           </tbody>

@@ -50,8 +50,8 @@ const TrendChart: React.FC<TrendChartProps> = ({ points, currency }) => {
             })}
           </svg>
           <div className="costos-metadata">
-            <span>Valor mínimo: {formatCurrency(min, { currency: resolvedCurrency })}</span>
-            <span>Valor máximo: {formatCurrency(max, { currency: resolvedCurrency })}</span>
+            <span>Valor mínimo: {min.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+            <span>Valor máximo: {max.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
           </div>
         </div>
       )}

@@ -47,7 +47,7 @@ function formatDate(value: string | undefined | null): string {
     return value;
   }
 
-  return date.toLocaleDateString('es-MX', {
+  return date.toLocaleDateString('es-AR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -67,7 +67,7 @@ function getCellValue(
     if (column.align === 'right') {
       return formatCurrency(value, { currency });
     }
-    return value.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+    return value.toLocaleString('es-AR', { minimumFractionDigits: 2 });
   }
   if (typeof value === 'boolean') {
     return value ? <span className="costos-table-badge">Sí</span> : 'No';

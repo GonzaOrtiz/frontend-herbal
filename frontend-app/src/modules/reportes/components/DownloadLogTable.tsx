@@ -41,7 +41,7 @@ const DownloadLogTable: React.FC<DownloadLogTableProps> = ({ logs }) => {
                 ))}
               </td>
               <td>{log.createdBy}</td>
-              <td>{new Date(log.requestedAt).toLocaleString('es-MX')}</td>
+              <td>{new Date(log.requestedAt).toLocaleString('es-AR')}</td>
               <td>{log.status === 'completed' ? 'Completado' : log.status === 'failed' ? 'Fallido' : 'Pendiente'}</td>
             </tr>
           ))}

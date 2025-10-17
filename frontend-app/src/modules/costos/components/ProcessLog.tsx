@@ -23,7 +23,7 @@ const ProcessLog: React.FC<ProcessLogProps> = ({ logs }) => (
           <article key={log.id} className="costos-log-entry" data-level={log.level}>
             <header>
               <strong>{levelLabel[log.level]}</strong>
-              <span> · {new Date(log.timestamp).toLocaleString('es-MX')}</span>
+              <span> · {new Date(log.timestamp).toLocaleString('es-AR')}</span>
             </header>
             <p>{log.message}</p>
             {log.actor && <p className="costos-metadata">Responsable: {log.actor}</p>}

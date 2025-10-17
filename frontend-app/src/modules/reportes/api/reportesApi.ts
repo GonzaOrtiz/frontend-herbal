@@ -163,7 +163,7 @@ export async function exportReport(
     return {
       status: 'error',
       percentage: 100,
-      error: `La exportación excede el máximo permitido de ${MAX_EXPORT_ROWS.toLocaleString('es-MX')} filas. Ajusta los filtros y vuelve a intentar.`,
+      error: `La exportación excede el máximo permitido de ${MAX_EXPORT_ROWS.toLocaleString('es-AR')} filas. Ajusta los filtros y vuelve a intentar.`,
     };
   }
 

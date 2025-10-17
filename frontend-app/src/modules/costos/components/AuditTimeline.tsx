@@ -22,12 +22,12 @@ const AuditTimeline: React.FC<AuditTimelineProps> = ({ record }) => {
       <div className="costos-audit-timeline">
         <div className="costos-audit-entry">
           <strong>Creado por {record.createdBy ?? 'N/D'}</strong>
-          <span>{record.createdAt ? new Date(record.createdAt).toLocaleString('es-MX') : 'Fecha no disponible'}</span>
+          <span>{record.createdAt ? new Date(record.createdAt).toLocaleString('es-AR') : 'Fecha no disponible'}</span>
         </div>
         {record.updatedAt && (
           <div className="costos-audit-entry">
             <strong>Actualizado por {record.updatedBy ?? 'N/D'}</strong>
-            <span>{new Date(record.updatedAt).toLocaleString('es-MX')}</span>
+            <span>{new Date(record.updatedAt).toLocaleString('es-AR')}</span>
           </div>
         )}
         {record.accessId && (

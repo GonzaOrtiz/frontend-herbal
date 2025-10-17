@@ -203,7 +203,7 @@ export function normalizeConsumosResponse(response: unknown): ReportTableDescrip
   const rows = (items as ConsumosResponseItem[]).map((item) => ({
     producto: String(item.producto ?? '—'),
     unidad: String(item.unidad ?? '—'),
-    cantidad: new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+    cantidad: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
       Number(item.cantidad ?? 0),
     ),
     monto: formatCurrency(Number(item.monto ?? 0)),
@@ -237,7 +237,7 @@ export function normalizeAsignacionesResponse(response: unknown): ReportTableDes
   const rows = (items as AsignacionesResponseItem[]).map((item) => ({
     centro: String(item.centro ?? '—'),
     actividad: String(item.actividad ?? '—'),
-    horas: new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+    horas: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
       Number(item.horas ?? 0),
     ),
     porcentaje: formatPercentage(Number(item.porcentaje ?? 0)),
@@ -271,7 +271,7 @@ export function normalizeManoObraResponse(response: unknown): ReportTableDescrip
   const rows = (items as ManoObraResponseItem[]).map((item) => ({
     actividad: String(item.actividad ?? '—'),
     descripcion: String(item.descripcion ?? '—'),
-    horas: new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+    horas: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
       Number(item.horas ?? 0),
     ),
     monto: formatCurrency(Number(item.monto ?? 0)),

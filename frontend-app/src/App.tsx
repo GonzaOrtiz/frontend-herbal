@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import ConfiguracionModule from './modules/configuracion';
 import OperacionModule from './modules/operacion';
 import CostosModule from './modules/costos';
+import CifModule from './modules/cif';
 import ImportacionesModule from './modules/importaciones';
 import ReportesModule from './modules/reportes';
 import { buildOperacionRoutes } from './modules/operacion/routes';
@@ -11,6 +12,7 @@ import type { OperacionModulo } from './modules/operacion/types';
 import type { CostosSubModulo } from './modules/costos/types';
 import type { ImportacionesSection } from './modules/importaciones/types';
 import type { ReportCategory } from './modules/reportes/types';
+import type { CifSection } from './modules/cif';
 import './App.css';
 
 type NavItem = {
@@ -19,7 +21,7 @@ type NavItem = {
   description: string;
   icon: JSX.Element;
 };
-type DomainKey = 'configuracion' | 'operacion' | 'importaciones' | 'costos' | 'reportes';
+type DomainKey = 'configuracion' | 'operacion' | 'importaciones' | 'costos' | 'cif' | 'reportes';
 
 type SidebarStat = {
   value: string;
@@ -54,6 +56,10 @@ type SidebarIconName =
   | 'depreciaciones'
   | 'sueldos'
   | 'prorrateo'
+  | 'cif-panel'
+  | 'cif-totales'
+  | 'cif-unitarios'
+  | 'cif-recalculo'
   | 'importar'
   | 'bitacoras'
   | 'financieros'
@@ -201,6 +207,23 @@ const domainConfigs: Record<DomainKey, DomainConfig> = {
     },
     shortcuts: ['Ver existencias', 'Ir a asientos', 'Descargar bitácora'],
   },
+  cif: {
+    eyebrow: 'Suite Herbal ERP · CIF',
+    title: 'Costos indirectos de fabricación',
+    subtitle:
+      'Registra montos totales, calcula costos unitarios y ejecuta recalculos apoyándote en costos finales y producción consolidada.',
+    logo: '🏭',
+    overview: {
+      description:
+        'Monitorea el historial de CIF, consulta métricas clave y coordina recalculos con el resto de procesos de costos.',
+      stats: [
+        { value: '3', label: 'Formularios activos' },
+        { value: '0', label: 'Procesos pendientes' },
+        { value: 'ARS', label: 'Moneda base' },
+      ],
+    },
+    shortcuts: ['Validar costos totales', 'Comparar unitarios', 'Exportar historial'],
+  },
   reportes: {
     eyebrow: 'Suite Herbal ERP · Analítica',
     title: 'Reportes y analítica',
@@ -242,6 +265,7 @@ const domainEntries: { id: DomainKey; label: string }[] = [
   { id: 'operacion', label: 'Operación diaria' },
   { id: 'importaciones', label: 'Importaciones MDB' },
   { id: 'costos', label: 'Costos y consolidaciones' },
+  { id: 'cif', label: 'CIF' },
   { id: 'reportes', label: 'Reportes y analítica' },
 ];
 
@@ -379,6 +403,36 @@ function SidebarIcon({ name }: { name: SidebarIconName }) {
           />
         </svg>
       );
+    case 'cif-panel':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M3 4h18v2H3zm0 6h12v2H3zm0 6h18v2H3z" fill="currentColor" />
+        </svg>
+      );
+    case 'cif-totales':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 4h6v2h-6z" fill="currentColor" />
+        </svg>
+      );
+    case 'cif-unitarios':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M5 3h4l2 4h6l2-4h4v2h-3.236l-2 4H20v2h-2.764l-2 4H20v2h-3.236l-2 4H12l-2-4H4v-2h4.764l2-4H4V9h3.236l2-4H4z"
+            fill="currentColor"
+          />
+        </svg>
+      );
+    case 'cif-recalculo':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M12 2a10 10 0 1 0 9.446 6.318l-1.846.77A8 8 0 1 1 12 4V1l5 4-5 4V6a6 6 0 1 0 5.657 8H20a8 8 0 1 1-8-8z"
+            fill="currentColor"
+          />
+        </svg>
+      );
     case 'importar':
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -438,6 +492,7 @@ function App() {
   const [configuracionRouteId, setConfiguracionRouteId] = useState('actividades');
   const [operacionModulo, setOperacionModulo] = useState<OperacionModulo>('consumos');
   const [costosModulo, setCostosModulo] = useState<CostosSubModulo>('gastos');
+  const [cifSection, setCifSection] = useState<CifSection>('panel');
   const [importacionesSection, setImportacionesSection] = useState<ImportacionesSection>('importar');
   const [reportesCategory, setReportesCategory] = useState<ReportCategory>('financieros');
 
@@ -485,6 +540,47 @@ function App() {
         isActive: route.id === costosModulo,
       }));
     }
+    if (activeDomain === 'cif') {
+      const cifNavigation: Array<{ id: CifSection; label: string; description: string; icon: SidebarIconName }> = [
+        {
+          id: 'panel',
+          label: 'Panel general',
+          description: 'Consulta métricas clave y el historial consolidado de CIF.',
+          icon: 'cif-panel',
+        },
+        {
+          id: 'totales',
+          label: 'Registrar total',
+          description: 'Captura montos y bases por periodo para cada producto.',
+          icon: 'cif-totales',
+        },
+        {
+          id: 'unitarios',
+          label: 'Calcular unitario',
+          description: 'Obtén costos unitarios apoyándote en la producción registrada.',
+          icon: 'cif-unitarios',
+        },
+        {
+          id: 'recalculo',
+          label: 'Recalcular',
+          description: 'Ejecuta el proceso automático con costos finales consolidados.',
+          icon: 'cif-recalculo',
+        },
+      ];
+      return cifNavigation.map((item) => ({
+        id: item.id,
+        label: item.label,
+        description: item.description,
+        icon: <SidebarIcon name={item.icon} />,
+        onSelect: () => {
+          setCifSection(item.id);
+          if (isCompactViewport) {
+            setIsSidebarVisible(false);
+          }
+        },
+        isActive: item.id === cifSection,
+      }));
+    }
     if (activeDomain === 'reportes') {
       return reportesRoutes.map((route) => {
         const iconName: SidebarIconName =
@@ -519,6 +615,7 @@ function App() {
     operacionModulo,
     costosRoutes,
     costosModulo,
+    cifSection,
     reportesRoutes,
     reportesCategory,
     importacionesSection,
@@ -763,6 +860,8 @@ function App() {
                 activeSection={importacionesSection}
                 onSectionChange={setImportacionesSection}
               />
+            ) : activeDomain === 'cif' ? (
+              <CifModule activeSection={cifSection} onSectionChange={setCifSection} />
             ) : activeDomain === 'reportes' ? (
               <ReportesModule activeCategory={reportesCategory} onCategoryChange={setReportesCategory} />
             ) : (
