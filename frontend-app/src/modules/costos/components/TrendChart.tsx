@@ -1,12 +1,15 @@
 import React, { useMemo } from 'react';
+import { formatCurrency } from '@/lib/formatters';
 import type { TrendPoint } from '../types';
 import '../costos.css';
 
 interface TrendChartProps {
   points: TrendPoint[];
+  currency: string;
 }
 
-const TrendChart: React.FC<TrendChartProps> = ({ points }) => {
+const TrendChart: React.FC<TrendChartProps> = ({ points, currency }) => {
+  const resolvedCurrency = currency || 'MXN';
   const { path, min, max } = useMemo(() => {
     if (points.length === 0) {
       return { path: '', min: 0, max: 0 };
@@ -47,8 +50,8 @@ const TrendChart: React.FC<TrendChartProps> = ({ points }) => {
             })}
           </svg>
           <div className="costos-metadata">
-            <span>Valor mínimo: {min.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-            <span>Valor máximo: {max.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+            <span>Valor mínimo: {formatCurrency(min, { currency: resolvedCurrency })}</span>
+            <span>Valor máximo: {formatCurrency(max, { currency: resolvedCurrency })}</span>
           </div>
         </div>
       )}
