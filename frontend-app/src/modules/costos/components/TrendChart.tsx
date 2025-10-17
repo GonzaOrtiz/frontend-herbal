@@ -9,7 +9,7 @@ interface TrendChartProps {
 }
 
 const TrendChart: React.FC<TrendChartProps> = ({ points, currency }) => {
-  const resolvedCurrency = currency || 'MXN';
+  const resolvedCurrency = currency || 'ARS';
   const { path, min, max } = useMemo(() => {
     if (points.length === 0) {
       return { path: '', min: 0, max: 0 };
