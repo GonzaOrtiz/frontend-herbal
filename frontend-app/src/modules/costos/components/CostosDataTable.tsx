@@ -104,8 +104,8 @@ const CostosDataTable = <K extends Exclude<CostosSubModulo, 'prorrateo'>>({
   rowActions,
 }: CostosDataTableProps<K>) => {
   const pagination = usePagination(records, {
-    initialPageSize: 25,
-    pageSizeOptions: [25, 50, 100],
+    initialPageSize: 10,
+    pageSizeOptions: [10, 25, 50, 100],
   });
 
   const pageRecords = pagination.items;

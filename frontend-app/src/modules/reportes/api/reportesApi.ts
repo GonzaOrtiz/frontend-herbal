@@ -52,7 +52,7 @@ export async function fetchCostosReport(filters: ReportFilters): Promise<FetchCo
     title: 'Costos por centro',
     description: 'Montos consolidados por centro de costos.',
     columns: [
-      { id: 'centro', label: 'Centro' },
+      { id: 'centro', label: 'Centro', align: 'left' },
       { id: 'monto', label: 'Monto', align: 'right', isNumeric: true },
     ],
     rows: normalized.costos.map((item) => ({
