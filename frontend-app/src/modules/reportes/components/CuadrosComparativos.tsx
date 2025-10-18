@@ -145,6 +145,12 @@ const CuadrosComparativos: React.FC<CuadrosComparativosProps> = ({ cards }) => {
                       Costo directo
                     </th>
                     <th scope="col" style={{ textAlign: 'right' }}>
+                      CtoDirectoLts
+                    </th>
+                    <th scope="col" style={{ textAlign: 'right' }}>
+                      CtoDirectoKg
+                    </th>
+                    <th scope="col" style={{ textAlign: 'right' }}>
                       Costo indirecto
                     </th>
                     <th scope="col" style={{ textAlign: 'right' }}>
@@ -160,7 +166,8 @@ const CuadrosComparativos: React.FC<CuadrosComparativosProps> = ({ cards }) => {
                 <tbody>
                   {paginatedCards.map((card) => (
                     <tr key={card.id} className={toneRowClassMap[card.tone]}>
-                      <th scope="row" className="reportes-table__cell reportes-table__cell--row-header">
+                      <th scope="row" className="reportes-table__cell reportes-table__cell--row-header"
+                      style={{ textAlign: 'left' }}>
                         {card.producto}
                       </th>
                       {hasPeriodoColumn && (
@@ -174,6 +181,20 @@ const CuadrosComparativos: React.FC<CuadrosComparativosProps> = ({ cards }) => {
                         style={{ textAlign: 'right' }}
                       >
                         {card.costoDirecto}
+                      </td>
+                       <td
+                        className="reportes-table__cell"
+                        data-column="CtoDirectoLts"
+                        style={{ textAlign: 'right' }}
+                      >
+                        {card.costoUnitarioLt}
+                      </td>
+                                             <td
+                        className="reportes-table__cell"
+                        data-column="CtoDirectoKg"
+                        style={{ textAlign: 'right' }}
+                      >
+                        {card.costoUnitarioKg}
                       </td>
                       <td
                         className="reportes-table__cell"

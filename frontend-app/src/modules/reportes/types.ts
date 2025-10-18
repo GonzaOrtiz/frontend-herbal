@@ -85,6 +85,8 @@ export interface ReportCuadroCard {
   producto: string;
   periodoLabel?: string;
   costoDirecto: string;
+  costoUnitarioLt?: string;
+  costoUnitarioKg?: string;
   costoIndirecto: string;
   diferencia: string;
   diferenciaPorcentaje?: string;

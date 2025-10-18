@@ -60,6 +60,8 @@ interface CuadroResponseItem {
   producto?: string;
   periodo?: string;
   costoDirecto?: number;
+  costoUnitarioLt?: string;
+  costoUnitarioKg?: string;
   costoIndirecto?: number;
   tendencia?: string;
 }
@@ -340,6 +342,8 @@ export function normalizeCuadrosResponse(response: unknown): ReportCuadroCard[] 
       producto,
       periodoLabel: periodo,
       costoDirecto: formatCurrency(costoDirecto),
+      costoUnitarioKg: item.costoUnitarioKg ? formatCurrency(item.costoUnitarioKg) : undefined,
+      costoUnitarioLt: item.costoUnitarioLt ? formatCurrency(item.costoUnitarioLt) : undefined,
       costoIndirecto: formatCurrency(costoIndirecto),
       diferencia: formatCurrency(diferencia),
       diferenciaPorcentaje: formatPercentage(diferenciaPorcentaje),
