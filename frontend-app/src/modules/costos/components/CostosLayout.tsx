@@ -167,13 +167,6 @@ const CostosLayout: React.FC = () => {
         <div>
           <h1>Costos y consolidaciones</h1>
           <p>{headerDescription}</p>
-          <div className="costos-base-currency" aria-live="polite">
-            <span className="costos-base-currency__label">Moneda base</span>
-            <span className="costos-base-currency__symbol" aria-hidden="true">
-              {baseCurrencySymbol}
-            </span>
-            <span className="costos-base-currency__code">{summary.currency}</span>
-          </div>
         </div>
         <div className="costos-actions">
           <button type="button" className="primary" onClick={() => setDialogOpen(true)}>

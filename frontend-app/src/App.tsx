@@ -793,57 +793,6 @@ function App() {
                 </ul>
               </nav>
 
-              <section className={`app-sidebar__section ${openSections.overview ? 'is-open' : ''}`}>
-                <button
-                  type="button"
-                  className="app-sidebar__section-toggle"
-                  onClick={() => toggleSection('overview')}
-                  aria-expanded={openSections.overview}
-                >
-                  <span>Resumen del panel</span>
-                  <span aria-hidden="true">{openSections.overview ? '−' : '+'}</span>
-                </button>
-                <div className="app-sidebar__section-body" hidden={!openSections.overview}>
-                  <p className="app-sidebar__description">{domainConfig.overview.description}</p>
-                  <ul className="app-sidebar__stats">
-                    {domainConfig.overview.stats.map((stat) => (
-                      <li key={stat.label} className="app-sidebar__stat">
-                        <span className="app-sidebar__stat-value">{stat.value}</span>
-                        <span className="app-sidebar__stat-label">{stat.label}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </section>
-
-              <section className={`app-sidebar__section ${openSections.shortcuts ? 'is-open' : ''}`}>
-                <button
-                  type="button"
-                  className="app-sidebar__section-toggle"
-                  onClick={() => toggleSection('shortcuts')}
-                  aria-expanded={openSections.shortcuts}
-                >
-                  <span>Atajos recomendados</span>
-                  <span aria-hidden="true">{openSections.shortcuts ? '−' : '+'}</span>
-                </button>
-                <div className="app-sidebar__section-body" hidden={!openSections.shortcuts}>
-                  <ul className="app-sidebar__links">
-                    {domainConfig.shortcuts.map((shortcut) => (
-                      <li key={shortcut}>
-                        <button
-                          type="button"
-                          className="app-sidebar__link"
-                          disabled
-                          title="Disponible próximamente"
-                          aria-disabled="true"
-                        >
-                          {shortcut}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </section>
             </div>
           </aside>
 
