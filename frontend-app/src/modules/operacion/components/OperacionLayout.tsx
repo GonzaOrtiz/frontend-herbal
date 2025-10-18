@@ -9,10 +9,6 @@ import { useOperacionSync } from '../hooks/useOperacionSync';
 import OperacionFilterBar from './OperacionFilterBar';
 import ResumenContextualSection from './ResumenContextual';
 import OperacionDataGrid from './OperacionDataGrid';
-import MassActionsDrawer from './MassActionsDrawer';
-import BulkUploadDialog from './BulkUploadDialog';
-import ProgressPanel from './ProgressPanel';
-import ImportErrorLog from './ImportErrorLog';
 import { operacionConfigs } from '../pages/config';
 import '../operacion.css';
 
@@ -95,68 +91,6 @@ const OperacionLayout: React.FC = () => {
         error={query.error}
         onRetry={query.refetch}
       />
-      <MassActionsDrawer
-        selected={selected}
-        onRun={handleAccion}
-        ultimoResultado={resultado}
-        isProcessing={accionEnProgreso}
-      />
-      <div className="operacion-toolbar">
-        <div>
-          <strong>Resumen</strong>
-          <p>{resumenTabla.totalRegistros} registros · Estado: {query.status}</p>
-        </div>
-        <div className="operacion-actions">
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => setShowMassActions((value) => !value)}
-            aria-expanded={showMassActions}
-            aria-controls={massPanelId}
-          >
-            Acciones masivas
-          </button>
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => setShowBulkUpload((value) => !value)}
-            aria-expanded={showBulkUpload}
-            aria-controls={bulkPanelId}
-          >
-            Carga masiva
-          </button>
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => setShowProgress((value) => !value)}
-            aria-expanded={showProgress}
-            aria-controls={progressPanelId}
-          >
-            Importación masiva
-          </button>
-        </div>
-        <button type="button" className="primary" onClick={reset}>
-          Reiniciar importación
-        </button>
-      </div>
-      {showBulkUpload && (
-        <div id={bulkPanelId}>
-          <BulkUploadDialog
-            modulo={modulo}
-            schema={schema}
-            status={status}
-            bitacora={bitacora}
-            onImport={importar}
-            onClose={() => setShowBulkUpload(false)}
-          />
-        </div>
-      )}
-      {showProgress && (
-        <div id={progressPanelId}>
-          <ProgressPanel status={status} bitacora={bitacora} onClose={() => setShowProgress(false)} />
-        </div>
-      )}
-      <ImportErrorLog bitacora={bitacora} />
     </div>
   );
 };

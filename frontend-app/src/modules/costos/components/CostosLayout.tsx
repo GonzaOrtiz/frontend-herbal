@@ -188,30 +188,32 @@ const CostosLayout: React.FC = () => {
       <div className="costos-layout">
         <div className="costos-main">
           {submodule === 'prorrateo' ? (
-            <section className="costos-card">
-              <h2>Prorrateo automático</h2>
-              <p className="costos-metadata">
-                El backend ejecuta el prorrateo al cerrar importaciones o sincronizaciones. Este panel muestra el balance más
-                reciente y permite monitorear la bitácora del proceso.
-              </p>
-              <div className="costos-summary-grid">
-                <div className="costos-summary-item">
-                  <span>{formattedSummary.total}</span>
-                  <span>Total costos base</span>
-                </div>
-                <div className="costos-summary-item">
-                  <span>{formattedSummary.balance}</span>
-                  <span>Balance consolidado</span>
-                </div>
-                {formattedSummary.variation && (
-                  <div className="costos-summary-item">
-                    <span>{formattedSummary.variation}</span>
-                    <span>Variación vs periodo previo</span>
-                  </div>
-                )}
-              </div>
-              {formattedSummary.warning && <p className="costos-warning">{formattedSummary.warning}</p>}
-            </section>
+            // <section className="costos-card">
+            //   <h2>Prorrateo automático</h2>
+            //   <p className="costos-metadata">
+            //     El backend ejecuta el prorrateo al cerrar importaciones o sincronizaciones. Este panel muestra el balance más
+            //     reciente y permite monitorear la bitácora del proceso.
+            //   </p>
+            //   <div className="costos-summary-grid">
+            //     <div className="costos-summary-item">
+            //       <span>{formattedSummary.total}</span>
+            //       <span>Total costos base</span>
+            //     </div>
+            //     <div className="costos-summary-item">
+            //       <span>{formattedSummary.balance}</span>
+            //       <span>Balance consolidado</span>
+            //     </div>
+            //     {formattedSummary.variation && (
+            //       <div className="costos-summary-item">
+            //         <span>{formattedSummary.variation}</span>
+            //         <span>Variación vs periodo previo</span>
+            //       </div>
+            //     )}
+            //   </div>
+            //   {formattedSummary.warning && <p className="costos-warning">{formattedSummary.warning}</p>}
+            // </section>
+            // TODO: Prorrate automatico automático
+            <div></div>
           ) : (
             <CostosDataTable
               config={config}
@@ -308,8 +310,6 @@ const CostosLayout: React.FC = () => {
           />
           <AllocationBreakdown items={allocation} currency={summary.currency} />
           <TrendChart points={trend} currency={summary.currency} />
-          <AuditTimeline record={selected} />
-          <ProcessLog logs={processState.logs} />
         </div>
       </div>
 
