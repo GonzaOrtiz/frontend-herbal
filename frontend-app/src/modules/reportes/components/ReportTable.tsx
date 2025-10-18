@@ -136,81 +136,26 @@ const ReportTable = <Row extends Record<string, unknown>>({ descriptor }: Report
         {descriptor.description && <p id={descriptionId}>{descriptor.description}</p>}
       </header>
       <div className="reportes-table-card__body">
-        {(enableSearch || enablePagination) && (
+        {enableSearch && (
           <div className="reportes-table-controls">
-            {enableSearch && (
-              <div className="reportes-table-controls__search">
-                <label className="sr-only" htmlFor={searchId}>
-                  Buscar en {descriptor.title}
-                </label>
-                <input
-                  id={searchId}
-                  type="search"
-                  className="reportes-table-search"
-                  placeholder={descriptor.searchPlaceholder ?? 'Buscar…'}
-                  value={searchTerm}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    setSearchTerm(event.target.value);
-                    if (enablePagination) {
-                      setPage(1);
-                    }
-                  }}
-                />
-              </div>
-            )}
-            {enablePagination && (
-              <div className="reportes-table-pagination" role="group" aria-label="Paginación de tabla">
-                <div className="reportes-table-pagination__info">
-                  {totalItems === 0
-                    ? 'Sin resultados para mostrar'
-                    : `Mostrando ${startIndex + 1}-${endIndex} de ${totalItems}`}
-                </div>
-                <div className="reportes-table-pagination__actions">
-                  <label className="reportes-table-pagination__page-size">
-                    <span>Filas por página</span>
-                    <select
-                      value={pageSize}
-                      onChange={(event) => {
-                        const nextValue = Number(event.target.value);
-                        if (!Number.isNaN(nextValue)) {
-                          setPageSize(nextValue);
-                          setPage(1);
-                        }
-                      }}
-                    >
-                      {pageSizeOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <div className="reportes-table-pagination__buttons">
-                    <button
-                      type="button"
-                      className="reportes-table-pagination__button"
-                      onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage <= 1}
-                      aria-label="Página anterior"
-                    >
-                      Anterior
-                    </button>
-                    <span className="reportes-table-pagination__page-indicator">
-                      Página {currentPage} de {totalPages}
-                    </span>
-                    <button
-                      type="button"
-                      className="reportes-table-pagination__button"
-                      onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage >= totalPages}
-                      aria-label="Página siguiente"
-                    >
-                      Siguiente
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <div className="reportes-table-controls__search">
+              <label className="sr-only" htmlFor={searchId}>
+                Buscar en {descriptor.title}
+              </label>
+              <input
+                id={searchId}
+                type="search"
+                className="reportes-table-search"
+                placeholder={descriptor.searchPlaceholder ?? 'Buscar…'}
+                value={searchTerm}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  setSearchTerm(event.target.value);
+                  if (enablePagination) {
+                    setPage(1);
+                  }
+                }}
+              />
+            </div>
           </div>
         )}
         <div className="reportes-table-wrapper">
@@ -289,6 +234,59 @@ const ReportTable = <Row extends Record<string, unknown>>({ descriptor }: Report
             )}
           </table>
         </div>
+        {enablePagination && (
+          <div className="reportes-table-pagination" role="group" aria-label="Paginación de tabla">
+            <div className="reportes-table-pagination__info">
+              {totalItems === 0
+                ? 'Sin resultados para mostrar'
+                : `Mostrando ${(startIndex + 1).toLocaleString()}-${endIndex.toLocaleString()} de ${totalItems.toLocaleString()}`}
+            </div>
+            <div className="reportes-table-pagination__actions">
+              <label className="reportes-table-pagination__page-size">
+                <span>Filas por página</span>
+                <select
+                  value={pageSize}
+                  onChange={(event) => {
+                    const nextValue = Number(event.target.value);
+                    if (!Number.isNaN(nextValue)) {
+                      setPageSize(nextValue);
+                      setPage(1);
+                    }
+                  }}
+                >
+                  {pageSizeOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="reportes-table-pagination__buttons">
+                <button
+                  type="button"
+                  className="reportes-table-pagination__button"
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage <= 1}
+                  aria-label="Página anterior"
+                >
+                  Anterior
+                </button>
+                <span className="reportes-table-pagination__page-indicator">
+                  Página {currentPage} de {totalPages}
+                </span>
+                <button
+                  type="button"
+                  className="reportes-table-pagination__button"
+                  onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage >= totalPages}
+                  aria-label="Página siguiente"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
