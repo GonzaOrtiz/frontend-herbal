@@ -36,14 +36,15 @@ export function buildCostosRoutes(): CostosRoute[] {
       description: 'Controla sueldos registrados y sincronízalos con asignaciones y CIF.',
       permissions: ['costos.sueldos'],
       element: <CostosModule initialSubmodule="sueldos" />,
-    },
-    {
-      id: 'prorrateo',
-      path: 'prorrateo',
-      title: 'Prorrateo automático',
-      description: 'Monitorea la bitácora del proceso automático y sus balances resultantes.',
-      permissions: ['costos.prorrateo'],
-      element: <CostosModule initialSubmodule="prorrateo" />,
-    },
+    }
+    // , TODO: PRORRATEO AUTOMATICO DESHABILITADO POR AHORA, REVISAR FUNCIONALIDAD
+    // {
+    //   id: 'prorrateo',
+    //   path: 'prorrateo',
+    //   title: 'Prorrateo automático',
+    //   description: 'Monitorea la bitácora del proceso automático y sus balances resultantes.',
+    //   permissions: ['costos.prorrateo'],
+    //   element: <CostosModule initialSubmodule="prorrateo" />,
+    // },
   ];
 }
