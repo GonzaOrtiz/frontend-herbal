@@ -644,9 +644,9 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
             <p className="importaciones-card__eyebrow">Bitácoras</p>
             <h2 className="importaciones-card__title">Historial de importaciones</h2>
           </div>
-          <button type="button" className="importaciones-button" onClick={handleCreateManual}>
+          {/* <button type="button" className="importaciones-button" onClick={handleCreateManual}>
             Nueva bitácora manual
-          </button>
+          </button> */}
         </header>
 
         <div className="importaciones-history">
@@ -834,7 +834,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
 
             {!detailLoading && !isCreatingManual && selectedLog && (
               <div className="importaciones-detail">
-                <h3>Detalle de bitácora</h3>
+                <h3>Detalle de importación</h3>
                 <dl className="importaciones-detail__metadata">
                   <div>
                     <dt>Archivo</dt>
@@ -873,6 +873,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
                       value={manualDraft.fileName}
                       onChange={(event) => handleManualDraftChange('fileName', event.target.value)}
                       required
+                      disabled
                     />
                   </label>
                   <label>
@@ -882,6 +883,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
                       value={manualDraft.importDate}
                       onChange={(event) => handleManualDraftChange('importDate', event.target.value)}
                       required
+                      disabled
                     />
                   </label>
                   <label>
@@ -892,6 +894,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
                       value={manualDraft.recordsProcessed}
                       onChange={(event) => handleManualDraftChange('recordsProcessed', event.target.value)}
                       required
+                      disabled
                     />
                   </label>
                   <label>
@@ -901,42 +904,12 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
                       min={0}
                       value={manualDraft.durationMs}
                       onChange={(event) => handleManualDraftChange('durationMs', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    <span>Errores</span>
-                    <textarea
-                      rows={3}
-                      placeholder="Escribe un error por línea"
-                      value={manualDraft.errorMessages}
-                      onChange={(event) => handleManualDraftChange('errorMessages', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    <span>Notas</span>
-                    <textarea
-                      rows={3}
-                      value={manualDraft.notes}
-                      onChange={(event) => handleManualDraftChange('notes', event.target.value)}
+                      disabled
                     />
                   </label>
 
                   {detailError && <p className="importaciones-alert importaciones-alert--error">{detailError}</p>}
                   {detailSuccess && <p className="importaciones-alert importaciones-alert--success">{detailSuccess}</p>}
-
-                  <div className="importaciones-detail__actions">
-                    <button type="submit" className="importaciones-button" disabled={detailLoading}>
-                      Guardar cambios
-                    </button>
-                    <button
-                      type="button"
-                      className="importaciones-button importaciones-button--danger"
-                      onClick={handleDeleteLog}
-                      disabled={detailLoading}
-                    >
-                      Eliminar registro
-                    </button>
-                  </div>
                 </form>
 
                 {selectedLog.results && selectedLog.results.length > 0 && (
