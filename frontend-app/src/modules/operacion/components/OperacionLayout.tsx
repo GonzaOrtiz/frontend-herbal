@@ -69,17 +69,17 @@ const OperacionLayout: React.FC = () => {
   };
 
   const totalRegistros = useMemo(() => query.data?.length ?? 0, [query.data]);
-  const massPanelId = 'operacion-mass-actions-panel';
-  const bulkPanelId = 'operacion-bulk-upload-panel';
-  const progressPanelId = 'operacion-progress-panel';
+  // const massPanelId = 'operacion-mass-actions-panel';
+  // const bulkPanelId = 'operacion-bulk-upload-panel';
+  // const progressPanelId = 'operacion-progress-panel';
 
   return (
     <div className="operacion-module">
       <header className="operacion-header">
         <h1>Operación diaria</h1>
-        <button type="button" className="primary" onClick={desbloquear} disabled={!resumen?.bloqueado}>
+        {/* <button type="button" className="primary" onClick={desbloquear} disabled={!resumen?.bloqueado}>
           Desbloquear captura
-        </button>
+        </button> */}
       </header>
       <ResumenContextualSection resumen={resumen} totalRegistros={totalRegistros} lastEvent={lastEvent} />
       <OperacionFilterBar config={config} />

@@ -20,16 +20,6 @@ const OperacionFilterBar: React.FC<Props> = ({ config }) => {
   return (
     <section className="operacion-filtros">
       <label>
-        Módulo
-        <select value={modulo} onChange={(event) => setModulo(event.target.value as typeof modulo)}>
-          <option value="consumos">Consumos</option>
-          <option value="producciones">Producciones</option>
-          <option value="litros">Litros</option>
-          <option value="perdidas">Pérdidas</option>
-          <option value="sobrantes">Sobrantes</option>
-        </select>
-      </label>
-      <label>
         Fecha cálculo
         <input type="date" value={filtros.calculationDate} onChange={handleChange('calculationDate')} />
       </label>
