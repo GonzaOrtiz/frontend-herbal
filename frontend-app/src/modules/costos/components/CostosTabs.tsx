@@ -6,7 +6,7 @@ const tabLabels: Record<CostosSubModulo, string> = {
   gastos: 'Gastos',
   depreciaciones: 'Depreciaciones',
   sueldos: 'Sueldos',
-  prorrateo: 'Prorrateo automático',
+  prorrateo: '', //TODO  Prorrateo automático
 };
 
 const CostosTabs: React.FC = () => {
