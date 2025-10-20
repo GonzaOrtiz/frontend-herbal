@@ -130,7 +130,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [usuario, setUsuario] = useState('analista.import');
-  const [history, setHistory] = useState<ImportLog[]>([]);
+  const [allHistory, setAllHistory] = useState<ImportLog[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
@@ -152,12 +152,35 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
     pageSizeOptions: [5, 10, 25, 50],
   });
 
-  const historyPagination = usePagination(history, {
+  const sanitizedSearch = searchTerm.trim();
+
+  const filteredHistory = useMemo(() => {
+    const searchLower = sanitizedSearch.toLowerCase();
+
+    return allHistory.filter((log) => {
+      if (sanitizedSearch) {
+        const fileName = (log.fileName ?? '').toLowerCase();
+        if (!fileName.includes(searchLower)) {
+          return false;
+        }
+      }
+
+      const logDate = formatIsoDate(log.importDate);
+      if (startDate && (!logDate || logDate < startDate)) {
+        return false;
+      }
+      if (endDate && (!logDate || logDate > endDate)) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [allHistory, sanitizedSearch, startDate, endDate]);
+
+  const historyPagination = usePagination(filteredHistory, {
     initialPageSize: 10,
     pageSizeOptions: [10, 25, 50, 100],
   });
-
-  const sanitizedSearch = searchTerm.trim();
 
   const fetchHistory = useCallback(
     async (options: { signal?: AbortSignal; silent?: boolean } = {}) => {
@@ -166,18 +189,11 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
       }
       setHistoryError(null);
       try {
-        const data = await listImportLogs(
-          {
-            search: sanitizedSearch || undefined,
-            desde: startDate || undefined,
-            hasta: endDate || undefined,
-          },
-          { signal: options.signal },
-        );
+        const data = await listImportLogs({}, { signal: options.signal });
         if (options.signal?.aborted) {
           return;
         }
-        setHistory(data);
+        setAllHistory(data);
       } catch (error) {
         if ((error as Error).name === 'AbortError') {
           return;
@@ -189,7 +205,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
         }
       }
     },
-    [sanitizedSearch, startDate, endDate],
+    [],
   );
 
   useEffect(() => {
@@ -702,7 +718,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
                       <tr>
                         <td colSpan={5}>Cargando historial…</td>
                       </tr>
-                    ) : history.length === 0 ? (
+                    ) : filteredHistory.length === 0 ? (
                       <tr>
                         <td colSpan={5}>Sin registros disponibles para los filtros seleccionados.</td>
                       </tr>
@@ -728,7 +744,7 @@ const ImportacionesModule: React.FC<ImportacionesModuleProps> = ({ activeSection
                 </table>
               </div>
             </div>
-            {!historyLoading && history.length > 0 && (
+            {!historyLoading && filteredHistory.length > 0 && (
               <TablePagination
                 page={historyPagination.page}
                 totalPages={historyPagination.totalPages}
