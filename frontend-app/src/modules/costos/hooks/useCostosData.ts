@@ -53,9 +53,14 @@ export function useCostosData<K extends Exclude<CostosSubModulo, 'prorrateo'>>()
     return filters;
   }, [filters, submodule]);
 
+  const queryFilters = useMemo(() => {
+    const { empleadoQuery, ...rest } = effectiveFilters;
+    return rest;
+  }, [effectiveFilters]);
+
   const query = useQuery<CostosListResponse<CostosRecordMap[K]>>({
-    queryKey: ['costos', effectiveSubmodule, effectiveFilters],
-    queryFn: () => fetchCostosList(effectiveSubmodule, effectiveFilters),
+    queryKey: ['costos', effectiveSubmodule, queryFilters],
+    queryFn: () => fetchCostosList(effectiveSubmodule, queryFilters),
   });
 
   const summary = useMemo(() => calculateBalanceSummary(query.data), [query.data]);
