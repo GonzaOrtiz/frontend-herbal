@@ -6,6 +6,7 @@ export interface CostosFilters {
   esGastoDelPeriodo?: boolean;
   concepto?: string;
   nroEmpleado?: number | null;
+  empleadoQuery?: string;
 }
 
 export interface BaseCostRecord {

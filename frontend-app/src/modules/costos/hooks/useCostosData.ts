@@ -63,6 +63,7 @@ export function useCostosData<K extends Exclude<CostosSubModulo, 'prorrateo'>>()
     return { ...rest } as CostosFilters;
   }, [effectiveFilters, effectiveSubmodule]);
 
+
   const query = useQuery<CostosListResponse<CostosRecordMap[K]>>({
     queryKey: ['costos', effectiveSubmodule, queryFilters],
     queryFn: () => fetchCostosList(effectiveSubmodule, queryFilters),

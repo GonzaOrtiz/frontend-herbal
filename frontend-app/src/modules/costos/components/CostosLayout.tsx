@@ -46,13 +46,40 @@ const CostosLayout: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    if (query.data && query.data.items.length > 0) {
-      setSelected(query.data.items[0]);
-    } else {
-      setSelected(null);
+  const records = useMemo(() => {
+    const baseRecords = (query.data?.items ?? []) as CostosRecordMap[Exclude<CostosSubModulo, 'prorrateo'>][];
+
+    if (effectiveSubmodule !== 'sueldos') {
+      return baseRecords;
     }
-  }, [query.data, submodule]);
+
+    const normalizedSearch = filters.empleadoQuery?.trim().toLocaleLowerCase('es') ?? '';
+
+    if (normalizedSearch === '') {
+      return baseRecords;
+    }
+
+    return baseRecords.filter((record) => {
+      const sueldoRecord = record as CostosRecordMap['sueldos'];
+      const code = String(sueldoRecord.nroEmpleado ?? '').toLocaleLowerCase('es');
+      const name = (sueldoRecord.empleadoNombre ?? '').toLocaleLowerCase('es');
+      return code.includes(normalizedSearch) || name.includes(normalizedSearch);
+    });
+  }, [query.data, effectiveSubmodule, filters.empleadoQuery]);
+
+  useEffect(() => {
+    if (records.length === 0) {
+      setSelected(null);
+      return;
+    }
+
+    setSelected((current) => {
+      if (current && records.some((record) => record.id === current.id)) {
+        return current;
+      }
+      return records[0];
+    });
+  }, [records]);
 
   useEffect(() => {
     setRegisterDialogOpen(false);

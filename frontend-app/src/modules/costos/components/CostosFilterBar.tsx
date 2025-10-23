@@ -79,13 +79,15 @@ const CostosFilterBar: React.FC = () => {
           <label htmlFor="costos-empleado">Empleado</label>
           <input
             id="costos-empleado"
-            type="number"
-            min={0}
-            value={filters.nroEmpleado ?? ''}
-            onChange={(event) =>
-              updateFilters({ nroEmpleado: event.target.value ? Number(event.target.value) : null })
-            }
-            placeholder="Nro empleado"
+            type="search"
+            value={filters.empleadoQuery ?? ''}
+            onChange={(event) => {
+              const value = event.target.value;
+              updateFilters({ empleadoQuery: value });
+            }}
+            placeholder="Buscar por código o nombre"
+            autoComplete="off"
+            inputMode="search"
           />
         </div>
       )}
