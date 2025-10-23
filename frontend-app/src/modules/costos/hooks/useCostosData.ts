@@ -10,6 +10,7 @@ import {
 import type {
   AllocationItem,
   BalanceSummaryData,
+  CostosFilters,
   CostosListResponse,
   CostosRecordMap,
   CostosSubModulo,
@@ -54,9 +55,15 @@ export function useCostosData<K extends Exclude<CostosSubModulo, 'prorrateo'>>()
   }, [filters, submodule]);
 
   const queryFilters = useMemo(() => {
-    const { empleadoQuery, ...rest } = effectiveFilters;
-    return rest;
-  }, [effectiveFilters]);
+    const { empleadoQuery, concepto, ...rest } = effectiveFilters;
+    const baseFilters: CostosFilters = { ...rest };
+
+    if (effectiveSubmodule !== 'gastos' && concepto) {
+      baseFilters.concepto = concepto;
+    }
+
+    return baseFilters;
+  }, [effectiveFilters, effectiveSubmodule]);
 
   const query = useQuery<CostosListResponse<CostosRecordMap[K]>>({
     queryKey: ['costos', effectiveSubmodule, queryFilters],

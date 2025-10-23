@@ -49,23 +49,38 @@ const CostosLayout: React.FC = () => {
   const records = useMemo(() => {
     const baseRecords = (query.data?.items ?? []) as CostosRecordMap[Exclude<CostosSubModulo, 'prorrateo'>][];
 
-    if (effectiveSubmodule !== 'sueldos') {
-      return baseRecords;
+    if (effectiveSubmodule === 'sueldos') {
+      const normalizedSearch = filters.empleadoQuery?.trim().toLocaleLowerCase('es') ?? '';
+
+      if (normalizedSearch === '') {
+        return baseRecords;
+      }
+
+      return baseRecords.filter((record) => {
+        const sueldoRecord = record as CostosRecordMap['sueldos'];
+        const code = String(sueldoRecord.nroEmpleado ?? '').toLocaleLowerCase('es');
+        const name = (sueldoRecord.empleadoNombre ?? '').toLocaleLowerCase('es');
+        return code.includes(normalizedSearch) || name.includes(normalizedSearch);
+      });
     }
 
-    const normalizedSearch = filters.empleadoQuery?.trim().toLocaleLowerCase('es') ?? '';
+    if (effectiveSubmodule === 'gastos') {
+      const normalizedSearch = filters.concepto?.toLocaleLowerCase('es') ?? '';
 
-    if (normalizedSearch === '') {
-      return baseRecords;
+      if (normalizedSearch === '') {
+        return baseRecords;
+      }
+
+      return baseRecords.filter((record) => {
+        const gastoRecord = record as CostosRecordMap['gastos'];
+        const concept = (gastoRecord.concepto ?? '').toLocaleLowerCase('es');
+        const center = gastoRecord.centro.toLocaleLowerCase('es');
+        return concept.includes(normalizedSearch) || center.includes(normalizedSearch);
+      });
     }
 
-    return baseRecords.filter((record) => {
-      const sueldoRecord = record as CostosRecordMap['sueldos'];
-      const code = String(sueldoRecord.nroEmpleado ?? '').toLocaleLowerCase('es');
-      const name = (sueldoRecord.empleadoNombre ?? '').toLocaleLowerCase('es');
-      return code.includes(normalizedSearch) || name.includes(normalizedSearch);
-    });
-  }, [query.data, effectiveSubmodule, filters.empleadoQuery]);
+    return baseRecords;
+  }, [query.data, effectiveSubmodule, filters.empleadoQuery, filters.concepto]);
 
   useEffect(() => {
     if (records.length === 0) {
