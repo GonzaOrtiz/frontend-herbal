@@ -103,7 +103,7 @@ const CostosFilterBar: React.FC = () => {
               const trimmed = value.trim();
               updateFilters({ concepto: trimmed.length > 0 ? trimmed : undefined });
             }}
-            placeholder="Buscar por centro o concepto"
+            placeholder="Buscar por concepto"
             autoComplete="off"
             inputMode="search"
           />
