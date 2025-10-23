@@ -4,7 +4,7 @@ export interface CostosFilters {
   calculationDate: string;
   centro?: string;
   esGastoDelPeriodo?: boolean;
-  producto?: string;
+  concepto?: string;
   nroEmpleado?: number | null;
 }
 

@@ -1,16 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useCentros } from '../../configuracion/hooks/useCentros';
 import { useCostosContext } from '../context/CostosContext';
-import { useCuadrosProducts } from '../hooks/useCuadrosProducts';
 import '../costos.css';
 
 const CostosFilterBar: React.FC = () => {
   const { submodule, filters, updateFilters, resetFilters } = useCostosContext();
   const catalog = useCentros();
-  const shouldLoadProducts = submodule === 'gastos';
-  const { products: cuadroProducts, isLoading: productsLoading, error: productsError } =
-    useCuadrosProducts({ enabled: shouldLoadProducts });
-  const [productInput, setProductInput] = useState(filters.producto ?? '');
 
   const centros = useMemo(
     () =>
@@ -24,64 +19,6 @@ const CostosFilterBar: React.FC = () => {
         .sort((a, b) => Number(a.value) - Number(b.value)),
     [catalog.items],
   );
-
-  useEffect(() => {
-    if (!shouldLoadProducts) {
-      return;
-    }
-    setProductInput(filters.producto ?? '');
-  }, [filters.producto, shouldLoadProducts]);
-
-  const normalizedProducts = useMemo(
-    () => cuadroProducts.map((product) => product.trim()).filter((product) => product.length > 0),
-    [cuadroProducts],
-  );
-
-  const findProductMatch = (value: string) => {
-    const normalizedValue = value.trim().toLocaleLowerCase('es');
-    return normalizedProducts.find(
-      (product) => product.toLocaleLowerCase('es') === normalizedValue,
-    );
-  };
-
-  const handleProductChange = (value: string) => {
-    if (!value) {
-      setProductInput('');
-      updateFilters({ producto: undefined });
-      return;
-    }
-
-    const match = findProductMatch(value);
-    setProductInput(value);
-
-    if (match) {
-      setProductInput(match);
-      if (match !== filters.producto) {
-        updateFilters({ producto: match });
-      }
-    }
-  };
-
-  const handleProductBlur = () => {
-    if (!productInput) {
-      return;
-    }
-    const match = findProductMatch(productInput);
-    if (!match) {
-      setProductInput(filters.producto ?? '');
-      return;
-    }
-    if (match !== productInput) {
-      setProductInput(match);
-    }
-  };
-
-  const productListId = 'costos-producto-options';
-  const productPlaceholder = productsLoading
-    ? 'Cargando productos…'
-    : normalizedProducts.length === 0
-      ? 'Sin productos disponibles'
-      : 'Selecciona un producto';
 
   return (
     <form
@@ -155,23 +92,19 @@ const CostosFilterBar: React.FC = () => {
 
       {submodule === 'gastos' && (
         <div className="costos-filter-field">
-          <label htmlFor="costos-producto">Producto</label>
+          <label htmlFor="costos-concepto">Concepto</label>
           <input
-            id="costos-producto"
-            list={productListId}
-            value={productInput}
-            onChange={(event) => handleProductChange(event.target.value)}
-            onBlur={handleProductBlur}
-            placeholder={productPlaceholder}
+            id="costos-concepto"
+            value={filters.concepto ?? ''}
+            onChange={(event) => {
+              const value = event.target.value;
+              const trimmed = value.trim();
+              updateFilters({ concepto: trimmed.length > 0 ? trimmed : undefined });
+            }}
+            placeholder="Buscar por concepto"
             autoComplete="off"
             inputMode="search"
-            title={productsError ? 'No se pudieron cargar los productos. Intenta nuevamente.' : undefined}
           />
-          <datalist id={productListId}>
-            {normalizedProducts.map((product) => (
-              <option key={product} value={product} />
-            ))}
-          </datalist>
         </div>
       )}
 

@@ -25,7 +25,7 @@ function buildQuery(filters: CostosFilters): string {
   if (filters.esGastoDelPeriodo !== undefined) {
     params.set('esGastoDelPeriodo', String(filters.esGastoDelPeriodo));
   }
-  if (filters.producto) params.set('producto', filters.producto);
+  if (filters.concepto) params.set('concepto', filters.concepto);
   if (filters.nroEmpleado !== undefined && filters.nroEmpleado !== null) {
     params.set('nroEmpleado', String(filters.nroEmpleado));
   }
