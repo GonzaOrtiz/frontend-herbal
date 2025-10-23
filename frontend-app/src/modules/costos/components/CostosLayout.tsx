@@ -94,6 +94,47 @@ const CostosLayout: React.FC = () => {
     setIsDeleting(false);
   }, [effectiveSubmodule]);
 
+  const records = useMemo(
+    () => (query.data?.items ?? []) as CostosRecordMap[Exclude<CostosSubModulo, 'prorrateo'>][],
+    [query.data],
+  );
+
+  const filteredRecords = useMemo(() => {
+    if (effectiveSubmodule !== 'gastos') {
+      return records;
+    }
+
+    const search = filters.concepto?.trim().toLowerCase();
+    if (!search) {
+      return records;
+    }
+
+    const gastosRecords = records as CostosRecordMap['gastos'][];
+    return gastosRecords.filter((record) => {
+      const centro = record.centro?.toLowerCase() ?? '';
+      const concepto = (record.concepto ?? '').toLowerCase();
+      return centro.includes(search) || concepto.includes(search);
+    });
+  }, [effectiveSubmodule, filters.concepto, records]);
+
+  useEffect(() => {
+    if (effectiveSubmodule !== 'gastos') {
+      return;
+    }
+
+    if (!filteredRecords.length) {
+      setSelected(null);
+      return;
+    }
+
+    setSelected((current) => {
+      if (current && filteredRecords.some((record) => record.id === current.id)) {
+        return current;
+      }
+      return filteredRecords[0];
+    });
+  }, [effectiveSubmodule, filteredRecords]);
+
   const headerDescription =
     'Calcula, distribuye y consolida costos operativos asegurando trazabilidad entre centros, existencias y asientos.';
   const baseCurrencySymbol = useMemo(() => getCurrencySymbol(summary.currency), [summary.currency]);
@@ -239,7 +280,7 @@ const CostosLayout: React.FC = () => {
           ) : (
             <CostosDataTable
               config={config}
-              records={records as CostosRecordMap[Exclude<CostosSubModulo, 'prorrateo'>][]}
+              records={filteredRecords as CostosRecordMap[Exclude<CostosSubModulo, 'prorrateo'>][]}
               currency={summary.currency}
               loading={query.status === 'loading'}
               error={query.error}
