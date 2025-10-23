@@ -35,6 +35,7 @@ const defaultFilters: Record<CostosSubModulo, CostosFilters> = {
   sueldos: {
     calculationDate: new Date().toISOString().slice(0, 10),
     nroEmpleado: null,
+    empleadoQuery: '',
   },
   prorrateo: {
     calculationDate: new Date().toISOString().slice(0, 10),

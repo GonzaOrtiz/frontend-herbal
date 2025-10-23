@@ -27,7 +27,7 @@ import type {
 import '../costos.css';
 
 const CostosLayout: React.FC = () => {
-  const { submodule, lastSummary } = useCostosContext();
+  const { submodule, lastSummary, filters } = useCostosContext();
   const effectiveSubmodule = (submodule === 'prorrateo' ? 'gastos' : submodule) as Exclude<CostosSubModulo, 'prorrateo'>;
   const config = costosConfigs[effectiveSubmodule];
   const { query, summary, allocation, trend, formattedSummary } =
@@ -46,13 +46,40 @@ const CostosLayout: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    if (query.data && query.data.items.length > 0) {
-      setSelected(query.data.items[0]);
-    } else {
-      setSelected(null);
+  const records = useMemo(() => {
+    const baseRecords = (query.data?.items ?? []) as CostosRecordMap[Exclude<CostosSubModulo, 'prorrateo'>][];
+
+    if (effectiveSubmodule !== 'sueldos') {
+      return baseRecords;
     }
-  }, [query.data, submodule]);
+
+    const normalizedSearch = filters.empleadoQuery?.trim().toLocaleLowerCase('es') ?? '';
+
+    if (normalizedSearch === '') {
+      return baseRecords;
+    }
+
+    return baseRecords.filter((record) => {
+      const sueldoRecord = record as CostosRecordMap['sueldos'];
+      const code = String(sueldoRecord.nroEmpleado ?? '').toLocaleLowerCase('es');
+      const name = (sueldoRecord.empleadoNombre ?? '').toLocaleLowerCase('es');
+      return code.includes(normalizedSearch) || name.includes(normalizedSearch);
+    });
+  }, [query.data, effectiveSubmodule, filters.empleadoQuery]);
+
+  useEffect(() => {
+    if (records.length === 0) {
+      setSelected(null);
+      return;
+    }
+
+    setSelected((current) => {
+      if (current && records.some((record) => record.id === current.id)) {
+        return current;
+      }
+      return records[0];
+    });
+  }, [records]);
 
   useEffect(() => {
     setRegisterDialogOpen(false);
@@ -66,11 +93,6 @@ const CostosLayout: React.FC = () => {
     setDeleteError(null);
     setIsDeleting(false);
   }, [effectiveSubmodule]);
-
-  const records = useMemo(
-    () => (query.data?.items ?? []) as CostosRecordMap[Exclude<CostosSubModulo, 'prorrateo'>][],
-    [query.data],
-  );
 
   const headerDescription =
     'Calcula, distribuye y consolida costos operativos asegurando trazabilidad entre centros, existencias y asientos.';
