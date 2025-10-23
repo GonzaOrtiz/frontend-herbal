@@ -8,9 +8,10 @@ import {
   calculateBalanceSummary,
 } from '../utils/transformers';
 import type {
-  AllocationItem,
-  BalanceSummaryData,
-  CostosListResponse,
+    AllocationItem,
+    BalanceSummaryData,
+    CostosFilters,
+    CostosListResponse,
   CostosRecordMap,
   CostosSubModulo,
   TrendPoint,
@@ -53,9 +54,18 @@ export function useCostosData<K extends Exclude<CostosSubModulo, 'prorrateo'>>()
     return filters;
   }, [filters, submodule]);
 
+  const queryFilters = useMemo(() => {
+    if (effectiveSubmodule !== 'gastos') {
+      return effectiveFilters;
+    }
+
+    const { concepto: _concepto, ...rest } = effectiveFilters;
+    return { ...rest } as CostosFilters;
+  }, [effectiveFilters, effectiveSubmodule]);
+
   const query = useQuery<CostosListResponse<CostosRecordMap[K]>>({
-    queryKey: ['costos', effectiveSubmodule, effectiveFilters],
-    queryFn: () => fetchCostosList(effectiveSubmodule, effectiveFilters),
+    queryKey: ['costos', effectiveSubmodule, queryFilters],
+    queryFn: () => fetchCostosList(effectiveSubmodule, queryFilters),
   });
 
   const summary = useMemo(() => calculateBalanceSummary(query.data), [query.data]);
