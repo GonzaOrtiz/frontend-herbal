@@ -23,7 +23,7 @@ const schemaMap: Record<OperacionModulo, Schema<OperacionRegistro>> = {
 const OperacionLayout: React.FC = () => {
   const { modulo, setResumen, resumen } = useOperacionContext();
   const config = operacionConfigs[modulo];
-  const { query, runAccionMasiva, resumen: resumenTabla } = useOperacionData();
+  const { query, registros, runAccionMasiva, resumen: resumenTabla } = useOperacionData();
   const schema = schemaMap[modulo];
   const { importar, status, bitacora, reset } = useBulkImport(modulo, schema);
   const { lastEvent, desbloquear, forceInvalidate } = useOperacionSync();
@@ -35,14 +35,14 @@ const OperacionLayout: React.FC = () => {
   const [showProgress, setShowProgress] = useState(false);
 
   useEffect(() => {
-    if (!query.data || query.data.length === 0) return;
-    const first = query.data[0] as OperacionRegistro;
+    if (!registros || registros.length === 0) return;
+    const first = registros[0] as OperacionRegistro;
     setResumen({
       centro: first.centro,
       calculationDate: first.calculationDate,
       responsable: first.responsable ?? 'coordinador.01',
     });
-  }, [query.data, setResumen]);
+  }, [registros, setResumen]);
 
   const handleAccion = (accion: 'aprobar' | 'recalcular' | 'cerrar') => {
     void (async () => {
@@ -68,7 +68,7 @@ const OperacionLayout: React.FC = () => {
     })();
   };
 
-  const totalRegistros = useMemo(() => query.data?.length ?? 0, [query.data]);
+  const totalRegistros = useMemo(() => registros.length, [registros]);
   // const massPanelId = 'operacion-mass-actions-panel';
   // const bulkPanelId = 'operacion-bulk-upload-panel';
   // const progressPanelId = 'operacion-progress-panel';
@@ -85,7 +85,7 @@ const OperacionLayout: React.FC = () => {
       <OperacionFilterBar config={config} />
       <OperacionDataGrid
         config={config}
-        registros={query.data ?? []}
+        registros={registros}
         onSelect={setSelected}
         loading={query.status === 'loading'}
         error={query.error}

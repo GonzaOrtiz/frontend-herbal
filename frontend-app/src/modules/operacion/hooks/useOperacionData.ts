@@ -15,16 +15,22 @@ import type {
   OperacionRegistro,
 } from '../types';
 import { emitOperacionEvent } from '../utils/eventBus';
+import { filterOperacionRegistros } from '../utils/filterRegistros';
 
 export function useOperacionData() {
   const { modulo, filtros } = useOperacionContext();
   const queryClient = useQueryClient();
   const query = useQuery<OperacionRegistro[]>({
-    queryKey: ['operacion', modulo, filtros],
+    queryKey: ['operacion', modulo],
     queryFn: async () => {
       return fetchOperacionRegistros(modulo, filtros);
     },
   });
+
+  const registros = useMemo(
+    () => filterOperacionRegistros(query.data, modulo, filtros),
+    [query.data, modulo, filtros],
+  );
 
   const createMutation = useMutation<OperacionRegistro, OperacionRegistro>({
     mutationFn: async (registro) => {
@@ -72,13 +78,17 @@ export function useOperacionData() {
     [modulo, queryClient],
   );
 
-  const resumen = useMemo(() => ({
-    totalRegistros: query.data?.length ?? 0,
-    errores: query.status === 'error',
-  }), [query.data, query.status]);
+  const resumen = useMemo(
+    () => ({
+      totalRegistros: registros.length,
+      errores: query.status === 'error',
+    }),
+    [registros.length, query.status],
+  );
 
   return {
     query,
+    registros,
     createRegistro: createMutation.mutate,
     updateRegistro: updateMutation.mutate,
     deleteRegistro: deleteMutation.mutate,
