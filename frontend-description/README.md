@@ -20,7 +20,7 @@ Para acelerar la implementación y alinear decisiones técnicas se sugiere parti
 - **Estado del servidor**: TanStack Query (React Query) para manejar caché, revalidación (`stale-while-revalidate`) y estados de carga por dominio.【F:src/index.ts†L91-L115】
 - **Estado global**: Zustand o Redux Toolkit para almacenar autenticación, fecha de cálculo, preferencias de usuario y catálogos reutilizables.【F:src/modules/fecha-calculo/middleware.ts†L9-L21】
 - **HTTP client**: Axios con interceptores que agreguen `Authorization` y `x-user`, manejen retries y centralicen el formateo de errores.【F:src/common/middlewares/error-handler.ts†L3-L16】【F:src/modules/costos/controllers/costos.controller.ts†L63-L202】
-- **UI kit**: Adoptar Material UI (MUI) como base obligatoria del sistema de diseño, definiendo temas y overrides que respeten la identidad visual de la organización y faciliten el reuso de componentes.
+- **UI kit**: Mantener consistencia con un sistema de diseño (Material UI, Chakra o librería interna) permitiendo overrides para respetar la identidad visual de la organización.
 - **Internacionalización**: i18next con namespaces por dominio para habilitar localización temprana.
 - **Testing**: Vitest + React Testing Library para pruebas unitarias/componentes y Cypress para flujos end-to-end críticos.
 
@@ -96,6 +96,7 @@ Cada documento incluye ejemplos de payloads tomados del `swagger.json` del repos
 | --- | --- | --- |
 | Actividades | Catálogo de actividades de producción. | [actividades.md](./actividades.md) |
 | Asignación de actividades a empleados | Registro de horas por actividad. | [asignacion-actividad-empleado.md](./asignacion-actividad-empleado.md) |
+| Asignaciones base | Red de prorrateos entre centros de apoyo y producción. | [asignaciones.md](./asignaciones.md) |
 | Asignación de centros | Distribución de costos entre centros. | [asignacion-centro.md](./asignacion-centro.md) |
 | Historial de asignaciones | Consulta de prorrateos por centro. | [asignacion-historial.md](./asignacion-historial.md) |
 | Centros asignaciones manuales | Ajustes manuales y resultados finales. | [centros-asignaciones.md](./centros-asignaciones.md) |

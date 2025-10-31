@@ -1,0 +1,619 @@
+.costos-module {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.costos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.costos-header h1 {
+  font-size: 1.8rem;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.costos-header p {
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  max-width: 720px;
+}
+
+.costos-base-currency {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(20, 94, 168, 0.12);
+  color: var(--color-primary-variant);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.costos-base-currency__label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  color: rgba(20, 94, 168, 0.72);
+}
+
+.costos-base-currency__symbol {
+  font-size: 1rem;
+}
+
+.costos-base-currency__code {
+  font-size: 0.78rem;
+  color: rgba(20, 94, 168, 0.72);
+}
+
+.costos-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.costos-actions button {
+  flex: 0 0 auto;
+}
+
+.costos-actions button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.costos-tabs {
+  display: flex;
+  gap: 8px;
+  border-radius: 12px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-outline);
+  padding: 6px;
+  overflow-x: auto;
+}
+
+.costos-tab {
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.costos-tab[data-active='true'] {
+  color: var(--color-primary-variant);
+  background: rgba(20, 94, 168, 0.14);
+}
+
+.costos-tab:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.costos-filter-bar {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface-alt);
+}
+
+.costos-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.costos-filter-field label {
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+
+.costos-filter-field input,
+.costos-filter-field select {
+  border-radius: 10px;
+  border: 1px solid var(--color-outline);
+  padding: 10px 12px;
+  background: #fff;
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+}
+
+.costos-filter-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  grid-column: 1 / -1;
+}
+
+.costos-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+}
+
+.costos-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: sticky;
+  top: 96px;
+  align-self: flex-start;
+}
+
+@media (max-width: 1200px) {
+  .costos-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .costos-sidebar {
+    position: static;
+  }
+}
+
+.costos-card {
+  border-radius: 16px;
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface-alt);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-level-1);
+}
+
+.costos-card--highlight {
+  position: relative;
+  padding-left: 28px;
+  border-color: rgba(20, 94, 168, 0.28);
+  background: linear-gradient(145deg, rgba(20, 94, 168, 0.16), rgba(15, 23, 42, 0));
+  box-shadow: 0 18px 36px -20px rgba(15, 23, 42, 0.5);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+.costos-card--highlight::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 12px;
+  width: 4px;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, var(--color-primary), var(--color-primary-variant));
+  opacity: 0.9;
+}
+
+.costos-card--highlight:hover,
+.costos-card--highlight:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 40px -18px rgba(15, 23, 42, 0.55);
+}
+
+.costos-card--highlight h2 {
+  color: var(--color-primary-variant);
+  letter-spacing: 0.01em;
+}
+
+.costos-card--highlight .costos-metadata,
+.costos-card--highlight .costos-summary-item span:last-child {
+  color: rgba(20, 94, 168, 0.75);
+}
+
+.costos-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+}
+
+.costos-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.costos-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.costos-summary-item span:last-child {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.costos-warning {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(234, 179, 8, 0.16);
+  border: 1px solid rgba(202, 138, 4, 0.4);
+  color: #854d0e;
+  font-weight: 600;
+}
+
+.costos-allocation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.costos-allocation-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.costos-allocation-item span:first-child {
+  font-weight: 600;
+}
+
+.costos-allocation-bar {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(20, 94, 168, 0.12);
+  overflow: hidden;
+}
+
+.costos-allocation-bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+}
+
+.costos-trend-chart {
+  width: 100%;
+  height: 120px;
+}
+
+.costos-datagrid {
+  position: relative;
+}
+
+.costos-datagrid__header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.costos-datagrid__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.costos-datagrid__actions button {
+  min-width: 140px;
+}
+
+.costos-datagrid__actions-cell {
+  text-align: left;
+}
+
+.costos-row-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.costos-row-actions__edit,
+.costos-row-actions__delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.costos-row-actions__edit {
+  background: rgba(20, 94, 168, 0.12);
+  color: var(--color-primary-variant);
+}
+
+.costos-row-actions__edit:hover,
+.costos-row-actions__edit:focus-visible {
+  background: rgba(20, 94, 168, 0.18);
+  box-shadow: 0 0 0 3px rgba(20, 94, 168, 0.16);
+}
+
+.costos-row-actions__delete {
+  background: rgba(248, 113, 113, 0.12);
+  color: #b91c1c;
+}
+
+.costos-row-actions__delete:hover,
+.costos-row-actions__delete:focus-visible {
+  background: rgba(248, 113, 113, 0.2);
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+}
+
+.costos-row-actions__delete:focus-visible,
+.costos-row-actions__edit:focus-visible {
+  outline: none;
+}
+
+.costos-row-actions__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.costos-datagrid__trace {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.costos-empty-state {
+  padding: 32px;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.costos-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.costos-audit-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.costos-audit-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--color-outline);
+}
+
+.costos-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.costos-log-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 3px solid var(--color-outline);
+  padding-left: 10px;
+}
+
+.costos-log-entry[data-level='warning'] {
+  border-color: #f59e0b;
+}
+
+.costos-log-entry[data-level='error'] {
+  border-color: #dc2626;
+}
+
+@media (max-width: 1024px) {
+  .costos-layout {
+    gap: 16px;
+  }
+
+  .costos-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .costos-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .costos-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .costos-actions button {
+    flex: 1 1 100%;
+  }
+
+  .costos-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .costos-toolbar > div {
+    width: 100%;
+  }
+
+  .costos-card {
+    padding: 14px;
+  }
+
+  .costos-table th,
+  .costos-table td {
+    padding: 10px 12px;
+  }
+}
+
+.costos-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+}
+
+.costos-dialog {
+  width: min(640px, 90vw);
+  max-height: 90vh;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-level-2);
+}
+
+.costos-dialog header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-outline);
+}
+
+.costos-dialog header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.costos-dialog__body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.costos-salary-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.costos-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.costos-field span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.costos-field input,
+.costos-field select {
+  border-radius: 10px;
+  border: 1px solid var(--color-outline);
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.costos-field input:focus-visible,
+.costos-field select:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(20, 94, 168, 0.18);
+}
+
+.costos-field input:disabled,
+.costos-field select:disabled {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+.costos-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(248, 113, 113, 0.55);
+  background: rgba(248, 113, 113, 0.12);
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+.costos-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 600px) {
+  .costos-salary-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.costos-dialog__footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-outline);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.costos-dialog__footer button {
+  flex: 0 0 auto;
+}
+
+.costos-progress-bar {
+  height: 8px;
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.costos-progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.4s ease;
+}
+
+.costos-metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.costos-table-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(20, 94, 168, 0.14);
+  color: var(--color-primary-variant);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
