@@ -218,14 +218,14 @@ const ParametrosGeneralesPage: React.FC = () => {
       <div className="catalog-card">
         <CatalogFilterBar value={filters} onChange={setFilters} disabled={catalog.isLoading} />
 
-        {catalog.error && (
+        {catalog.error ? (
           <div className="config-alert" role="alert">
             <span>No pudimos cargar los parámetros. Intenta nuevamente.</span>
             <button type="button" className="ghost config-alert__action" onClick={() => catalog.refetch()}>
               Reintentar
             </button>
           </div>
-        )}
+        ) : null}
 
         <CatalogTable
           rows={filteredItems}

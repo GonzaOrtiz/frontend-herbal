@@ -2,7 +2,7 @@ export type ReportCategory = 'financieros' | 'operativos' | 'auditoria';
 
 export type ReportFormat = 'json' | 'csv' | 'xlsx';
 
-export interface ReportFilters {
+export interface ReportFilters extends Record<string, unknown> {
   periodo?: string;
   producto?: string;
   centro?: string;

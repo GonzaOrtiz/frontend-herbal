@@ -361,14 +361,14 @@ const CentrosApoyoPage: React.FC = () => {
         </header>
 
         <div className="catalog-card">
-          {catalog.error && (
+          {catalog.error ? (
             <div className="config-alert" role="alert">
               <span>No pudimos cargar los centros de apoyo.</span>
               <button type="button" className="ghost config-alert__action" onClick={() => catalog.refetch()}>
                 Reintentar
               </button>
             </div>
-          )}
+          ) : null}
 
           {isEditing ? (
             <div className="centros-apoyo__edicion">

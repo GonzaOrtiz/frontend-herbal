@@ -1,6 +1,6 @@
 export type CostosSubModulo = 'gastos' | 'depreciaciones' | 'sueldos' | 'prorrateo';
 
-export interface CostosFilters {
+export interface CostosFilters extends Record<string, unknown> {
   calculationDate: string;
   centro?: string;
   esGastoDelPeriodo?: boolean;
@@ -9,7 +9,7 @@ export interface CostosFilters {
   empleadoQuery?: string;
 }
 
-export interface BaseCostRecord {
+export interface BaseCostRecord extends Record<string, unknown> {
   id: string;
   centro: string;
   calculationDate: string;

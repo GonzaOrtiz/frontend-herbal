@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
-import type { CostosSubModulo } from '../types';
+import type { BaseCostRecord, CostosSubModulo } from '../types';
 
 export interface ColumnDefinition {
   key: string;
   label: string;
   width?: string;
   align?: 'left' | 'right' | 'center';
-  render?: (value: unknown, record: Record<string, unknown>) => string | number | ReactNode;
+  render?: (value: unknown, record: BaseCostRecord) => string | number | ReactNode;
 }
 
 export interface CostosModuleConfig {

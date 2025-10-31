@@ -2,6 +2,7 @@ import { formatCurrency, formatPercentage } from '@/lib/formatters';
 import type {
   ComparisonInsight,
   ComparisonPoint,
+  BaseTableRow,
   ReportCuadroCard,
   ReportDownloadLog,
   ReportFilters,
@@ -18,6 +19,18 @@ interface CostosResponse {
     totalInsumos?: number;
     consistente?: boolean;
     diferencia?: number;
+  };
+}
+
+export interface NormalizedCostosResponse {
+  costos: Array<{ centro: string; monto: number }>;
+  consumos: Array<{ producto: string; cantidad: number }>;
+  cif: Array<{ producto: string; monto: number }>;
+  control: {
+    totalEgresos: number;
+    totalInsumos: number;
+    consistente: boolean;
+    diferencia: number;
   };
 }
 
@@ -66,7 +79,7 @@ interface CuadroResponseItem {
   tendencia?: string;
 }
 
-export function normalizeCostosResponse(response: unknown): Required<CostosResponse> {
+export function normalizeCostosResponse(response: unknown): NormalizedCostosResponse {
   const defaultControl = {
     totalEgresos: 0,
     totalInsumos: 0,
@@ -103,8 +116,8 @@ export function normalizeCostosResponse(response: unknown): Required<CostosRespo
   };
 }
 
-export function buildCostosSummaryCards(response: Required<CostosResponse>): ReportSummaryCard[] {
-  const { totalEgresos, totalInsumos, consistente, diferencia } = response.control;
+export function buildCostosSummaryCards(response: NormalizedCostosResponse): ReportSummaryCard[] {
+  const { totalEgresos = 0, totalInsumos = 0, consistente = false, diferencia = 0 } = response.control;
   const cards: ReportSummaryCard[] = [
     {
       id: 'total-egresos',
@@ -164,13 +177,19 @@ export function buildComparisonInsight(response: unknown): ComparisonInsight {
   };
 }
 
-export function normalizeCifResponse(response: unknown): ReportTableDescriptor<{ producto: string; periodo: string; monto: string }> {
-  const items = Array.isArray(response) ? response : Array.isArray((response as { data?: unknown }).data) ? (response as { data?: unknown[] }).data ?? [] : [];
-  const rows = (items as CifResponseItem[]).map((item) => ({
-    producto: String(item.producto ?? '—'),
-    periodo: item.periodo ? item.periodo.slice(0, 7) : '—',
-    monto: formatCurrency(Number(item.monto ?? 0)),
-  }));
+export function normalizeCifResponse(response: unknown): ReportTableDescriptor<BaseTableRow> {
+  const items = Array.isArray(response)
+    ? response
+    : Array.isArray((response as { data?: unknown }).data)
+      ? (response as { data?: unknown[] }).data ?? []
+      : [];
+  const rows = (items as CifResponseItem[]).map((item) =>
+    ({
+      producto: String(item.producto ?? '—'),
+      periodo: item.periodo ? item.periodo.slice(0, 7) : '—',
+      monto: formatCurrency(Number(item.monto ?? 0)),
+    } satisfies BaseTableRow),
+  );
   return {
     id: 'cif',
     title: 'CIF por producto',
@@ -191,25 +210,22 @@ export function normalizeCifResponse(response: unknown): ReportTableDescriptor<{
   };
 }
 
-export function normalizeConsumosResponse(response: unknown): ReportTableDescriptor<{
-  producto: string;
-  unidad: string;
-  cantidad: string;
-  monto: string;
-}> {
+export function normalizeConsumosResponse(response: unknown): ReportTableDescriptor<BaseTableRow> {
   const items = Array.isArray(response)
     ? response
     : Array.isArray((response as { items?: unknown[] }).items)
       ? (response as { items?: unknown[] }).items ?? []
       : [];
-  const rows = (items as ConsumosResponseItem[]).map((item) => ({
-    producto: String(item.producto ?? '—'),
-    unidad: String(item.unidad ?? '—'),
-    cantidad: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
-      Number(item.cantidad ?? 0),
-    ),
-    monto: formatCurrency(Number(item.monto ?? 0)),
-  }));
+  const rows = (items as ConsumosResponseItem[]).map((item) =>
+    ({
+      producto: String(item.producto ?? '—'),
+      unidad: String(item.unidad ?? '—'),
+      cantidad: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+        Number(item.cantidad ?? 0),
+      ),
+      monto: formatCurrency(Number(item.monto ?? 0)),
+    } satisfies BaseTableRow),
+  );
   return {
     id: 'consumos',
     title: 'Consumos consolidados',
@@ -225,25 +241,22 @@ export function normalizeConsumosResponse(response: unknown): ReportTableDescrip
   };
 }
 
-export function normalizeAsignacionesResponse(response: unknown): ReportTableDescriptor<{
-  centro: string;
-  actividad: string;
-  horas: string;
-  porcentaje: string;
-}> {
+export function normalizeAsignacionesResponse(response: unknown): ReportTableDescriptor<BaseTableRow> {
   const items = Array.isArray(response)
     ? response
     : Array.isArray((response as { data?: unknown[] }).data)
       ? (response as { data?: unknown[] }).data ?? []
       : [];
-  const rows = (items as AsignacionesResponseItem[]).map((item) => ({
-    centro: String(item.centro ?? '—'),
-    actividad: String(item.actividad ?? '—'),
-    horas: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
-      Number(item.horas ?? 0),
-    ),
-    porcentaje: formatPercentage(Number(item.porcentaje ?? 0)),
-  }));
+  const rows = (items as AsignacionesResponseItem[]).map((item) =>
+    ({
+      centro: String(item.centro ?? '—'),
+      actividad: String(item.actividad ?? '—'),
+      horas: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+        Number(item.horas ?? 0),
+      ),
+      porcentaje: formatPercentage(Number(item.porcentaje ?? 0)),
+    } satisfies BaseTableRow),
+  );
   return {
     id: 'asignaciones',
     title: 'Asignaciones por centro',
@@ -259,25 +272,22 @@ export function normalizeAsignacionesResponse(response: unknown): ReportTableDes
   };
 }
 
-export function normalizeManoObraResponse(response: unknown): ReportTableDescriptor<{
-  actividad: string;
-  descripcion: string;
-  horas: string;
-  monto: string;
-}> {
+export function normalizeManoObraResponse(response: unknown): ReportTableDescriptor<BaseTableRow> {
   const items = Array.isArray(response)
     ? response
     : Array.isArray((response as { items?: unknown[] }).items)
       ? (response as { items?: unknown[] }).items ?? []
       : [];
-  const rows = (items as ManoObraResponseItem[]).map((item) => ({
-    actividad: String(item.actividad ?? '—'),
-    descripcion: String(item.descripcion ?? '—'),
-    horas: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
-      Number(item.horas ?? 0),
-    ),
-    monto: formatCurrency(Number(item.monto ?? 0)),
-  }));
+  const rows = (items as ManoObraResponseItem[]).map((item) =>
+    ({
+      actividad: String(item.actividad ?? '—'),
+      descripcion: String(item.descripcion ?? '—'),
+      horas: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+        Number(item.horas ?? 0),
+      ),
+      monto: formatCurrency(Number(item.monto ?? 0)),
+    } satisfies BaseTableRow),
+  );
   return {
     id: 'mano-obra',
     title: 'Mano de obra por actividad',
@@ -342,8 +352,12 @@ export function normalizeCuadrosResponse(response: unknown): ReportCuadroCard[] 
       producto,
       periodoLabel: periodo,
       costoDirecto: formatCurrency(costoDirecto),
-      costoUnitarioKg: item.costoUnitarioKg ? formatCurrency(item.costoUnitarioKg) : undefined,
-      costoUnitarioLt: item.costoUnitarioLt ? formatCurrency(item.costoUnitarioLt) : undefined,
+      costoUnitarioKg: item.costoUnitarioKg
+        ? formatCurrency(Number(item.costoUnitarioKg ?? 0))
+        : undefined,
+      costoUnitarioLt: item.costoUnitarioLt
+        ? formatCurrency(Number(item.costoUnitarioLt ?? 0))
+        : undefined,
       costoIndirecto: formatCurrency(costoIndirecto),
       diferencia: formatCurrency(diferencia),
       diferenciaPorcentaje: formatPercentage(diferenciaPorcentaje),

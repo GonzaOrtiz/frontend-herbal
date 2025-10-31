@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@/lib/query/QueryClient';
+import type { QueryKey } from '@/lib/query/queryClientCore';
 import { useOperacionContext } from '../context/OperacionContext';
 import {
   createOperacionRegistro,
@@ -20,8 +21,10 @@ import { filterOperacionRegistros } from '../utils/filterRegistros';
 export function useOperacionData() {
   const { modulo, filtros } = useOperacionContext();
   const queryClient = useQueryClient();
+  const baseKey: QueryKey = ['operacion', modulo];
+
   const query = useQuery<OperacionRegistro[]>({
-    queryKey: ['operacion', modulo],
+    queryKey: baseKey,
     queryFn: async () => {
       return fetchOperacionRegistros(modulo, filtros);
     },
@@ -39,7 +42,7 @@ export function useOperacionData() {
     },
     onSuccess: (registro) => {
       emitOperacionEvent({ type: 'registro:creado', modulo, registro });
-      queryClient.invalidateQueries(['operacion', modulo]);
+      queryClient.invalidateQueries(baseKey);
     },
   });
 
@@ -50,7 +53,7 @@ export function useOperacionData() {
     },
     onSuccess: (registro) => {
       emitOperacionEvent({ type: 'registro:actualizado', modulo, registro });
-      queryClient.invalidateQueries(['operacion', modulo]);
+      queryClient.invalidateQueries(baseKey);
     },
   });
 
@@ -61,7 +64,7 @@ export function useOperacionData() {
     },
     onSuccess: (id) => {
       emitOperacionEvent({ type: 'registro:eliminado', modulo, id });
-      queryClient.invalidateQueries(['operacion', modulo]);
+      queryClient.invalidateQueries(baseKey);
     },
   });
 
@@ -72,7 +75,7 @@ export function useOperacionData() {
       if (accion === 'cerrar') {
         emitOperacionEvent({ type: 'cierre:solicitado', modulo, payload: { closeReason: resultado.mensaje } });
       }
-      queryClient.invalidateQueries(['operacion', modulo]);
+      queryClient.invalidateQueries(baseKey);
       return resultado;
     },
     [modulo, queryClient],
@@ -98,7 +101,7 @@ export function useOperacionData() {
 }
 
 export function useImportacionStatus(modulo: OperacionModulo) {
-  const key = ['operacion', modulo, 'import-status'] as const;
+  const key: QueryKey = ['operacion', modulo, 'import-status'];
   const queryClient = useQueryClient();
   const status = (queryClient.getQuery<ImportStatus>(key)?.data ?? 'idle') as ImportStatus;
   const setStatus = (nuevo: ImportStatus) => {

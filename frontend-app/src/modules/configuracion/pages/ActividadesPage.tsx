@@ -182,14 +182,14 @@ const ActividadesPage: React.FC = () => {
               searchPlaceholder="Buscar por nombre o número"
             />
 
-            {catalog.error && (
+            {catalog.error ? (
               <div className="config-alert" role="alert">
                 <span>No pudimos cargar las actividades. Intenta nuevamente.</span>
                 <button type="button" className="ghost config-alert__action" onClick={() => catalog.refetch()}>
                   Reintentar
                 </button>
               </div>
-            )}
+            ) : null}
 
             <CatalogTable
               rows={actividades}
