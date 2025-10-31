@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type {
   FiltroPersistente,
   OperacionModulo,
@@ -15,7 +16,7 @@ interface OperacionContextValue {
   updateFiltros: (partial: Partial<FiltroPersistente>) => void;
   resetFiltros: () => void;
   resumen: ResumenContextual | null;
-  setResumen: (resumen: ResumenContextual | null) => void;
+  setResumen: Dispatch<SetStateAction<ResumenContextual | null>>;
   vistas: VistaGuardada[];
   saveVista: (vista: Omit<VistaGuardada, 'id' | 'createdAt'>) => VistaGuardada;
   deleteVista: (id: string) => void;
@@ -121,7 +122,7 @@ export const OperacionProvider: React.FC<OperacionProviderProps> = ({ initialMod
       const base = typeof window !== 'undefined' ? window.location.origin : 'operacion';
       return `${base}/operacion?view=${id}`;
     },
-  }), [modulo, filtros, resumen, vistas]);
+  }), [modulo, filtros, resumen, setResumen, vistas]);
 
   return <OperacionContext.Provider value={value}>{children}</OperacionContext.Provider>;
 };

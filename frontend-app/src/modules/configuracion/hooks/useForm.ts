@@ -1,14 +1,17 @@
-import { FormEvent, useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
 import type { ValidationResult, Validator } from '../schemas/types';
 
-type FieldValue = string | number | boolean;
+type FieldValue = string | number | boolean | undefined;
 
-export interface UseFormOptions<TValues extends Record<string, FieldValue>> {
+type FormValuesConstraint<TValues> = { [K in keyof TValues]: FieldValue };
+
+export interface UseFormOptions<TValues extends FormValuesConstraint<TValues>> {
   defaultValues: TValues;
   validator: Validator<TValues>;
 }
 
-export interface FormState<TValues extends Record<string, FieldValue>> {
+export interface FormState<TValues extends FormValuesConstraint<TValues>> {
   values: TValues;
   errors: Record<keyof TValues & string, string>;
   isSubmitting: boolean;
@@ -16,12 +19,12 @@ export interface FormState<TValues extends Record<string, FieldValue>> {
 
 export interface RegisteredFieldProps {
   name: string;
-  value: FieldValue;
+  value?: string | number;
   checked?: boolean;
-  onChange: (event: { target: { value: FieldValue; checked?: boolean; type?: string } }) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }
 
-export function useForm<TValues extends Record<string, FieldValue>>({
+export function useForm<TValues extends FormValuesConstraint<TValues>>({
   defaultValues,
   validator,
 }: UseFormOptions<TValues>) {
@@ -30,20 +33,26 @@ export function useForm<TValues extends Record<string, FieldValue>>({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const register = useCallback(
-    (name: keyof TValues): RegisteredFieldProps => ({
-      name: String(name),
-      value: values[name as string],
-      checked:
-        typeof values[name as string] === 'boolean'
-          ? Boolean(values[name as string])
-          : undefined,
-      onChange: (event) => {
-        const targetType = event.target.type;
-        const newValue = targetType === 'checkbox' ? Boolean(event.target.checked) : event.target.value;
-        setValues((prev) => ({ ...prev, [name]: newValue }));
-      },
-    }),
-    [values]
+    (name: keyof TValues): RegisteredFieldProps => {
+      const currentValue = values[name];
+      const isBoolean = typeof currentValue === 'boolean';
+
+      return {
+        name: String(name),
+        value: isBoolean ? undefined : (currentValue as string | number | undefined),
+        checked: isBoolean ? Boolean(currentValue) : undefined,
+        onChange: (event) => {
+          const target = event.target;
+          const nextValue =
+            target.type === 'checkbox' ? Boolean((target as HTMLInputElement).checked) : target.value;
+          setValues((prev) => ({
+            ...prev,
+            [name]: nextValue as TValues[keyof TValues],
+          }));
+        },
+      };
+    },
+    [values],
   );
 
   const handleSubmit = useCallback(
@@ -68,7 +77,7 @@ export function useForm<TValues extends Record<string, FieldValue>>({
   );
 
   const setValue = useCallback((name: keyof TValues, value: FieldValue) => {
-    setValues((prev) => ({ ...prev, [name]: value }));
+    setValues((prev) => ({ ...prev, [name]: value as TValues[keyof TValues] }));
   }, []);
 
   const reset = useCallback((nextValues?: TValues) => {

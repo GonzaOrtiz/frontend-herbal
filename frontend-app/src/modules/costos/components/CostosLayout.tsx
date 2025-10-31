@@ -267,7 +267,7 @@ const CostosLayout: React.FC = () => {
                   return {
                     header: 'Acciones',
                     width: '180px',
-                    render: (record: CostosRecordMap['sueldos']) => {
+                    render: (record) => {
                       const sueldoRecord = record as SueldoRecord;
                       return (
                         <div className="costos-row-actions">
@@ -301,7 +301,7 @@ const CostosLayout: React.FC = () => {
                   return {
                     header: 'Acciones',
                     width: '180px',
-                    render: (record: CostosRecordMap['depreciaciones']) => {
+                    render: (record) => {
                       const depreciationRecord = record as DepreciacionRecord;
                       return (
                         <div className="costos-row-actions">

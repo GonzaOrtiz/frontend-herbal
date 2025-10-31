@@ -1,5 +1,11 @@
 import { lazy } from 'react';
-import { RouteObject } from 'react-router-dom';
+import type { JSX, ReactNode } from 'react';
+
+interface RouteObject {
+  path?: string;
+  element?: ReactNode;
+  children?: RouteObject[];
+}
 
 // Ejemplo de lazy loading de páginas
 const HomePage = lazy(() => import('@/modules/home/HomePage'));

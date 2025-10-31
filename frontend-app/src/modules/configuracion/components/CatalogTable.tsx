@@ -86,7 +86,9 @@ const CatalogTable = <TEntity,>({
               <tr key={String((row as any).id ?? `${page}-${index}`)}>
                 {columns.map((column) => (
                   <td key={String(column.key)}>
-                    {column.render ? column.render(row) : (row as Record<string, unknown>)[column.key as string]}
+                    {column.render
+                      ? column.render(row)
+                      : ((row as Record<string, unknown>)[column.key as string] as React.ReactNode)}
                   </td>
                 ))}
               </tr>

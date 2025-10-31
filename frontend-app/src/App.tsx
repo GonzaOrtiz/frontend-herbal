@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { JSX } from 'react';
 import ConfiguracionModule from './modules/configuracion';
 import OperacionModule from './modules/operacion';
 import CostosModule from './modules/costos';
