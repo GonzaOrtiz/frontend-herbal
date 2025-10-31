@@ -30,15 +30,7 @@ type SidebarStat = {
 };
 
 type DomainConfig = {
-  eyebrow: string;
-  title: string;
-  subtitle: string;
   logo: string;
-  overview: {
-    description: string;
-    stats: SidebarStat[];
-  };
-  shortcuts: string[];
 };
 
 type SidebarIconName =
@@ -159,105 +151,23 @@ const buildConfiguracionNavigation = ({
 
 const domainConfigs: Record<DomainKey, DomainConfig> = {
   configuracion: {
-    eyebrow: 'Suite Herbal ERP',
-    title: 'Configuración y catálogos',
-    subtitle: 'Administra los catálogos maestros y parámetros generales utilizados por los módulos operativos.',
     logo: '🌿',
-    overview: {
-      description:
-        'Consulta el estado general de los catálogos y mantén visibles las dependencias clave antes de publicar cambios.',
-      stats: [
-        { value: '4', label: 'Catálogos activos' },
-        { value: '3', label: 'Dependencias críticas' },
-        { value: 'En línea', label: 'Estado de sincronización' },
-      ],
-    },
-    shortcuts: ['Revisar dependencias', 'Programar sincronización', 'Descargar respaldo'],
   },
   operacion: {
-    eyebrow: 'Suite Herbal ERP · Operación',
-    title: 'Operación diaria',
-    subtitle:
-      'Captura y monitorea consumos, producciones, litros, pérdidas y sobrantes con trazabilidad y cierres controlados.',
     logo: '🛠️',
-    overview: {
-      description:
-        'Supervisa la captura diaria, valida cierres pendientes y sincroniza los módulos dependientes en tiempo real.',
-      stats: [
-        { value: '5', label: 'Turnos abiertos' },
-        { value: '2', label: 'Bloqueos activos' },
-        { value: '92%', label: 'Sincronización completada' },
-      ],
-    },
-    shortcuts: ['Revisar consumos pendientes', 'Descargar bitácoras', 'Configurar alertas'],
+
   },
   costos: {
-    eyebrow: 'Suite Herbal ERP · Costos',
-    title: 'Costos y consolidaciones',
-    subtitle:
-      'Controla gastos, depreciaciones, sueldos y monitorea las consolidaciones automáticas con trazabilidad completa.',
     logo: '💰',
-    overview: {
-      description:
-        'Consulta balances, identifica variaciones entre periodos y navega rápidamente hacia existencias y asientos relacionados.',
-      stats: [
-        { value: '3', label: 'Procesos en curso' },
-        { value: '12', label: 'Alertas de balance' },
-        { value: 'Actual', label: 'Periodo activo' },
-      ],
-    },
-    shortcuts: ['Ver existencias', 'Ir a asientos', 'Descargar bitácora'],
   },
   cif: {
-    eyebrow: 'Suite Herbal ERP · CIF',
-    title: 'Costos indirectos de fabricación',
-    subtitle:
-      'Registra montos totales, calcula costos unitarios y ejecuta recalculos apoyándote en costos finales y producción consolidada.',
-    logo: '🏭',
-    overview: {
-      description:
-        'Monitorea el historial de CIF, consulta métricas clave y coordina recalculos con el resto de procesos de costos.',
-      stats: [
-        { value: '3', label: 'Formularios activos' },
-        { value: '0', label: 'Procesos pendientes' },
-        { value: 'ARS', label: 'Moneda base' },
-      ],
-    },
-    shortcuts: ['Validar costos totales', 'Comparar unitarios', 'Exportar historial'],
+   logo: '🏭',
   },
   reportes: {
-    eyebrow: 'Suite Herbal ERP · Analítica',
-    title: 'Reportes y analítica',
-    subtitle:
-      'Explora indicadores financieros, operativos y de auditoría con filtros avanzados y exportaciones seguras.',
     logo: '📊',
-    overview: {
-      description:
-        'Comparte vistas filtradas, monitorea descargas recientes y asegura el cumplimiento de los indicadores clave.',
-      stats: [
-        { value: '7', label: 'Reportes disponibles' },
-        { value: '3', label: 'Descargas hoy' },
-        { value: 'AA', label: 'Nivel de accesibilidad' },
-      ],
-    },
-    shortcuts: ['Ver KPIs financieros', 'Explorar consumos', 'Auditar exportaciones'],
   },
-  importaciones: {
-    eyebrow: 'Suite Herbal ERP · Importaciones',
-    title: 'Importación de bases Access',
-    subtitle:
-      'Carga archivos .mdb, monitorea el procesamiento por tabla y gestiona las bitácoras generadas automáticamente.',
-    logo: '📥',
-    overview: {
-      description:
-        'Controla la trazabilidad de las importaciones, revisa los resultados por tabla y audita los movimientos generados.',
-      stats: [
-        { value: '3', label: 'Importaciones en revisión' },
-        { value: '12', label: 'Tablas importadas hoy' },
-        { value: 'Sin alertas', label: 'Estado del proceso' },
-      ],
-    },
-    shortcuts: ['Ver últimas bitácoras', 'Descargar log de auditoría', 'Configurar alertas'],
+  importaciones: {  
+    logo: '📥'
   },
 };
 
@@ -739,29 +649,7 @@ function App() {
       </header>
 
       <div className="app-shell__content">
-        <section className="app-shell__page-header">
-          <div className="app-shell__page-meta">
-            <p className="app-shell__eyebrow">{domainConfig.eyebrow}</p>
-            <h1 className="app-shell__title">{domainConfig.title}</h1>
-            <p className="app-shell__subtitle">{domainConfig.subtitle}</p>
-            <p className="app-shell__description">{domainConfig.overview.description}</p>
-            <div className="app-shell__quick-actions" role="list">
-              {domainConfig.shortcuts.map((shortcut) => (
-                <span key={shortcut} className="app-shell__quick-action" role="listitem">
-                  {shortcut}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="app-shell__page-stats" role="list">
-            {domainConfig.overview.stats.map((stat) => (
-              <div key={stat.label} className="app-shell__stat" role="listitem">
-                <span className="app-shell__stat-value">{stat.value}</span>
-                <span className="app-shell__stat-label">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-        </section>
+
         <div className="app-layout">
           {isCompactViewport && isSidebarVisible && (
             <button type="button" className="app-sidebar__backdrop" aria-label="Cerrar panel" onClick={closeSidebar} />
