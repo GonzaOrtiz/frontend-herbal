@@ -590,6 +590,13 @@ function App() {
     : isSidebarExpanded
       ? 'Contraer panel'
       : 'Expandir panel';
+  const toggleButtonText = isCompactViewport
+    ? isSidebarVisible
+      ? 'Cerrar'
+      : 'Abrir'
+    : isSidebarExpanded
+      ? 'Contraer'
+      : 'Expandir';
 
   return (
     <div className="app-shell">
@@ -667,20 +674,22 @@ function App() {
               <div className="app-sidebar__controls">
                 <button
                   type="button"
-                  className="app-sidebar__toggle app-toggle-button"
+                  className="app-sidebar__toggle"
                   onClick={toggleSidebar}
                   aria-expanded={isSidebarOpen}
                   aria-controls="app-sidebar"
                   aria-label={toggleLabel}
                   title={toggleLabel}
-                  data-open={isSidebarOpen}
                 >
-                  <span className="sr-only">{toggleLabel}</span>
-                  <span className="app-toggle-button__icon" aria-hidden="true">
-                    <span />
-                    <span />
-                    <span />
+                  <span className="app-sidebar__toggle-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" focusable="false" role="presentation">
+                      <path
+                        d="M12.94 4.94a1.25 1.25 0 1 1 1.77 1.77L10.42 11l4.29 4.29a1.25 1.25 0 0 1-1.77 1.77l-5.18-5.18a1.25 1.25 0 0 1 0-1.77Z"
+                        fill="currentColor"
+                      />
+                    </svg>
                   </span>
+                  <span className="app-sidebar__toggle-text">{toggleButtonText}</span>
                 </button>
               </div>
               <nav className="app-sidebar__nav" aria-label="Secciones principales">
