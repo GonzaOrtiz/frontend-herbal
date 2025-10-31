@@ -180,7 +180,7 @@ const domainEntries: { id: DomainKey; label: string }[] = [
   { id: 'reportes', label: 'Reportes y analítica' },
 ];
 
-const productName = 'Suite Herbal ERP';
+const productName = 'Suite Herbal';
 
 function SidebarIcon({ name }: { name: SidebarIconName }) {
   switch (name) {
