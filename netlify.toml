@@ -1,7 +1,7 @@
 [build]
   base = "frontend-app"
-  command = "npm run build"
-  publish = "frontend-app/dist"
+  command = "npm cache clean --force && npm ci && npm run build"
+  publish = "dist"
 
 [build.environment]
   VITE_API_URL = "https://herbal-backend-ts.onrender.com"
