@@ -1,5 +1,6 @@
 import apiClient from '@/lib/http/apiClient';
 import type {
+  BaseTableRow,
   ComparisonInsight,
   ComparisonPoint,
   ExportProgress,
@@ -37,7 +38,7 @@ const endpointMap: Record<ReportId, string> = {
 };
 
 interface FetchCostosResult {
-  tables: ReportTableDescriptor[];
+  tables: ReportTableDescriptor<BaseTableRow>[];
   cards: ReportSummaryCard[];
 }
 
@@ -47,7 +48,7 @@ export async function fetchCostosReport(filters: ReportFilters): Promise<FetchCo
   const normalized = normalizeCostosResponse(response);
   const cards = buildCostosSummaryCards(normalized);
 
-  const costosTable: ReportTableDescriptor = {
+  const costosTable: ReportTableDescriptor<{ centro: string; monto: string }> = {
     id: 'costos-centro',
     title: 'Costos por centro',
     description: 'Montos consolidados por centro de costos.',
@@ -62,7 +63,7 @@ export async function fetchCostosReport(filters: ReportFilters): Promise<FetchCo
     emptyMessage: 'Sin registros de costos para el periodo solicitado.',
   };
 
-  const consumosTable: ReportTableDescriptor = {
+  const consumosTable: ReportTableDescriptor<{ producto: string; cantidad: string }> = {
     id: 'consumos-producto',
     title: 'Consumos por producto',
     description: 'Totales consumidos durante el periodo.',
@@ -82,7 +83,7 @@ export async function fetchCostosReport(filters: ReportFilters): Promise<FetchCo
   const cifTable = normalizeCifResponse(normalized.cif);
 
   return {
-    tables: [costosTable, consumosTable, cifTable],
+    tables: [costosTable, consumosTable, cifTable] as ReportTableDescriptor<BaseTableRow>[],
     cards,
   };
 }

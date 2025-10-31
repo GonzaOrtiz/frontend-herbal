@@ -2,10 +2,15 @@ import apiClient from '@/lib/http/apiClient';
 import { logHttpError } from '@/lib/observability/logger';
 import type {
   AccionMasivaResultado,
+  ConsumoRegistro,
   FiltroPersistente,
+  LitrosCremaRegistro,
   OperacionModulo,
   OperacionRegistro,
+  PerdidaRegistro,
+  ProduccionRegistro,
   ResumenContextual,
+  SobranteRegistro,
 } from './types';
 
 type RawRecord = Record<string, unknown>;
@@ -237,52 +242,65 @@ const fromApi: Record<OperacionModulo, (raw: RawRecord) => OperacionRegistro> = 
 };
 
 const toApi: Record<OperacionModulo, (registro: OperacionRegistro) => RawRecord> = {
-  consumos: (registro) => ({
-    producto: registro.producto,
-    insumo: registro.insumo,
-    cantidad: registro.cantidad,
-    unidad: registro.unidad,
-    tipoProd: registro.tipoProd,
-    fecha: registro.fecha,
-    calculationDate: registro.calculationDate,
-    accessId: registro.accessId,
-  }),
-  producciones: (registro) => {
-    const centroParsed = Number.parseInt(registro.centro, 10);
-    const centro = Number.isNaN(centroParsed) ? registro.centro : centroParsed;
+  consumos: (registro) => {
+    const consumo = registro as ConsumoRegistro;
     return {
-      producto: registro.producto,
-      cantidad: registro.cantidad,
-      centro,
-      etapa: registro.etapa,
-      fecha: registro.fecha,
-      calculationDate: registro.calculationDate,
-      accessId: registro.accessId,
+      producto: consumo.producto,
+      insumo: consumo.insumo,
+      cantidad: consumo.cantidad,
+      unidad: consumo.unidad,
+      tipoProd: consumo.tipoProd,
+      fecha: consumo.fecha,
+      calculationDate: consumo.calculationDate,
+      accessId: consumo.accessId,
     };
   },
-  litros: (registro) => ({
-    fecha: registro.fecha,
-    Producto: registro.producto,
-    Monto: registro.litros,
-    calculationDate: registro.calculationDate,
-    accessId: registro.accessId,
-  }),
-  perdidas: (registro) => ({
-    FechaPer: registro.fecha,
-    GRUPO: registro.grupo,
-    PRODUCTO: registro.producto,
-    HORMA: registro.horma,
-    CANTIKG: registro.cantidad,
-    calculationDate: registro.calculationDate,
-  }),
-  sobrantes: (registro) => ({
-    FechaSob: registro.fecha,
-    GRUPO: registro.grupo,
-    PRODUCTO: registro.producto,
-    HORMA: registro.horma,
-    CANTIKG: registro.cantidad,
-    calculationDate: registro.calculationDate,
-  }),
+  producciones: (registro) => {
+    const produccion = registro as ProduccionRegistro;
+    const centroParsed = Number.parseInt(produccion.centro, 10);
+    const centro = Number.isNaN(centroParsed) ? produccion.centro : centroParsed;
+    return {
+      producto: produccion.producto,
+      cantidad: produccion.cantidad,
+      centro,
+      etapa: produccion.etapa,
+      fecha: produccion.fecha,
+      calculationDate: produccion.calculationDate,
+      accessId: produccion.accessId,
+    };
+  },
+  litros: (registro) => {
+    const litros = registro as LitrosCremaRegistro;
+    return {
+      fecha: litros.fecha,
+      Producto: litros.producto,
+      Monto: litros.litros,
+      calculationDate: litros.calculationDate,
+      accessId: litros.accessId,
+    };
+  },
+  perdidas: (registro) => {
+    const perdida = registro as PerdidaRegistro;
+    return {
+      FechaPer: perdida.fecha,
+      GRUPO: perdida.grupo,
+      PRODUCTO: perdida.producto,
+      HORMA: perdida.horma,
+      CANTIKG: perdida.cantidad,
+      calculationDate: perdida.calculationDate,
+    };
+  },
+  sobrantes: (registro) => {
+    const sobrante = registro as SobranteRegistro;
+    return {
+      FechaSob: sobrante.fecha,
+      GRUPO: sobrante.grupo,
+      PRODUCTO: sobrante.producto,
+      HORMA: sobrante.horma,
+      CANTIKG: sobrante.cantidad,
+      calculationDate: sobrante.calculationDate,
+    };
+  },
 };
 
 function buildQuery(modulo: OperacionModulo, filtros: FiltroPersistente): string {

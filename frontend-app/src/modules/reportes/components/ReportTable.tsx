@@ -1,7 +1,7 @@
 import React from 'react';
-import type { ReportTableDescriptor } from '../types';
+import type { BaseTableRow, ReportTableDescriptor } from '../types';
 
-interface ReportTableProps<Row extends Record<string, unknown>> {
+interface ReportTableProps<Row extends BaseTableRow> {
   descriptor: ReportTableDescriptor<Row>;
 }
 
@@ -17,7 +17,7 @@ function formatCellValue(value: unknown): string {
   return String(value);
 }
 
-const ReportTable = <Row extends Record<string, unknown>>({ descriptor }: ReportTableProps<Row>) => {
+const ReportTable = <Row extends BaseTableRow>({ descriptor }: ReportTableProps<Row>) => {
   const hasRows = descriptor.rows && descriptor.rows.length > 0;
   const titleId = `${descriptor.id}-title`;
   const descriptionId = descriptor.description ? `${descriptor.id}-description` : undefined;

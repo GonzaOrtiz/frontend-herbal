@@ -42,7 +42,9 @@ export function useOperacionSync(options: SyncOptions = {}) {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+    };
   }, [dependencias, queryClient, resumen, setResumen]);
 
   useEffect(() => {

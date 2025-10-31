@@ -59,7 +59,7 @@ function getCellValue(
   column: ColumnDefinition,
   currency: string,
 ): React.ReactNode {
-  const value = (record as Record<string, unknown>)[column.key];
+  const value = (record as unknown as Record<string, unknown>)[column.key];
   if (column.render) {
     return column.render(value, record as Record<string, unknown>);
   }
