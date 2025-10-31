@@ -595,8 +595,8 @@ function App() {
       ? 'Cerrar'
       : 'Abrir'
     : isSidebarExpanded
-      ? 'Contraer'
-      : 'Expandir';
+      ? ''
+      : '';
 
   return (
     <div className="app-shell">
