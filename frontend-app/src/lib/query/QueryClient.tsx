@@ -51,16 +51,18 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
   }, [options.queryFn]);
 
   const fetchLatest = useCallback(
-    () => client.fetchQuery(parsedKey, () => queryFnRef.current()),
+    (options?: { force?: boolean }) => client.fetchQuery(parsedKey, () => queryFnRef.current(), options),
     [client, parsedKey],
   );
+
+  const forceFetchLatest = useCallback(() => fetchLatest({ force: true }), [fetchLatest]);
 
   const [state, setState] = useState<UseQueryResult<TData>>({
     status: 'idle',
     data: undefined,
     error: undefined,
     updatedAt: 0,
-    refetch: fetchLatest,
+    refetch: forceFetchLatest,
   });
 
   useEffect(() => {
@@ -72,7 +74,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
           ...prev,
           ...state,
           data: state.data as TData | undefined,
-          refetch: fetchLatest,
+          refetch: forceFetchLatest,
         }));
       },
     });
@@ -85,7 +87,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
         data: record.data as TData,
         error: undefined,
         updatedAt: record.updatedAt,
-        refetch: fetchLatest,
+        refetch: forceFetchLatest,
       });
       return unsubscribe;
     }
@@ -100,7 +102,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
           data,
           error: undefined,
           updatedAt: Date.now(),
-          refetch: fetchLatest,
+          refetch: forceFetchLatest,
         });
       })
       .catch((error) => {
@@ -110,7 +112,7 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
           data: undefined,
           error,
           updatedAt: Date.now(),
-          refetch: fetchLatest,
+          refetch: forceFetchLatest,
         });
       });
 
@@ -118,13 +120,13 @@ export function useQuery<TData>(options: QueryOptions<TData>): UseQueryResult<TD
       isMounted = false;
       unsubscribe();
     };
-  }, [client, parsedKey, enabled, staleTime, fetchLatest]);
+  }, [client, parsedKey, enabled, staleTime, fetchLatest, forceFetchLatest]);
 
-  const refetchRef = useRef(fetchLatest);
+  const refetchRef = useRef(forceFetchLatest);
 
   useEffect(() => {
-    refetchRef.current = fetchLatest;
-  }, [fetchLatest]);
+    refetchRef.current = forceFetchLatest;
+  }, [forceFetchLatest]);
 
   useEffect(() => {
     if (!enabled) return;

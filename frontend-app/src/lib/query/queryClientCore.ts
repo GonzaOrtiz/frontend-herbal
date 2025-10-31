@@ -64,18 +64,24 @@ export class QueryClient {
     return created;
   }
 
-  async fetchQuery<TData>(key: QueryKey, queryFn: () => Promise<TData>): Promise<TData> {
+  async fetchQuery<TData>(
+    key: QueryKey,
+    queryFn: () => Promise<TData>,
+    options: { force?: boolean } = {},
+  ): Promise<TData> {
     const record = this.ensureQuery<TData>(key);
 
     if (record.status === 'loading' && record.promise) {
       return record.promise;
     }
 
-    const now = Date.now();
-    const staleTime = this.config.staleTime ?? 0;
+    if (!options.force) {
+      const now = Date.now();
+      const staleTime = this.config.staleTime ?? 0;
 
-    if (record.status === 'success' && now - record.updatedAt < staleTime) {
-      return Promise.resolve(record.data as TData);
+      if (record.status === 'success' && now - record.updatedAt < staleTime) {
+        return Promise.resolve(record.data as TData);
+      }
     }
 
     const promise = queryFn()

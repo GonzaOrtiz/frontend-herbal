@@ -100,3 +100,25 @@ test('QueryClient cachea y permite invalidar', async () => {
 
   assert.equal(fetchCount, 2);
 });
+
+test('QueryClient permite forzar un refetch ignorando staleTime', async () => {
+  const client = createQueryClient({ staleTime: 60_000 });
+  let fetchCount = 0;
+
+  const queryFn = async () => {
+    fetchCount += 1;
+    return fetchCount;
+  };
+
+  const first = await client.fetchQuery(['catalogo', 'force'], queryFn);
+  const cached = await client.fetchQuery(['catalogo', 'force'], queryFn);
+
+  assert.equal(fetchCount, 1);
+  assert.equal(first, 1);
+  assert.equal(cached, 1);
+
+  const forced = await client.fetchQuery(['catalogo', 'force'], queryFn, { force: true });
+
+  assert.equal(fetchCount, 2);
+  assert.equal(forced, 2);
+});
