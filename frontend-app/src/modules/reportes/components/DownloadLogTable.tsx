@@ -36,7 +36,7 @@ const DownloadLogTable: React.FC<DownloadLogTableProps> = ({ logs }) => {
               <td>
                 {Object.entries(log.filters).map(([key, value]) => (
                   <div key={key}>
-                    <strong>{key}:</strong> {value ?? '—'}
+                    <strong>{key}:</strong> {value!.toString() ?? '—'}
                   </div>
                 ))}
               </td>

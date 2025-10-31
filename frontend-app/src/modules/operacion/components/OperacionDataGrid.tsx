@@ -123,7 +123,7 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
                   ))}
                   <td className="operacion-datagrid__cell operacion-datagrid__cell--nowrap">
                     <SyncStatusBadge status={registro.syncStatus ?? 'synced'}>
-                      {registro.source} · {formatDate(registro.createdAt)}
+                      {registro.source} · {formatDate(registro.createdAt!)}
                     </SyncStatusBadge>
                   </td>
                 </tr>
