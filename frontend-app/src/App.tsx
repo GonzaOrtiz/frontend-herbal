@@ -270,6 +270,8 @@ const domainEntries: { id: DomainKey; label: string }[] = [
   { id: 'reportes', label: 'Reportes y analítica' },
 ];
 
+const productName = 'Suite Herbal ERP';
+
 function SidebarIcon({ name }: { name: SidebarIconName }) {
   switch (name) {
     case 'dashboard':
@@ -628,6 +630,11 @@ function App() {
 
   const domainConfig = domainConfigs[activeDomain];
 
+  const activeDomainEntry = useMemo(
+    () => domainEntries.find((entry) => entry.id === activeDomain) ?? domainEntries[0],
+    [activeDomain],
+  );
+
   useEffect(() => {
     const handleResize = () => {
       const compact = window.innerWidth < 1024;
@@ -703,35 +710,58 @@ function App() {
               <div className="app-navbar__logo" aria-hidden="true">
                 {domainConfig.logo}
               </div>
-              <div className="app-navbar__headline">
-                <p className="app-navbar__eyebrow">{domainConfig.eyebrow}</p>
-                <h1 className="app-navbar__title">{domainConfig.title}</h1>
-                <p className="app-navbar__subtitle">{domainConfig.subtitle}</p>
-                <div className="app-navbar__domains" role="tablist" aria-label="Dominios principales">
-                  {domainEntries.map((entry) => {
-                    const isActive = entry.id === activeDomain;
-                    return (
-                      <button
-                        key={entry.id}
-                        type="button"
-                        role="tab"
-                        className="app-navbar__domain-button"
-                        aria-selected={isActive}
-                        data-active={isActive}
-                        onClick={() => setActiveDomain(entry.id)}
-                      >
-                        {entry.label}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div className="app-navbar__brand-text">
+                <span className="app-navbar__brand-title">{productName}</span>
+                <span className="app-navbar__brand-domain">{activeDomainEntry.label}</span>
               </div>
             </div>
           </div>
+
+          <nav className="app-navbar__domains" role="tablist" aria-label="Dominios principales">
+            {domainEntries.map((entry) => {
+              const isActive = entry.id === activeDomain;
+              return (
+                <button
+                  key={entry.id}
+                  type="button"
+                  role="tab"
+                  className="app-navbar__domain-button"
+                  aria-selected={isActive}
+                  data-active={isActive}
+                  onClick={() => setActiveDomain(entry.id)}
+                >
+                  {entry.label}
+                </button>
+              );
+            })}
+          </nav>
         </div>
       </header>
 
       <div className="app-shell__content">
+        <section className="app-shell__page-header">
+          <div className="app-shell__page-meta">
+            <p className="app-shell__eyebrow">{domainConfig.eyebrow}</p>
+            <h1 className="app-shell__title">{domainConfig.title}</h1>
+            <p className="app-shell__subtitle">{domainConfig.subtitle}</p>
+            <p className="app-shell__description">{domainConfig.overview.description}</p>
+            <div className="app-shell__quick-actions" role="list">
+              {domainConfig.shortcuts.map((shortcut) => (
+                <span key={shortcut} className="app-shell__quick-action" role="listitem">
+                  {shortcut}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="app-shell__page-stats" role="list">
+            {domainConfig.overview.stats.map((stat) => (
+              <div key={stat.label} className="app-shell__stat" role="listitem">
+                <span className="app-shell__stat-value">{stat.value}</span>
+                <span className="app-shell__stat-label">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </section>
         <div className="app-layout">
           {isCompactViewport && isSidebarVisible && (
             <button type="button" className="app-sidebar__backdrop" aria-label="Cerrar panel" onClick={closeSidebar} />
