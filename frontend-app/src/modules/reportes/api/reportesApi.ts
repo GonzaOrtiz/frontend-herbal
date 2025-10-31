@@ -24,6 +24,7 @@ import {
   normalizeDownloadLog,
   normalizeManoObraResponse,
 } from '../utils/normalizers';
+import type { NormalizedCostosResponse } from '../utils/normalizers';
 import { serializeFiltersToSearch } from '../utils/filters';
 
 const endpointMap: Record<ReportId, string> = {
@@ -45,10 +46,10 @@ interface FetchCostosResult {
 export async function fetchCostosReport(filters: ReportFilters): Promise<FetchCostosResult> {
   const query = serializeFiltersToSearch(filters);
   const response = await apiClient.get<unknown>(buildUrl('costos', query));
-  const normalized = normalizeCostosResponse(response);
+  const normalized: NormalizedCostosResponse = normalizeCostosResponse(response);
   const cards = buildCostosSummaryCards(normalized);
 
-  const costosTable: ReportTableDescriptor<{ centro: string; monto: string }> = {
+  const costosTable: ReportTableDescriptor<BaseTableRow> = {
     id: 'costos-centro',
     title: 'Costos por centro',
     description: 'Montos consolidados por centro de costos.',
@@ -56,14 +57,16 @@ export async function fetchCostosReport(filters: ReportFilters): Promise<FetchCo
       { id: 'centro', label: 'Centro', align: 'left' },
       { id: 'monto', label: 'Monto', align: 'right', isNumeric: true },
     ],
-    rows: normalized.costos.map((item) => ({
-      centro: item.centro,
-      monto: new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(item.monto),
-    })),
+    rows: normalized.costos.map((item) =>
+      ({
+        centro: item.centro,
+        monto: new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(item.monto),
+      } satisfies BaseTableRow),
+    ),
     emptyMessage: 'Sin registros de costos para el periodo solicitado.',
   };
 
-  const consumosTable: ReportTableDescriptor<{ producto: string; cantidad: string }> = {
+  const consumosTable: ReportTableDescriptor<BaseTableRow> = {
     id: 'consumos-producto',
     title: 'Consumos por producto',
     description: 'Totales consumidos durante el periodo.',
@@ -71,19 +74,21 @@ export async function fetchCostosReport(filters: ReportFilters): Promise<FetchCo
       { id: 'producto', label: 'Producto' },
       { id: 'cantidad', label: 'Cantidad', align: 'right', isNumeric: true },
     ],
-    rows: normalized.consumos.map((item) => ({
-      producto: item.producto,
-      cantidad: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
-        item.cantidad,
-      ),
-    })),
+    rows: normalized.consumos.map((item) =>
+      ({
+        producto: item.producto,
+        cantidad: new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+          item.cantidad,
+        ),
+      } satisfies BaseTableRow),
+    ),
     emptyMessage: 'No se registraron consumos en el periodo seleccionado.',
   };
 
   const cifTable = normalizeCifResponse(normalized.cif);
 
   return {
-    tables: [costosTable, consumosTable, cifTable] as ReportTableDescriptor<BaseTableRow>[],
+    tables: [costosTable, consumosTable, cifTable],
     cards,
   };
 }

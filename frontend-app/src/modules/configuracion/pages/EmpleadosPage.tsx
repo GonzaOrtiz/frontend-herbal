@@ -182,14 +182,14 @@ const EmpleadosPage: React.FC = () => {
               searchPlaceholder="Buscar por número o nombre"
             />
 
-            {catalog.error && (
+            {catalog.error ? (
               <div className="config-alert" role="alert">
                 <span>No pudimos cargar los empleados. Intenta nuevamente.</span>
                 <button type="button" className="ghost config-alert__action" onClick={() => catalog.refetch()}>
                   Reintentar
                 </button>
               </div>
-            )}
+            ) : null}
 
             <CatalogTable
               rows={empleados}

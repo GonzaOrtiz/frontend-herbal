@@ -125,8 +125,7 @@ const RegisterSalaryDialog: React.FC<RegisterSalaryDialogProps> = ({
       formState.fechaSueldo !== '' &&
       formState.fechaCalculo !== '' &&
       formState.sueldoTotal !== '' &&
-      Number(formState.sueldoTotal) > 0 &&
-      formState.esGastoDelPeriodo !== ''
+      Number(formState.sueldoTotal) > 0
     );
   }, [formState, hasError, isLoading]);
 

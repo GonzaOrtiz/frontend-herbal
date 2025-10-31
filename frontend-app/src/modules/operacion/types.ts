@@ -16,7 +16,7 @@ export interface TrazabilidadMetadata {
   accessId?: string;
 }
 
-export interface BaseOperacionRegistro extends TrazabilidadMetadata {
+export interface BaseOperacionRegistro extends TrazabilidadMetadata, Record<string, unknown> {
   id: string;
   centro?: string;
   fecha: string;

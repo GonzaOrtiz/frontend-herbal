@@ -4,9 +4,11 @@ import type { QueryStatus } from '@/lib/query/queryClientCore';
 import type { ReportFilters, ReportId } from '../types';
 import { useReportesContext } from '../context/ReportesContext';
 
+type QueryKeyComponent = string | number | boolean | null | undefined | Record<string, unknown>;
+
 interface UseReportQueryOptions<TData> {
   reportId: ReportId;
-  queryKeySuffix?: unknown;
+  queryKeySuffix?: QueryKeyComponent;
   fetcher: (filters: ReportFilters) => Promise<TData>;
 }
 
@@ -24,7 +26,13 @@ export function useReportQuery<TData>({
   fetcher,
 }: UseReportQueryOptions<TData>): UseReportQueryResult<TData> {
   const { filters } = useReportesContext();
-  const queryKey = useMemo(() => ['reportes', reportId, filters, queryKeySuffix], [reportId, filters, queryKeySuffix]);
+  const queryKey = useMemo(() => {
+    const base: QueryKeyComponent[] = ['reportes', reportId, filters];
+    if (queryKeySuffix !== undefined) {
+      base.push(queryKeySuffix);
+    }
+    return base;
+  }, [reportId, filters, queryKeySuffix]);
 
   const query = useQuery<TData>({
     queryKey,

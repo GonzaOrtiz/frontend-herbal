@@ -38,8 +38,8 @@ const OperacionLayout: React.FC = () => {
     if (!registros || registros.length === 0) return;
     const first = registros[0] as OperacionRegistro;
     setResumen({
-      centro: first.centro,
-      calculationDate: first.calculationDate,
+      centro: first.centro ?? 'Centro sin asignar',
+      calculationDate: first.calculationDate ?? first.fecha,
       responsable: first.responsable ?? 'coordinador.01',
     });
   }, [registros, setResumen]);

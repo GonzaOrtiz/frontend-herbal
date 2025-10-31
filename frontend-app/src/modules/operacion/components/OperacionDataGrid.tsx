@@ -54,7 +54,7 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
   }, [registros, onSelect]);
 
   const renderCell = (registro: OperacionRegistro, key: string) => {
-    const value = (registro as Record<string, unknown>)[key];
+    const value = registro[key];
     if (value === null || value === undefined || value === '') {
       return '—';
     }
@@ -122,7 +122,7 @@ const OperacionDataGrid: React.FC<Props> = ({ config, registros, onSelect, loadi
                     </td>
                   ))}
                   <td className="operacion-datagrid__cell operacion-datagrid__cell--nowrap">
-                    <SyncStatusBadge status={registro.syncStatus}>
+                    <SyncStatusBadge status={registro.syncStatus ?? 'synced'}>
                       {registro.source} · {formatDate(registro.createdAt)}
                     </SyncStatusBadge>
                   </td>
