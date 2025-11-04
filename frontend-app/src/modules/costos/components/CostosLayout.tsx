@@ -205,17 +205,19 @@ const CostosLayout: React.FC = () => {
           <h1>Costos y consolidaciones</h1>
           <p>{headerDescription}</p>
         </div>
-        <div className="costos-actions">
+        {/* TODO, REVISAR FUNCIONALIDAD    Seguimiento de consolidación */}
+        {/* <div className="costos-actions">
           <button type="button" className="primary" onClick={() => setDialogOpen(true)}>
             Seguimiento de consolidación
           </button>
-          <button type="button" disabled title={navigationDisabledMessage}>
+        </div> */}
+        {/* TODO: Revisar funcionalidad  Navegación hacia otros módulos existencias, asientos */}
+                  {/* <button type="button" disabled title={navigationDisabledMessage}>
             Ver existencias
           </button>
           <button type="button" disabled title={navigationDisabledMessage}>
             Ir a asientos
-          </button>
-        </div>
+          </button> */}
       </header>
 
       <CostosTabs />
